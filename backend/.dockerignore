@@ -1,0 +1,47 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Editor / IDE
+.idea
+.vscode
+.DS_Store
+
+# Environment / secrets
+.env
+.env.*
+*.local
+
+# Documentation
+docs
+_hurl
+api
+scripts
+
+# Build / test artifacts
+bin
+dist
+out
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.txt
+coverage.html
+
+# Test folders
+**/test
+**/*_test.go
+**/testdata
+**/testdata/**
+
+# Caches
+vendor
+.cache
+
+# Tooling config
+Makefile

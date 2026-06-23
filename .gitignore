@@ -1,0 +1,40 @@
+# --- OS ---
+.DS_STORE
+
+# --- Editor ---
+.vscode
+
+# --- Environment ---
+.env
+.env*
+!.env.sample
+
+# --- Python (agent) ---
+__pycache__/
+*.py[oc]
+wheels/
+*.egg-info
+.venv
+.ruff_cache
+
+# --- Go (backend) ---
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+go.work.sum
+/backend/agent-cube
+/backend/openapi
+
+# --- Build output ---
+bin/
+dist/
+build/
+
+# --- Misc ---
+tmp
+*.mp4

@@ -1,0 +1,60 @@
+services:
+  agent-cube-api:
+    container_name: api
+    build:
+      context: ./backend
+      dockerfile: ./cmd/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ENVIRONMENT=development
+      - PORT=8080
+      - MONGODB_URI=mongodb://user:password@mongo-db:27017/agent-cube-db?authSource=admin
+      - MONGODB_DB=agent-cube-db
+    depends_on:
+      mongo-db:
+        condition: service_healthy
+
+  agent-cube:
+    container_name: agent-cube
+    build:
+      context: ./agent
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - PORT=8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  mongo-db:
+    container_name: mongo-db
+    image: mongo:8.0
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=user
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "--username",
+          "user",
+          "--password",
+          "password",
+          "--authenticationDatabase",
+          "admin",
+          "--eval",
+          "db.runCommand({ ping: 1 })",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s

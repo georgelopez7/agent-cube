@@ -1,0 +1,117 @@
+openapi: 3.1.0
+info:
+  title: Agent API
+  description: HTTP API for the agent service.
+  version: 0.1.0
+paths:
+  /api/v1/health:
+    get:
+      summary: Health Check Handler
+      description: Return the API health status.
+      operationId: health_check_handler_api_v1_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
+  /api/v1/rubiks-cubes/{id}/agents/invoke:
+    post:
+      summary: Invoke Rubiks Cube Agent Handler
+      description: Invokes the Rubik's Cube Agent for the given cubeID and model.
+      operationId: invoke_rubiks_cube_agent_handler_api_v1_rubiks_cubes__id__agents_invoke_post
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvokeRubiksCubeAgentRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvokeRubiksCubeAgentResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    HealthCheckResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+      type: object
+      required:
+      - status
+      title: HealthCheckResponse
+      description: Response model for the health check endpoint.
+    InvokeRubiksCubeAgentRequest:
+      properties:
+        model:
+          type: string
+          title: Model
+      type: object
+      required:
+      - model
+      title: InvokeRubiksCubeAgentRequest
+      description: Request body for invoking the Rubik's Cube agent.
+    InvokeRubiksCubeAgentResponse:
+      properties:
+        message:
+          type: string
+          title: Message
+      type: object
+      required:
+      - message
+      title: InvokeRubiksCubeAgentResponse
+      description: Response model for invoking the Rubik's Cube agent.
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+
