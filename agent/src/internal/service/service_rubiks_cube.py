@@ -1,4 +1,5 @@
 from langchain_core.messages import AIMessage, HumanMessage
+from langfuse.langchain import CallbackHandler
 
 from internal.pkg.agent.agent import NewRubiksCubeAgent
 from internal.pkg.agent.prompts import NewStarterPrompt
@@ -13,13 +14,17 @@ class RubiksCubeService:
         Runs the Rubik's Cube Agent with the given ID and model.
         """
 
+        langfuse_handler = CallbackHandler()
+
         agent = NewRubiksCubeAgent(model)
 
         prompt = NewStarterPrompt(id)
         messages = {"messages": [HumanMessage(content=prompt)]}
 
         final_content = ""
-        for chunk in agent.astream(messages, stream_mode="values"):
+        for chunk in agent.stream(
+            messages, stream_mode="values", config={"callbacks": [langfuse_handler]}
+        ):
             latest_message = chunk["messages"][-1]
 
             # TOOL CALLS
