@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Rotation(str, Enum):
@@ -38,10 +38,12 @@ class CubeRotation(BaseModel):
 
 
 class Cube(BaseModel):
-    Centers: dict[str, Cubie]
-    Corners: dict[str, Cubie]
-    Edges: dict[str, Cubie]
-    Rotations: list[CubeRotation] | None
+    model_config = ConfigDict(populate_by_name=True)
+
+    Centers: dict[str, Cubie] = Field(alias="centers")
+    Corners: dict[str, Cubie] = Field(alias="corners")
+    Edges: dict[str, Cubie] = Field(alias="edges")
+    Rotations: list[CubeRotation] | None = Field(alias="rotations")
 
 
 class CubeState(BaseModel):
@@ -56,12 +58,14 @@ class LLM(BaseModel):
 
 
 class RubiksCube(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     id: str
     llm: LLM
     cube: Cube
     status: str
-    createdAt: datetime
-    updatedAt: datetime
+    createdAt: datetime = Field(alias="created_at")
+    updatedAt: datetime = Field(alias="updated_at")
 
 
 class GetRubiksCubeByIDResponseBody(BaseModel):

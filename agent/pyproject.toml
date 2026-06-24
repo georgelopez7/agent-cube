@@ -8,6 +8,7 @@ dependencies = [
     "fastapi[standard]>=0.128.8",
     "langchain>=0.3.30",
     "langchain-openrouter>=0.2.3",
+    "langfuse>=4.10.0",
 ]
 
 [dependency-groups]
