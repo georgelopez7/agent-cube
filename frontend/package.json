@@ -15,7 +15,8 @@
     "lint": "biome lint",
     "check": "biome check",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "start": "bun run .output/server/index.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -33,6 +34,7 @@
     "clsx": "^2.1.1",
     "cnfast": "^0.0.8",
     "lucide-react": "^1.21.0",
+    "nitro": "^3.0.260610-beta",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "shadcn": "^4.11.0",

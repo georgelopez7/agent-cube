@@ -1,4 +1,14 @@
 services:
+  agent-cube-app:
+    container_name: app
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - agent-cube-api
+    ports:
+      - "3001:3000"
+
   agent-cube-api:
     container_name: api
     build:

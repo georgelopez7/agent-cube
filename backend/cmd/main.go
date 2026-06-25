@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"agent-cube/api/http"
-	_agent "agent-cube/internal/pkg/agentAPI"
+	_agent "agent-cube/internal/pkg/agent-api"
 	"agent-cube/internal/pkg/mongo"
 	"agent-cube/internal/repository"
 	"agent-cube/internal/service"
