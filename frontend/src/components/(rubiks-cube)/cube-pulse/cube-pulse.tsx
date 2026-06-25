@@ -1,0 +1,67 @@
+import { cn } from "cnfast";
+
+interface IProps {
+  className?: string;
+  size?: "sm" | "md" | "lg";
+  animationSpeed?: "slow" | "medium" | "fast";
+}
+
+const SIZE_CLASSES = {
+  sm: "w-40 h-40 md:w-48 md:h-48",
+  md: "w-64 h-64 md:w-80 md:h-80",
+  lg: "w-80 h-80 md:w-96 md:h-96",
+};
+
+const ANIMATION_CLASSES = {
+  slow: "animate-[pulse_4s_cubic-bezier(0.4,0,0.6,1)_infinite]",
+  medium: "animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]",
+  fast: "animate-[pulse_1s_cubic-bezier(0.4,0,0.6,1)_infinite]",
+};
+
+const COLORS = [
+  "bg-rubiks-red",
+  "bg-rubiks-blue",
+  "bg-rubiks-green",
+  "bg-rubiks-orange",
+  "bg-rubiks-yellow",
+  "bg-rubiks-white",
+  "bg-rubiks-blue",
+  "bg-rubiks-green",
+  "bg-rubiks-yellow",
+];
+
+export const CubePulse = ({
+  className = "",
+  size = "md",
+  animationSpeed = "medium",
+}: IProps) => {
+  return (
+    <div
+      className={cn(
+        "relative transform rotate-12 perspective-1000",
+        SIZE_CLASSES[size],
+        className,
+      )}
+    >
+      <div className="absolute inset-0 bg-linear-to-br from-slate-500/20 to-transparent rounded-lg blur-3xl" />
+      <div
+        className={cn(
+          "relative w-full h-full grid grid-cols-3 grid-rows-3 gap-2 p-2 bg-slate-900/80 rounded-lg border border-slate-500/30 shadow-[0_0_10px_rgba(100,116,139,0.2)]",
+          ANIMATION_CLASSES[animationSpeed],
+        )}
+      >
+        {COLORS.map((color, index) => (
+          <div
+            key={index}
+            className={cn(
+              color,
+              "rounded-sm shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]",
+            )}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default CubePulse;
