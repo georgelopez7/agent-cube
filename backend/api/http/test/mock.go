@@ -103,6 +103,21 @@ func (mr *MockServiceMockRecorder) GetRubiksCubeByID(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRubiksCubeByID", reflect.TypeOf((*MockService)(nil).GetRubiksCubeByID), ctx, id)
 }
 
+// InvokeRubiksCubeAgent mocks base method.
+func (m *MockService) InvokeRubiksCubeAgent(ctx context.Context, id primitive.ObjectID) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InvokeRubiksCubeAgent", ctx, id)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// InvokeRubiksCubeAgent indicates an expected call of InvokeRubiksCubeAgent.
+func (mr *MockServiceMockRecorder) InvokeRubiksCubeAgent(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InvokeRubiksCubeAgent", reflect.TypeOf((*MockService)(nil).InvokeRubiksCubeAgent), ctx, id)
+}
+
 // IsRubiksCubeSolved mocks base method.
 func (m *MockService) IsRubiksCubeSolved(ctx context.Context, cubeID primitive.ObjectID) (bool, error) {
 	m.ctrl.T.Helper()

@@ -258,6 +258,60 @@ func TestService_IsRubiksCubeSolved(t *testing.T) {
 	})
 }
 
+func TestService_InvokeRubiksCubeAgent(t *testing.T) {
+	ctx := t.Context()
+	svc, deps := newMockService(t)
+
+	id := primitive.NewObjectID()
+	llm := domain.NewLLM("openai", "openai/gpt-5.4-mini")
+
+	t.Run("should invoke agent and return message", func(t *testing.T) {
+		existing := &domain.RubiksCube{
+			ID:   id,
+			LLM:  llm,
+		}
+
+		expectedMessage := "agent invoked successfully"
+
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(existing, nil)
+		deps.AgentAPI.EXPECT().InvokeAgent(id.Hex(), llm.Model).Return(expectedMessage, nil)
+
+		message, err := svc.InvokeRubiksCubeAgent(ctx, id)
+		require.NoError(t, err)
+		require.Equal(t, expectedMessage, message)
+	})
+
+	t.Run("should return not found error when cube does not exist", func(t *testing.T) {
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, nil)
+
+		message, err := svc.InvokeRubiksCubeAgent(ctx, id)
+		require.ErrorIs(t, err, domain.RubiksCubeNotFoundError)
+		require.Empty(t, message)
+	})
+
+	t.Run("should propagate repository error", func(t *testing.T) {
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, errors.New("boom"))
+
+		message, err := svc.InvokeRubiksCubeAgent(ctx, id)
+		require.Error(t, err)
+		require.Empty(t, message)
+	})
+
+	t.Run("should propagate agent api error", func(t *testing.T) {
+		existing := &domain.RubiksCube{
+			ID:   id,
+			LLM:  llm,
+		}
+
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(existing, nil)
+		deps.AgentAPI.EXPECT().InvokeAgent(id.Hex(), llm.Model).Return("", errors.New("agent boom"))
+
+		message, err := svc.InvokeRubiksCubeAgent(ctx, id)
+		require.Error(t, err)
+		require.Empty(t, message)
+	})
+}
+
 func TestService_UpdateRubiksCubeStatus(t *testing.T) {
 	ctx := t.Context()
 	svc, deps := newMockService(t)

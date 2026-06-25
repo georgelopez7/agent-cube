@@ -21,7 +21,7 @@ func main() {
 		Use:   "openapi",
 		Short: "Print the OpenAPI spec",
 		Run: func(cmd *cobra.Command, args []string) {
-			svc := service.NewService(nil)
+			svc := service.NewService(nil, nil)
 			server := apihttp.NewServer("Agent Cube API", "v1", "8080", svc)
 			server.AddRoutes(server.API)
 

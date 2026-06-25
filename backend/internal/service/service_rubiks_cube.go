@@ -128,3 +128,22 @@ func (s *Service) IsRubiksCubeSolved(ctx context.Context, cubeID primitive.Objec
 
 	return cube.Cube.Solved(), nil
 }
+
+// InvokeRubiksCubeAgent - invokes the agent for the given cube ID using the cube's LLM model.
+func (s *Service) InvokeRubiksCubeAgent(ctx context.Context, id primitive.ObjectID) (string, error) {
+	cube, err := s.repository.GetRubiksCubeByID(ctx, id)
+	if err != nil {
+		return "", err
+	}
+
+	if cube == nil {
+		return "", domain.RubiksCubeNotFoundError
+	}
+
+	message, err := s.agentAPI.InvokeAgent(id.Hex(), cube.LLM.Model)
+	if err != nil {
+		return "", err
+	}
+
+	return message, nil
+}

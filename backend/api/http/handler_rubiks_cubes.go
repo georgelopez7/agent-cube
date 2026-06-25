@@ -157,3 +157,23 @@ func (s *Server) GetSolvedCubeHandler(ctx context.Context, input *GetSolvedCubeI
 	resp.Body.Cube = xcube.SolvedCube
 	return resp, nil
 }
+
+// InvokeRubiksCubeAgentHandler - invokes the Rubik's Cube agent for the given cube ID.
+func (s *Server) InvokeRubiksCubeAgentHandler(ctx context.Context, input *InvokeRubiksCubeAgentInput) (*InvokeRubiksCubeAgentResponse, error) {
+	id, err := primitive.ObjectIDFromHex(input.ID)
+	if err != nil {
+		return nil, huma.Error400BadRequest("invalid rubiks cube id")
+	}
+
+	message, err := s.svc.InvokeRubiksCubeAgent(ctx, id)
+	switch err {
+	case nil:
+		resp := &InvokeRubiksCubeAgentResponse{}
+		resp.Body.Message = message
+		return resp, nil
+	case domain.RubiksCubeNotFoundError:
+		return nil, huma.Error404NotFound("rubiks cube not found")
+	default:
+		return nil, err
+	}
+}

@@ -29,6 +29,7 @@ go.work
 go.work.sum
 /backend/agent-cube
 /backend/openapi
+/backend/seed-db
 
 # --- Build output ---
 bin/

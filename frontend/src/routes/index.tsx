@@ -1,14 +1,35 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { PageLayout } from "#/components/(layouts)/page-layout/page-layout";
+import Spacer from "#/components/(layouts)/spacer/spacer";
+import CubePulse from "#/components/(rubiks-cube)/cube-pulse/cube-pulse";
+import { buttonVariants } from "#/components/ui/button";
+import { ArrowUpRight } from "lucide-react";
 
-export const Route = createFileRoute('/')({ component: Home })
+export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
   return (
-    <div className="p-8">
-      <h1 className="text-4xl font-bold">Welcome to TanStack Start</h1>
-      <p className="mt-4 text-lg">
-        Edit <code>src/routes/index.tsx</code> to get started.
-      </p>
-    </div>
-  )
+    <PageLayout>
+      <div className="flex item-center gap-24">
+        <div>
+          <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold font-heading tracking-tight text-foreground">
+            Agent Cube
+          </h1>
+          <Spacer size="xs" />
+          <p className="text-lg md:text-xl text-muted-foreground max-w-lg leading-relaxed">
+            Benchmarking LLM reasoning and problem-solving through the Rubik's
+            Cube challenge
+          </p>
+          <Spacer size="xs" />
+          <Link to="/agents" className={buttonVariants()}>
+            View Agents
+            <ArrowUpRight />
+          </Link>
+        </div>
+        <div className="hidden md:flex items-center justify-center">
+          <CubePulse randomize />
+        </div>
+      </div>
+    </PageLayout>
+  );
 }

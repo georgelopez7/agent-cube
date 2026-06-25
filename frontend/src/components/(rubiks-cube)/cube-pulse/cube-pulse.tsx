@@ -1,10 +1,17 @@
 import { cn } from "cnfast";
+import { useMemo } from "react";
 
 interface IProps {
   className?: string;
   size?: "sm" | "md" | "lg";
   animationSpeed?: "slow" | "medium" | "fast";
+  randomize?: boolean;
 }
+
+type CubeTile = {
+  id: string;
+  color: string;
+};
 
 const SIZE_CLASSES = {
   sm: "w-40 h-40 md:w-48 md:h-48",
@@ -30,11 +37,33 @@ const COLORS = [
   "bg-rubiks-yellow",
 ];
 
+const CUBE_TILES: CubeTile[] = COLORS.map((color, index) => ({
+  id: `tile-${index}`,
+  color,
+}));
+
+const shuffle = (tiles: CubeTile[]): CubeTile[] => {
+  const shuffled = [...tiles];
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  return shuffled;
+};
+
 export const CubePulse = ({
   className = "",
   size = "md",
   animationSpeed = "medium",
+  randomize = false,
 }: IProps) => {
+  const tiles = useMemo(() => {
+    if (!randomize) return CUBE_TILES;
+    return shuffle(CUBE_TILES);
+  }, [randomize]);
+
   return (
     <div
       className={cn(
@@ -50,9 +79,9 @@ export const CubePulse = ({
           ANIMATION_CLASSES[animationSpeed],
         )}
       >
-        {COLORS.map((color, index) => (
+        {tiles.map(({ id, color }) => (
           <div
-            key={index}
+            key={id}
             className={cn(
               color,
               "rounded-sm shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]",

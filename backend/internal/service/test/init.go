@@ -11,6 +11,7 @@ import (
 // Dependencies - holds the mocked dependencies for service tests.
 type Dependencies struct {
 	Repository *MockRepository
+	AgentAPI   *MockAgentAPI
 }
 
 // newMockService - creates a service instance backed by generated mocks.
@@ -19,12 +20,14 @@ func newMockService(t *testing.T) (*service.Service, Dependencies) {
 	t.Cleanup(ctrl.Finish)
 
 	repository := NewMockRepository(ctrl)
+	agentAPI := NewMockAgentAPI(ctrl)
 
 	deps := Dependencies{
 		Repository: repository,
+		AgentAPI:   agentAPI,
 	}
 
-	svc := service.NewService(repository)
+	svc := service.NewService(repository, agentAPI)
 
 	return svc, deps
 }

@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"agent-cube/api/http"
+	_agent "agent-cube/internal/pkg/agentAPI"
 	"agent-cube/internal/pkg/mongo"
 	"agent-cube/internal/repository"
 	"agent-cube/internal/service"
@@ -24,8 +25,11 @@ func main() {
 	// REPOSITORY
 	repo := repository.NewRepository(mongoDB)
 
+	// AGENT API
+	agentAPI := _agent.NewAgentAPI(os.Getenv("AGENT_API_URL"))
+
 	// SERVICE
-	svc := service.NewService(repo)
+	svc := service.NewService(repo, agentAPI)
 
 	// SERVER
 	port := os.Getenv("PORT")

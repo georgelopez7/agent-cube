@@ -18,6 +18,45 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
+// MockAgentAPI is a mock of AgentAPI interface.
+type MockAgentAPI struct {
+	ctrl     *gomock.Controller
+	recorder *MockAgentAPIMockRecorder
+	isgomock struct{}
+}
+
+// MockAgentAPIMockRecorder is the mock recorder for MockAgentAPI.
+type MockAgentAPIMockRecorder struct {
+	mock *MockAgentAPI
+}
+
+// NewMockAgentAPI creates a new mock instance.
+func NewMockAgentAPI(ctrl *gomock.Controller) *MockAgentAPI {
+	mock := &MockAgentAPI{ctrl: ctrl}
+	mock.recorder = &MockAgentAPIMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAgentAPI) EXPECT() *MockAgentAPIMockRecorder {
+	return m.recorder
+}
+
+// InvokeAgent mocks base method.
+func (m *MockAgentAPI) InvokeAgent(id, model string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InvokeAgent", id, model)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// InvokeAgent indicates an expected call of InvokeAgent.
+func (mr *MockAgentAPIMockRecorder) InvokeAgent(id, model any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InvokeAgent", reflect.TypeOf((*MockAgentAPI)(nil).InvokeAgent), id, model)
+}
+
 // MockRepository is a mock of Repository interface.
 type MockRepository struct {
 	ctrl     *gomock.Controller

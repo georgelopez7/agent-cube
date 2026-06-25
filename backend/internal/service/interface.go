@@ -10,6 +10,11 @@ import (
 
 //go:generate mockgen -source=interface.go -destination=test/mocks.go -package=test
 
+// AgentAPI - defines the agent API operations required by the service layer.
+type AgentAPI interface {
+	InvokeAgent(id string, model string) (string, error)
+}
+
 // Repository - defines the repository operations required by the service layer.
 type Repository interface {
 	CreateRubiksCube(ctx context.Context, cube domain.RubiksCube) error

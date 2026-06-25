@@ -72,6 +72,17 @@ func (s *Server) addRoutes(api huma.API) {
 	}, s.ApplyRubiksCubeRotationHandler)
 
 	huma.Register(api, huma.Operation{
+		OperationID:   "invoke-rubiks-cube-agent",
+		Method:        http.MethodPost,
+		Path:          "/api/v1/rubiks-cubes/{id}/agents/invoke",
+		Summary:       "Invoke the Rubik's Cube agent",
+		Description:   "Invokes the agent for the rubiks cube with the given hex ID",
+		Tags:          []string{"rubiks-cubes"},
+		DefaultStatus: http.StatusOK,
+		Errors:        []int{http.StatusBadRequest, http.StatusNotFound},
+	}, s.InvokeRubiksCubeAgentHandler)
+
+	huma.Register(api, huma.Operation{
 		OperationID:   "is-rubiks-cube-solved",
 		Method:        http.MethodGet,
 		Path:          "/api/v1/rubiks-cubes/{id}/solved",
@@ -91,4 +102,14 @@ func (s *Server) addRoutes(api huma.API) {
 		Tags:          []string{"rubiks-cubes"},
 		DefaultStatus: http.StatusOK,
 	}, s.GetSolvedCubeHandler)
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "get-ai-models",
+		Method:        http.MethodGet,
+		Path:          "/api/v1/ai/models",
+		Summary:       "List AI models",
+		Description:   "Returns the list of available LLMs",
+		Tags:          []string{"ai"},
+		DefaultStatus: http.StatusOK,
+	}, s.GetAIModelsHandler)
 }

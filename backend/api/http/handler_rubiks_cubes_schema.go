@@ -112,3 +112,15 @@ type GetSolvedCubeResponse struct {
 		Cube cube.Cube `json:"cube"`
 	}
 }
+
+// InvokeRubiksCubeAgentInput - input for invoking the agent for a rubiks cube.
+type InvokeRubiksCubeAgentInput struct {
+	ID string `path:"id"`
+}
+
+// InvokeRubiksCubeAgentResponse - response after invoking the agent for a rubiks cube.
+type InvokeRubiksCubeAgentResponse struct {
+	Body struct {
+		Message string `json:"message"`
+	}
+}

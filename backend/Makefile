@@ -12,6 +12,10 @@ gen-mocks: # [ make gen-mocks ]
 gen-openapi: # [ make gen-openapi ]
 	go run ./scripts/gen-openapi/openapi.go openapi > docs/openapi.yaml
 
+.PHONY: seed-db
+seed-db: # [ make seed-db ]
+	docker compose -f ../docker-compose.yaml --profile seed up --build seed-db
+
 .PHONY: run-hurl
 run-hurl: # [ make run-hurl ]
 	hurl --test --variable host=$(BASE_URL) _hurl/*.hurl
