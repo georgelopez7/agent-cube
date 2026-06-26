@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/tanstack-react";
 import RubiksCube from "./rubiks-cube";
 
 const meta: Meta<typeof RubiksCube> = {
-  title: "Components/Rubiks Cube",
+  title: "Components/(rubiks-cube)/Rubiks Cube",
   component: RubiksCube,
   parameters: {
     layout: "centered",

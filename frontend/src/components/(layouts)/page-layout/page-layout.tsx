@@ -1,10 +1,14 @@
+import Navbar from "#/components/(layouts)/navbar/navbar";
+
 interface IPageLayoutProps {
   children: React.ReactNode;
+  navbar?: boolean;
 }
 
-export const PageLayout = ({ children }: IPageLayoutProps) => {
+export const PageLayout = ({ children, navbar = true }: IPageLayoutProps) => {
   return (
-    <div className="relative flex flex-col justify-center items-center min-h-screen p-8 mx-auto">
+    <div className="relative flex flex-col min-h-screen p-8 mx-auto">
+      {navbar && <Navbar />}
       {/* Top Left Corner - Green */}
       <div className="absolute top-4 left-4 w-8 h-8">
         <div className="absolute top-0 left-0 w-full h-0.5 bg-rubiks-green" />

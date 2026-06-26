@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/tanstack-react";
 import CubePulse from "./cube-pulse";
 
 const meta: Meta<typeof CubePulse> = {
-  title: "Components/Cube Pulse",
+  title: "Components/(rubiks-cube)/Cube Pulse",
   component: CubePulse,
   parameters: {
     layout: "centered",
