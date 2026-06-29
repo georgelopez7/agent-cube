@@ -1,4 +1,4 @@
-.PHONY: test gen-openapi run-frontend
+.PHONY: test gen-openapi run-frontend seed-db
 
 test: # [ make test ]
 	$(MAKE) -C backend test
@@ -6,6 +6,9 @@ test: # [ make test ]
 gen-openapi: # [ make gen-openapi ]
 	$(MAKE) -C backend gen-openapi
 	$(MAKE) -C agent gen-openapi
+
+seed-db: # [ make seed-db ]
+	$(MAKE) -C backend seed-db
 
 run-frontend: # [ make run-frontend ]
 	cd frontend && bun dev

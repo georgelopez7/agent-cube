@@ -17,6 +17,7 @@
 docs
 _hurl
 scripts
+!scripts/seed-db
 
 # Build / test artifacts
 bin

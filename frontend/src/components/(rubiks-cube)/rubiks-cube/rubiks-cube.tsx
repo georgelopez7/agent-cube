@@ -1,3 +1,4 @@
+import cn from "cnfast";
 import { Loader2, Video } from "lucide-react";
 import {
   createElement,
@@ -9,7 +10,9 @@ import {
   useRef,
   useState,
 } from "react";
+import Spacer from "#/components/(layouts)/spacer/spacer";
 import { RotationButtons } from "./rotation-buttons";
+import { RotationCollapsible } from "./rotation-collapsible";
 
 const TWISTY_PLAYER_NAME = "twisty-player";
 const TWISTY_PLAYER_SCRIPT = "https://cdn.cubing.net/v0/js/cubing/twisty";
@@ -55,8 +58,10 @@ export interface RubiksCubeRef {
 interface IProps {
   algorithm?: string;
   showRotationButtons?: boolean;
+  showRotationsCollapsible?: boolean;
   showResetAlgoButton?: boolean;
   showResetCameraButton?: boolean;
+  showBorder?: boolean;
 }
 
 const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
@@ -64,8 +69,10 @@ const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
     {
       algorithm = "",
       showRotationButtons = true,
+      showRotationsCollapsible = true,
       showResetAlgoButton = true,
       showResetCameraButton = true,
+      showBorder = true,
     },
     ref,
   ) => {
@@ -199,61 +206,78 @@ const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
     }, []);
 
     return (
-      <div className="flex flex-col items-center gap-4">
-        <div className="p-2">
-          <div className="relative bg-transparent border-2 rounded-sm shadow-sm mb-4">
-            {!loading ? (
-              createElement("twisty-player", {
-                ref: cubeRef,
-                alg: algorithm,
-                visualization: "3D",
-                background: "none",
-                puzzle: "3x3x3",
-                "control-panel": "none",
-                "hint-facelets": "none",
-                style: {
-                  width: "315px",
-                  height: "315px",
-                },
-              } as RubiksCubeHTMLElementProps)
-            ) : (
-              <div className="flex items-center justify-center w-78.75 h-78.75">
-                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
-            {showRotationButtons && (
+      <div className="flex flex-col items-center">
+        <div
+          className={cn(
+            "relative bg-transparent border-2 rounded-sm shadow-sm",
+            !showBorder && "border-transparent",
+          )}
+        >
+          {!loading ? (
+            createElement("twisty-player", {
+              ref: cubeRef,
+              alg: algorithm,
+              visualization: "3D",
+              background: "none",
+              puzzle: "3x3x3",
+              "control-panel": "none",
+              "hint-facelets": "none",
+              style: {
+                width: "315px",
+                height: "315px",
+              },
+            } as RubiksCubeHTMLElementProps)
+          ) : (
+            <div className="flex items-center justify-center w-78.75 h-78.75">
+              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            </div>
+          )}
+        </div>
+        {showRotationsCollapsible && algorithm && (
+          <>
+            <Spacer size="xs" />
+            <RotationCollapsible rotations={ROTATIONS} disabled={loading} />
+          </>
+        )}
+        <div className="flex flex-col">
+          {showRotationButtons && (
+            <>
+              <Spacer size="xs" />
               <RotationButtons
                 rotations={ROTATIONS}
                 onRotation={handleRotation}
                 disabled={loading}
               />
-            )}
-            <div className="flex justify-center gap-2">
-              {showResetAlgoButton && (
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="px-4 py-1 text-sm border-2 rounded hover:bg-accent cursor-pointer"
-                  disabled={loading}
-                >
-                  Reset
-                </button>
-              )}
-              {showResetCameraButton && (
-                <button
-                  type="button"
-                  onClick={handleResetCamera}
-                  className="flex items-center gap-2 px-4 py-1 text-sm border-2 rounded hover:bg-accent cursor-pointer"
-                  disabled={loading}
-                >
-                  <Video className="size-4" />
-                  Reset Camera
-                </button>
-              )}
-            </div>
-          </div>
+            </>
+          )}
+          {(showResetAlgoButton || showResetCameraButton) && (
+            <>
+              <Spacer size="xs" />
+              <div className="flex justify-center gap-2">
+                {showResetAlgoButton && (
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="px-4 py-1 text-sm border-2 rounded hover:bg-accent cursor-pointer"
+                    disabled={loading}
+                  >
+                    Reset
+                  </button>
+                )}
+                {showResetCameraButton && (
+                  <button
+                    type="button"
+                    onClick={handleResetCamera}
+                    className="flex items-center gap-2 px-4 py-1 text-sm border-2 rounded hover:bg-accent cursor-pointer"
+                    disabled={loading}
+                  >
+                    <Video className="size-4" />
+                    Reset Camera
+                  </button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     );
