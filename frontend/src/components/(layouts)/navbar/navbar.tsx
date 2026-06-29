@@ -2,34 +2,56 @@ import { Link } from "@tanstack/react-router";
 
 import { cn } from "cnfast";
 
-import { buttonVariants } from "@/components/ui/button";
+import CubeLogo from "@/components/(icons)/cube-logo/cube-logo";
+import GitHubIcon from "@/components/(icons)/github-icon/github-icon";
+import XLogo from "@/components/(icons)/x-logo/x-logo";
 
 interface IProps {
   className?: string;
+  githubLink?: string;
+  xLink?: string;
 }
 
-const Navbar = ({ className }: IProps) => {
+const Navbar = ({
+  className,
+  githubLink = "https://github.com",
+  xLink = "https://x.com",
+}: IProps) => {
   return (
-    <nav
-      className={cn(
-        "flex items-center justify-between w-full px-6 py-4 border border-border bg-background",
-        className,
-      )}
-    >
-      <Link
-        to="/"
-        className="text-lg font-semibold tracking-tight text-foreground hover:text-primary transition-colors"
+    <nav className={cn("w-full", className)}>
+      <div
+        className={cn(
+          "flex items-center justify-between max-w-6xl mx-auto px-6 py-2.5 border border-border bg-secondary/80 rounded-md",
+        )}
       >
-        Agent Cube
-      </Link>
-      <a
-        href="https://github.com"
-        target="_blank"
-        rel="noopener noreferrer"
-        className={buttonVariants()}
-      >
-        GitHub
-      </a>
+        <Link
+          to="/"
+          className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground hover:text-primary transition-colors"
+        >
+          <CubeLogo size={28} />
+          Agent Cube
+        </Link>
+        <div className="flex items-center gap-4">
+          <a
+            href={githubLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white hover:text-white/80 transition-colors"
+            aria-label="GitHub"
+          >
+            <GitHubIcon size={20} />
+          </a>
+          <a
+            href={xLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white hover:text-white/80 transition-colors"
+            aria-label="X"
+          >
+            <XLogo size={18} />
+          </a>
+        </div>
+      </div>
     </nav>
   );
 };

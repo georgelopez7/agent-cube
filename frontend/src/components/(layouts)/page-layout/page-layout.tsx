@@ -1,4 +1,5 @@
 import Navbar from "#/components/(layouts)/navbar/navbar";
+import Spacer from "../spacer/spacer";
 
 interface IPageLayoutProps {
   children: React.ReactNode;
@@ -8,7 +9,9 @@ interface IPageLayoutProps {
 export const PageLayout = ({ children, navbar = true }: IPageLayoutProps) => {
   return (
     <div className="relative flex flex-col min-h-screen p-8 mx-auto">
+      <Spacer size="sm" />
       {navbar && <Navbar />}
+      <Spacer size="xs" />
       {/* Top Left Corner - Green */}
       <div className="absolute top-4 left-4 w-8 h-8">
         <div className="absolute top-0 left-0 w-full h-0.5 bg-rubiks-green" />
@@ -33,7 +36,15 @@ export const PageLayout = ({ children, navbar = true }: IPageLayoutProps) => {
         <div className="absolute bottom-0 right-0 w-0.5 h-full bg-rubiks-red" />
       </div>
 
-      {children}
+      {/* Top Center - White */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-rubiks-white" />
+
+      {/* Bottom Center - Orange */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-rubiks-orange" />
+
+      <main className="flex flex-1 flex-col w-full max-w-6xl mx-auto">
+        {children}
+      </main>
     </div>
   );
 };

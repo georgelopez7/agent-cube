@@ -1,5 +1,5 @@
 import { cn } from "cnfast";
-import { useMemo } from "react";
+import { useId, useMemo } from "react";
 
 interface IProps {
   className?: string;
@@ -42,11 +42,33 @@ const CUBE_TILES: CubeTile[] = COLORS.map((color, index) => ({
   color,
 }));
 
-const shuffle = (tiles: CubeTile[]): CubeTile[] => {
+const hashStringToSeed = (value: string): number => {
+  let hash = 0;
+
+  for (let i = 0; i < value.length; i++) {
+    const char = value.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash |= 0;
+  }
+
+  return Math.abs(hash);
+};
+
+const createSeededRandom = (seed: number) => {
+  let state = seed;
+
+  return () => {
+    state = (state * 9301 + 49297) % 233280;
+    return state / 233280;
+  };
+};
+
+const shuffle = (tiles: CubeTile[], seed?: number): CubeTile[] => {
   const shuffled = [...tiles];
+  const random = seed !== undefined ? createSeededRandom(seed) : Math.random;
 
   for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
 
@@ -59,10 +81,12 @@ export const CubePulse = ({
   animationSpeed = "medium",
   randomize = false,
 }: IProps) => {
+  const id = useId();
+
   const tiles = useMemo(() => {
     if (!randomize) return CUBE_TILES;
-    return shuffle(CUBE_TILES);
-  }, [randomize]);
+    return shuffle(CUBE_TILES, hashStringToSeed(id));
+  }, [randomize, id]);
 
   return (
     <div

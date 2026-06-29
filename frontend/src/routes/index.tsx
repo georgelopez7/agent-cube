@@ -11,7 +11,7 @@ export const Route = createFileRoute("/")({ component: Home });
 function Home() {
   return (
     <PageLayout>
-      <div className="flex flex-1 items-center justify-center">
+      <div className="flex flex-1 items-center justify-center -translate-y-12">
         <div className="flex items-center gap-24">
           <div>
             <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold font-heading tracking-tight text-foreground">

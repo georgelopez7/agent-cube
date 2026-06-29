@@ -25,13 +25,13 @@ const CreateAgentModal = () => {
     <Dialog>
       <DialogTrigger
         render={
-          <Button>
+          <Button className="w-fit cursor-pointer" variant="outline">
             <Plus />
             Create Agent
           </Button>
         }
       />
-      <DialogContent>
+      <DialogContent className="border rounded-sm">
         <DialogHeader>
           <DialogTitle>Create Agent</DialogTitle>
           <DialogDescription>
