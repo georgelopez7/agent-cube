@@ -1,4 +1,4 @@
-.PHONY: test gen-openapi run-frontend seed-db
+.PHONY: test gen-openapi run-frontend seed-db run-backend
 
 test: # [ make test ]
 	$(MAKE) -C backend test
@@ -15,3 +15,6 @@ run-frontend: # [ make run-frontend ]
 
 run-storybook: # [ make run-storybook ]
 	cd frontend && bun storybook
+
+run-backend: # [ make run-backend ]
+	docker compose --profile backend up
