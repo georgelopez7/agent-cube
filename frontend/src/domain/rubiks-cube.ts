@@ -1,5 +1,14 @@
 import type { LLM } from "./ai";
 
+export type RubiksCube = {
+  id: string;
+  llm: LLM;
+  status: RubiksCubeStatus;
+  cube: Cube;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Cube = {
   centers: Record<string, Cubie>;
   corners: Record<string, Cubie>;
@@ -38,15 +47,7 @@ export enum RubiksCubeStatus {
   Completed = "completed",
 }
 
-export type RubiksCube = {
-  id: string;
-  llm: LLM;
-  status: RubiksCubeStatus;
-  cube: Cube;
-  created_at: string;
-  updated_at: string;
-};
-
+// generateAlgorithm - generates a string representation of the cubes rotations
 export const generateAlgorithm = (rotations: CubeRotation[]): string => {
   return rotations.map((rotation) => rotation.rotation).join(" ");
 };

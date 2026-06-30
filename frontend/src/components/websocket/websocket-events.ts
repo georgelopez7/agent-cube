@@ -1,4 +1,5 @@
-import type { Rotation } from "#/domain/rubiks-cube";
+import type { CubeRotation } from "#/domain/rubiks-cube";
+import { useRubiksCubeStore } from "#/stores/rubiks-cube-store";
 
 export enum WebSocketEventType {
   CubeRotated = "cube.rotated",
@@ -10,13 +11,23 @@ export type CubeRotatedEvent = {
   type: WebSocketEventType.CubeRotated;
   payload: {
     cube_id: string;
-    rotation: Rotation;
+    rotation: CubeRotation;
   };
 };
 
 // cube.rotated
 export const CubeRotatedEventHandler = async (event: CubeRotatedEvent) => {
-  console.log(event);
+  const { records } = useRubiksCubeStore.getState();
+  const AddRotation = useRubiksCubeStore((state) => state.AddRotation);
+
+  const { cube_id, rotation } = event.payload;
+
+  const cube = records.get(cube_id);
+
+  if (!cube) return;
+
+  AddRotation(cube_id, rotation);
+  cube.ref.rotate(rotation.rotation);
 };
 
 // type CubeSolvedEvent = {

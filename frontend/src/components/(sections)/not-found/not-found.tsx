@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { Home } from "lucide-react";
 
 import { PageLayout } from "#/components/(layouts)/page-layout/page-layout";
 import Spacer from "#/components/(layouts)/spacer/spacer";
@@ -19,7 +18,6 @@ const NotFound = () => {
         </p>
         <Spacer size="sm" />
         <Link to="/" className={buttonVariants()}>
-          <Home />
           Back to home
         </Link>
       </div>

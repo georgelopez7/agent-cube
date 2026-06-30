@@ -11,6 +11,8 @@ import {
   useState,
 } from "react";
 import Spacer from "#/components/(layouts)/spacer/spacer";
+import type { RubiksCube as RubiksCubeType } from "#/domain/rubiks-cube";
+import { useRubiksCubeStore } from "#/stores/rubiks-cube-store";
 import { RotationButtons } from "./rotation-buttons";
 import { RotationCollapsible } from "./rotation-collapsible";
 
@@ -38,8 +40,7 @@ export interface RubiksCubeHTMLElement extends HTMLElement {
   experimentalSetAlg?: (alg: string) => Promise<void>;
 }
 
-interface RubiksCubeHTMLElementProps
-  extends HTMLAttributes<RubiksCubeHTMLElement> {
+interface RubiksCubeHTMLElementProps extends HTMLAttributes<RubiksCubeHTMLElement> {
   alg?: string;
   visualization?: string;
   background?: string;
@@ -56,6 +57,7 @@ export interface RubiksCubeRef {
 }
 
 interface IProps {
+  cube?: RubiksCubeType;
   algorithm?: string;
   showRotationButtons?: boolean;
   showRotationsCollapsible?: boolean;
@@ -67,6 +69,7 @@ interface IProps {
 const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
   (
     {
+      cube,
       algorithm = "",
       showRotationButtons = true,
       showRotationsCollapsible = true,
@@ -78,45 +81,61 @@ const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
   ) => {
     const [loading, setLoading] = useState(true);
 
+    // cubeRef - reference to the underlying <twisty-player> web component DOM element
     const cubeRef = useRef<RubiksCubeHTMLElement | null>(null);
-
-    useImperativeHandle(ref, () => ({
+    // apiRef - stable public API object exposed to parent refs and registered in the global store
+    const apiRef = useRef<RubiksCubeRef>({
       // rotate - applies a single move to the cube
       rotate: async (move: string) => {
-        if (!cubeRef.current) return;
+        const cubeElement = cubeRef.current;
+        if (!cubeElement) return;
 
-        const cube = cubeRef.current;
-
-        if (cube.experimentalAddMove) {
-          await cube.experimentalAddMove(move);
+        if (cubeElement.experimentalAddMove) {
+          await cubeElement.experimentalAddMove(move);
         } else {
-          const currentAlg = cube.alg || "";
-          cube.alg = currentAlg + (currentAlg ? " " : "") + move;
+          const currentAlg = cubeElement.alg || "";
+          cubeElement.alg = currentAlg + (currentAlg ? " " : "") + move;
         }
       },
       // reset - clears the cube's current algorithm
       reset: async () => {
-        if (!cubeRef.current) return;
+        const cubeElement = cubeRef.current;
+        if (!cubeElement) return;
 
-        const cube = cubeRef.current;
-
-        if (cube.experimentalSetAlg) {
-          await cube.experimentalSetAlg("");
+        if (cubeElement.experimentalSetAlg) {
+          await cubeElement.experimentalSetAlg("");
         } else {
-          cube.alg = "";
+          cubeElement.alg = "";
         }
       },
       // resetCamera - resets the camera to its default latitude and longitude
       resetCamera: () => {
-        if (!cubeRef.current) return;
+        const cubeElement = cubeRef.current;
+        if (!cubeElement) return;
 
-        const cube = cubeRef.current;
-        cube.setAttribute("camera-latitude", "35");
-        cube.setAttribute("camera-longitude", "30");
+        cubeElement.setAttribute("camera-latitude", "35");
+        cubeElement.setAttribute("camera-longitude", "30");
       },
       // getCube - exposes the underlying twisty-player element
       getCube: () => cubeRef.current,
-    }));
+    });
+
+    // Expose the stable apiRef to parent components via the forwarded ref
+    useImperativeHandle(ref, () => apiRef.current);
+
+    // Store actions used to register and unregister this cube instance globally
+    const AddRecord = useRubiksCubeStore((state) => state.AddRecord);
+    const RemoveRecord = useRubiksCubeStore((state) => state.RemoveRecord);
+
+    // Register this cube in the global store when a cube prop is provided, and
+    // remove it when the component unmounts or the cube prop changes.
+    useEffect(() => {
+      if (!cube) return;
+
+      AddRecord({ ref: apiRef.current, cube });
+
+      return () => RemoveRecord(cube.id);
+    }, [cube, AddRecord, RemoveRecord]);
 
     useEffect(() => {
       // initCube - loads the cubing/twisty web component script once on mount
@@ -170,39 +189,17 @@ const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
 
     // handleRotation - handles an applied rotation
     const handleRotation = useCallback(async (move: string) => {
-      if (!cubeRef.current) return;
-
-      const cube = cubeRef.current;
-
-      if (cube.experimentalAddMove) {
-        await cube.experimentalAddMove(move);
-      } else {
-        const currentAlg = cube.alg || "";
-        cube.alg = currentAlg + (currentAlg ? " " : "") + move;
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
+      await apiRef.current.rotate(move);
     }, []);
 
     // handleReset - clears the cube's current algorithm
     const handleReset = useCallback(async () => {
-      if (!cubeRef.current) return;
-
-      const cube = cubeRef.current;
-
-      if (cube.experimentalSetAlg) {
-        await cube.experimentalSetAlg("");
-      } else {
-        cube.alg = "";
-      }
+      await apiRef.current.reset();
     }, []);
 
     // handleResetCamera - resets the camera to its default latitude and longitude
-    const handleResetCamera = useCallback(async () => {
-      if (!cubeRef.current) return;
-
-      const cube = cubeRef.current;
-      cube.setAttribute("camera-latitude", "35");
-      cube.setAttribute("camera-longitude", "30");
+    const handleResetCamera = useCallback(() => {
+      apiRef.current.resetCamera();
     }, []);
 
     return (
@@ -233,10 +230,10 @@ const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
             </div>
           )}
         </div>
-        {showRotationsCollapsible && algorithm && (
+        {showRotationsCollapsible && cube?.cube.rotations && cube.cube.rotations.length > 0 && (
           <>
             <Spacer size="xs" />
-            <RotationCollapsible rotations={ROTATIONS} disabled={loading} />
+            <RotationCollapsible rotations={cube.cube.rotations} disabled={loading} />
           </>
         )}
         <div className="flex flex-col">

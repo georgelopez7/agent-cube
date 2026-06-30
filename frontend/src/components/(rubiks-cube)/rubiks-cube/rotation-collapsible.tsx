@@ -4,44 +4,82 @@ import { useState } from "react";
 import Spacer from "#/components/(layouts)/spacer/spacer";
 import { Collapsible, CollapsibleContent } from "#/components/ui/collapsible";
 import { ScrollArea } from "#/components/ui/scroll-area";
-
-interface Rotation {
-  label: string;
-  value: string;
-}
+import type { CubeRotation, Rotation } from "#/domain/rubiks-cube";
 
 interface IProps {
-  rotations: Rotation[];
+  rotations: CubeRotation[];
   disabled?: boolean;
   className?: string;
 }
 
-const RUBIKS_BACKGROUND: Record<string, string> = {
-  F: "bg-rubiks-green",
-  R: "bg-rubiks-red",
-  U: "bg-rubiks-white",
-  L: "bg-rubiks-orange",
-  B: "bg-rubiks-blue",
-  D: "bg-rubiks-yellow",
+type RotationStyle = {
+  background: string;
+  text: string;
+  border: string;
 };
 
-const getRotationStyle = (value: string) => {
-  const isPrime = value.includes("'");
-  const base = value.replace("'", "");
-
-  if (isPrime) {
-    return {
-      background: "bg-transparent",
-      text: "text-foreground",
-      border: "border-2 border-foreground",
-    };
-  }
-
-  return {
-    background: RUBIKS_BACKGROUND[base] ?? "bg-muted",
-    text: base === "U" || base === "D" ? "text-black" : "text-rubiks-white",
-    border: base === "U" ? "border-2 border-border" : "",
-  };
+// ROTATION_CONFIG - maps each valid rotation to its visual style metadata
+const ROTATION_CONFIG: Record<Rotation, RotationStyle> = {
+  F: {
+    background: "bg-rubiks-green",
+    text: "text-rubiks-white",
+    border: "",
+  },
+  "F'": {
+    background: "bg-transparent",
+    text: "text-foreground",
+    border: "border-2 border-foreground",
+  },
+  R: {
+    background: "bg-rubiks-red",
+    text: "text-rubiks-white",
+    border: "",
+  },
+  "R'": {
+    background: "bg-transparent",
+    text: "text-foreground",
+    border: "border-2 border-foreground",
+  },
+  U: {
+    background: "bg-rubiks-white",
+    text: "text-black",
+    border: "border-2 border-border",
+  },
+  "U'": {
+    background: "bg-transparent",
+    text: "text-foreground",
+    border: "border-2 border-foreground",
+  },
+  L: {
+    background: "bg-rubiks-orange",
+    text: "text-rubiks-white",
+    border: "",
+  },
+  "L'": {
+    background: "bg-transparent",
+    text: "text-foreground",
+    border: "border-2 border-foreground",
+  },
+  B: {
+    background: "bg-rubiks-blue",
+    text: "text-rubiks-white",
+    border: "",
+  },
+  "B'": {
+    background: "bg-transparent",
+    text: "text-foreground",
+    border: "border-2 border-foreground",
+  },
+  D: {
+    background: "bg-rubiks-yellow",
+    text: "text-black",
+    border: "",
+  },
+  "D'": {
+    background: "bg-transparent",
+    text: "text-foreground",
+    border: "border-2 border-foreground",
+  },
 };
 
 export const RotationCollapsible = ({
@@ -74,19 +112,19 @@ export const RotationCollapsible = ({
         <ScrollArea className="h-31 w-48">
           <div className="grid grid-cols-5 gap-2">
             {rotations.map((rotation) => {
-              const style = getRotationStyle(rotation.value);
+              const style = ROTATION_CONFIG[rotation.rotation];
               return (
                 <div
-                  key={rotation.value}
+                  key={rotation.index}
                   className={cn(
                     "flex items-center justify-center size-8 rounded-sm text-sm font-mono leading-none text-center",
                     style.background,
                     style.text,
                     style.border,
                   )}
-                  title={rotation.label}
+                  title={rotation.rotation}
                 >
-                  {rotation.label}
+                  {rotation.rotation}
                 </div>
               );
             })}

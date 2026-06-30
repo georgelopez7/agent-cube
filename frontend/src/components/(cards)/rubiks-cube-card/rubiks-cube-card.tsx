@@ -1,7 +1,7 @@
 import { cn } from "cnfast";
 import { format } from "date-fns";
 import { ArrowRight, CheckCircle, Circle, LoaderCircle } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import { getAIProviderIcon } from "#/components/(icons)/helpers";
 import Spacer from "#/components/(layouts)/spacer/spacer";
@@ -15,25 +15,48 @@ import {
 
 interface IProps {
   cube: RubiksCubeType;
-  onBegin?: (id: string) => void;
+  onInvoke?: (id: string) => Promise<void>;
 }
 
-const statusBadgeClasses: Record<RubiksCubeStatus, string> = {
-  [RubiksCubeStatus.Created]: "bg-rubiks-blue text-white",
-  [RubiksCubeStatus.InProgress]: "bg-rubiks-orange text-white",
-  [RubiksCubeStatus.Completed]: "bg-rubiks-green text-white",
+const STATUS_CONFIG: Record<
+  RubiksCubeStatus,
+  { styles: string; icon: ReactNode; label: string }
+> = {
+  [RubiksCubeStatus.Created]: {
+    styles: "bg-rubiks-blue text-white",
+    icon: <Circle className="size-3.5" />,
+    label: "Created",
+  },
+  [RubiksCubeStatus.InProgress]: {
+    styles: "bg-rubiks-orange text-white",
+    icon: <LoaderCircle className="size-3.5 animate-spin" />,
+    label: "In Progress",
+  },
+  [RubiksCubeStatus.Completed]: {
+    styles: "bg-rubiks-green text-white",
+    icon: <CheckCircle className="size-3.5" />,
+    label: "Completed",
+  },
 };
 
-const statusIcons: Record<RubiksCubeStatus, ReactNode> = {
-  [RubiksCubeStatus.Created]: <Circle className="size-3.5" />,
-  [RubiksCubeStatus.InProgress]: (
-    <LoaderCircle className="size-3.5 animate-spin" />
-  ),
-  [RubiksCubeStatus.Completed]: <CheckCircle className="size-3.5" />,
-};
-
-const RubiksCubeCard = ({ cube, onBegin }: IProps) => {
+const RubiksCubeCard = ({ cube, onInvoke }: IProps) => {
   const ProviderIcon = getAIProviderIcon(cube.llm.provider);
+
+  const algorithm = generateAlgorithm(cube.cube.rotations ?? []);
+  const date = format(new Date(cube.created_at), "yyyy-MM-dd");
+  const time = format(new Date(cube.created_at), "HH:mm:ss");
+  const status = STATUS_CONFIG[cube.status];
+
+  const [invoking, setInvoking] = useState(false);
+
+  const handleInvoke = async (id: string) => {
+    if (invoking) return;
+
+    setInvoking(true);
+    await onInvoke?.(id);
+    setInvoking(false);
+  };
+
   return (
     <div className="flex flex-col items-center border-2 px-2 rounded-lg">
       <Spacer size="xs" />
@@ -46,36 +69,36 @@ const RubiksCubeCard = ({ cube, onBegin }: IProps) => {
           <span
             className={cn(
               "inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1 text-xs font-medium uppercase tracking-wide",
-              statusBadgeClasses[cube.status],
+              status.styles,
             )}
           >
-            {statusIcons[cube.status]}
-            {cube.status.replace("_", " ")}
+            {status.icon}
+            {status.label}
           </span>
         </div>
         <div className="flex flex-col items-end gap-0.5 text-xs text-muted-foreground tabular-nums">
-          <span>{format(new Date(cube.created_at), "yyyy-MM-dd")}</span>
-          <span>{format(new Date(cube.created_at), "HH:mm:ss")}</span>
+          <span>{date}</span>
+          <span>{time}</span>
         </div>
       </div>
       <Spacer size="xs" />
       {cube.status === RubiksCubeStatus.Created && (
         <Button
           size="xs"
-          onClick={() => onBegin?.(cube.id)}
+          onClick={() => handleInvoke(cube.id)}
           className="w-full rounded-sm"
           variant="outline"
         >
           <ArrowRight />
-          Begin Solving
+          Invoke Agent
         </Button>
       )}
       <Spacer size="xs" />
       <RubiksCube
-        algorithm={generateAlgorithm(cube.cube.rotations ?? [])}
+        cube={cube}
+        algorithm={algorithm}
         showRotationButtons={false}
         showResetAlgoButton={false}
-        showResetCameraButton={false}
         showBorder={false}
       />
       <Spacer size="xs" />

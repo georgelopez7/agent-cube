@@ -26,11 +26,11 @@ const Websocket = ({ debug = false }: WebsocketProps) => {
     };
 
     socket.current.onmessage = async (event) => {
-      const payload = JSON.parse(event.data) as IEvent;
+      const ev = JSON.parse(event.data) as IEvent;
 
-      switch (payload.type) {
+      switch (ev.type) {
         case WebSocketEventType.CubeRotated:
-          await CubeRotatedEventHandler(payload);
+          await CubeRotatedEventHandler(ev);
           break;
         // case "cube.solved":
         //   await SolvedEventHandler(payload);

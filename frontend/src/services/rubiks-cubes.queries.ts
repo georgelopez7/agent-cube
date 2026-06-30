@@ -1,13 +1,26 @@
-import { queryOptions } from "@tanstack/react-query";
-import { getAllRubiksCubes } from "./rubiks-cubes.action";
+import {
+  queryOptions,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import {
+  getAllRubiksCubes,
+  invokeRubiksCubeAgent,
+} from "./rubiks-cubes.actions";
 
 const RUBIKS_CUBES_QUERY_KEY = "rubiks-cubes";
 
+export const rubiksCubesKeys = {
+  all: [RUBIKS_CUBES_QUERY_KEY] as const,
+  lists: () => [...rubiksCubesKeys.all, "list"] as const,
+  list: (limit: number) => [...rubiksCubesKeys.lists(), limit] as const,
+};
+
 export const RUBIKS_CUBES_QUERIES = {
-  // getAll: Fetches all rubiks cubes with an optional limit.
+  // getAll - Fetches all rubiks cubes with an optional limit.
   getAll: (limit = 10) =>
     queryOptions({
-      queryKey: [RUBIKS_CUBES_QUERY_KEY, limit],
+      queryKey: rubiksCubesKeys.list(limit),
       queryFn: async () => {
         const { cubes, error } = await getAllRubiksCubes({
           data: { limit },
@@ -19,5 +32,28 @@ export const RUBIKS_CUBES_QUERIES = {
 
         return cubes;
       },
+      staleTime: 30_000,
     }),
+};
+
+// useInvokeRubiksCubeAgent - Invokes the agent for a rubiks cube by ID.
+export const useInvokeRubiksCubeAgent = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { message, error } = await invokeRubiksCubeAgent({
+        data: { id },
+      });
+
+      if (error) {
+        throw new Error(error);
+      }
+
+      return message;
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: rubiksCubesKeys.all });
+    },
+  });
 };
