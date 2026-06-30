@@ -1,7 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { LLM } from "#/domain/ai";
 import type { XError } from "#/domain/errors";
 import type { RubiksCube } from "#/domain/rubiks-cube";
-import { API_BASE_URL } from "./constants";
+import { API_BASE_URL } from "./_constants";
 
 export type GetAllRubiksCubesResult = {
   cubes: RubiksCube[];
@@ -35,6 +36,47 @@ export const getAllRubiksCubes = createServerFn({ method: "GET" })
     const body: GetAllRubiksCubesResponseBody = await response.json();
     return {
       cubes: body.cubes ?? [],
+      error: null,
+    };
+  });
+
+export type CreateRubiksCubeResult = {
+  cube: RubiksCube;
+  error: XError;
+};
+
+// createRubiksCube - Creates a new rubiks cube configured for a specific LLM.
+export const createRubiksCube = createServerFn({ method: "POST" })
+  .validator((data: { llm: LLM; scramble: number }) => data)
+  .handler(async ({ data }): Promise<CreateRubiksCubeResult> => {
+    const url = new URL("/api/v1/rubiks-cubes", API_BASE_URL);
+
+    const response = await fetch(url.toString(), {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        llm: data.llm,
+        scramble: data.scramble,
+      }),
+    });
+
+    if (!response.ok) {
+      return {
+        cube: null as unknown as RubiksCube,
+        error: `Failed to create rubiks cube: ${response.status} ${response.statusText}`,
+      };
+    }
+
+    type CreateRubiksCubeResponseBody = {
+      cube: RubiksCube | null;
+    };
+
+    const body: CreateRubiksCubeResponseBody = await response.json();
+    return {
+      cube: body.cube ?? (null as unknown as RubiksCube),
       error: null,
     };
   });

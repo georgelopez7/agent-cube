@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { AIProvider, type LLM } from "#/domain/ai";
 import type { XError } from "#/domain/errors";
-import { API_BASE_URL } from "./constants";
+import { API_BASE_URL } from "./_constants";
 
 export type GetAIModelsResult = {
   models: LLM[];

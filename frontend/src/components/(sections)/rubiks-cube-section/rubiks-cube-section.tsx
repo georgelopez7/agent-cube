@@ -19,13 +19,12 @@ const RubiksCubeSection = ({
   const setStatus = useRubiksCubeStore((state) => state.SetStatus);
 
   // MUTATIONS
-  const { mutate: invokeAgent } = useInvokeRubiksCubeAgent();
+  const { mutateAsync: invokeAgent } = useInvokeRubiksCubeAgent();
 
   // HANDLERS
   const handleInvoke = async (id: string) => {
-    invokeAgent(id, {
-      onSuccess: () => setStatus(id, RubiksCubeStatus.InProgress),
-    });
+    await invokeAgent(id);
+    setStatus(id, RubiksCubeStatus.InProgress);
   };
 
   if (isLoading) {

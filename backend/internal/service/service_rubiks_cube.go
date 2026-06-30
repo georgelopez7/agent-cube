@@ -142,6 +142,10 @@ func (s *Service) InvokeRubiksCubeAgent(ctx context.Context, id primitive.Object
 		return "", domain.RubiksCubeNotFoundError
 	}
 
+	if err := s.repository.UpdateRubiksCubeStatus(ctx, id, domain.RubiksCubeStatusInProgress); err != nil {
+		return "", err
+	}
+
 	message, err := s.agentAPI.InvokeAgent(id.Hex(), cube.LLM.Model)
 	if err != nil {
 		return "", err

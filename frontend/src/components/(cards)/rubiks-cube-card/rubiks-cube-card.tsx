@@ -53,12 +53,15 @@ const RubiksCubeCard = ({ cube, onInvoke }: IProps) => {
     if (invoking) return;
 
     setInvoking(true);
-    await onInvoke?.(id);
-    setInvoking(false);
+    try {
+      await onInvoke?.(id);
+    } finally {
+      setInvoking(false);
+    }
   };
 
   return (
-    <div className="flex flex-col items-center border-2 px-2 rounded-lg">
+    <div className="flex flex-col items-center border-2 px-3 rounded-lg">
       <Spacer size="xs" />
       <div className="flex w-full items-start justify-between">
         <div className="flex flex-col items-start gap-2">
@@ -86,10 +89,15 @@ const RubiksCubeCard = ({ cube, onInvoke }: IProps) => {
         <Button
           size="xs"
           onClick={() => handleInvoke(cube.id)}
+          disabled={invoking}
           className="w-full rounded-sm"
           variant="outline"
         >
-          <ArrowRight />
+          {invoking ? (
+            <LoaderCircle className="size-4 animate-spin" />
+          ) : (
+            <ArrowRight />
+          )}
           Invoke Agent
         </Button>
       )}

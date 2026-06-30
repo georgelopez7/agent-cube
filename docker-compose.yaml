@@ -23,6 +23,7 @@ services:
       - PORT=8080
       - MONGODB_URI=mongodb://user:password@mongo-db:27017/agent-cube-db?authSource=admin
       - MONGODB_DB=agent-cube-db
+      - AGENT_API_URL=http://agent-cube-worker:8000
       - WEBSOCKET_ALLOWED_ORIGINS=http://agent-cube-app:3000,http://localhost:3000,http://localhost:3001,http://localhost:3002
     depends_on:
       mongo-db:

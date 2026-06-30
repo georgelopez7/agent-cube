@@ -28,6 +28,8 @@ const Websocket = ({ debug = false }: WebsocketProps) => {
     socket.current.onmessage = async (event) => {
       const ev = JSON.parse(event.data) as IEvent;
 
+      if (debug) console.log(ev);
+
       switch (ev.type) {
         case WebSocketEventType.CubeRotated:
           await CubeRotatedEventHandler(ev);

@@ -3,7 +3,9 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
+import type { LLM } from "#/domain/ai";
 import {
+  createRubiksCube,
   getAllRubiksCubes,
   invokeRubiksCubeAgent,
 } from "./rubiks-cubes.actions";
@@ -36,10 +38,28 @@ export const RUBIKS_CUBES_QUERIES = {
     }),
 };
 
-// useInvokeRubiksCubeAgent - Invokes the agent for a rubiks cube by ID.
-export const useInvokeRubiksCubeAgent = () => {
+// useCreateRubiksCube - Creates a new rubiks cube and invalidates the cubes list.
+export const useCreateRubiksCube = () => {
   const queryClient = useQueryClient();
 
+  return useMutation({
+    mutationFn: async (data: { llm: LLM; scramble: number }) => {
+      const { cube, error } = await createRubiksCube({ data });
+
+      if (error) {
+        throw new Error(error);
+      }
+
+      return cube;
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: rubiksCubesKeys.all });
+    },
+  });
+};
+
+// useInvokeRubiksCubeAgent - Invokes the agent for a rubiks cube by ID.
+export const useInvokeRubiksCubeAgent = () => {
   return useMutation({
     mutationFn: async (id: string) => {
       const { message, error } = await invokeRubiksCubeAgent({
@@ -51,9 +71,6 @@ export const useInvokeRubiksCubeAgent = () => {
       }
 
       return message;
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: rubiksCubesKeys.all });
     },
   });
 };
