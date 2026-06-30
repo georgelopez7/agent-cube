@@ -112,6 +112,8 @@ func (s *Service) ApplyRubiksCubeRotation(ctx context.Context, cubeID primitive.
 		return nil, err
 	}
 
+	s.bus.Publish(ctx, domain.NewCubeRotatedEvent(cubeID.Hex(), rotation))
+
 	return cube, nil
 }
 

@@ -11,6 +11,7 @@ import (
 
 	"agent-cube/internal/domain"
 	_agent "agent-cube/internal/pkg/agent-api"
+	"agent-cube/internal/pkg/event"
 	"agent-cube/internal/pkg/mongo"
 	"agent-cube/internal/repository"
 	"agent-cube/internal/service"
@@ -48,8 +49,11 @@ func main() {
 	// AGENT API
 	agentAPI := _agent.NewAgentAPI(os.Getenv("AGENT_API_URL"))
 
+	// EVENT BUS
+	bus := event.NewNoopBus()
+
 	// SERVICE
-	svc := service.NewService(repo, agentAPI)
+	svc := service.NewService(repo, agentAPI, bus)
 
 	// SEED
 	for i := 0; i < count; i++ {

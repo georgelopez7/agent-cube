@@ -173,6 +173,7 @@ func TestService_ApplyRubiksCubeRotation(t *testing.T) {
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(&existing, nil)
 		deps.Repository.EXPECT().UpdateRubiksCube(gomock.Any(), gomock.Any()).Return(nil)
+		deps.EventBus.EXPECT().Publish(gomock.Any(), gomock.Any())
 
 		actual, err := svc.ApplyRubiksCubeRotation(ctx, id, cube.RotationF)
 		require.NoError(t, err)

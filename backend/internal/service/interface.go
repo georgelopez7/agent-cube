@@ -23,3 +23,8 @@ type Repository interface {
 	GetRubiksCubeByID(ctx context.Context, id primitive.ObjectID) (*domain.RubiksCube, error)
 	GetAllRubiksCubes(ctx context.Context, limit int64) ([]domain.RubiksCube, error)
 }
+
+// EventBus - defines the event bus operations required by the service layer.
+type EventBus interface {
+	Publish(ctx context.Context, event domain.Event)
+}

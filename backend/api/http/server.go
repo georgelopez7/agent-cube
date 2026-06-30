@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"testing"
 
+	"agent-cube/internal/pkg/websocket"
+
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/danielgtaylor/huma/v2/humatest"
@@ -17,9 +19,10 @@ type Server struct {
 	Router  *http.ServeMux
 	API     huma.API
 	svc     Service
+	ws      *websocket.WebSocketManager
 }
 
-func NewServer(name string, version string, port string, svc Service) *Server {
+func NewServer(name string, version string, port string, svc Service, ws *websocket.WebSocketManager) *Server {
 	router := http.NewServeMux()
 	config := huma.DefaultConfig(name, version)
 
@@ -34,6 +37,7 @@ func NewServer(name string, version string, port string, svc Service) *Server {
 		Router:  router,
 		API:     api,
 		svc:     svc,
+		ws:      ws,
 	}
 }
 
@@ -55,5 +59,5 @@ func (s *Server) Start() {
 func (s *Server) Mock(t *testing.T) *Server {
 	_, api := humatest.New(t)
 	s.addRoutes(api)
-	return &Server{API: api, svc: s.svc}
+	return &Server{API: api, svc: s.svc, ws: s.ws}
 }

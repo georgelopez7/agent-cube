@@ -7,6 +7,7 @@ import (
 )
 
 func (s *Server) addRoutes(api huma.API) {
+	// HTTP ROUTES
 	huma.Register(api, huma.Operation{
 		OperationID:   "create-rubiks-cube",
 		Method:        http.MethodPost,
@@ -112,4 +113,23 @@ func (s *Server) addRoutes(api huma.API) {
 		Tags:          []string{"ai"},
 		DefaultStatus: http.StatusOK,
 	}, s.GetAIModelsHandler)
+
+	// WEBSOCKET ROUTES
+	s.Router.HandleFunc("/api/v1/ws", s.WebsocketHandler)
+
+	// The WebSocket endpoint is registered directly on the router, so Huma
+	// does not know to include it in the generated OpenAPI spec. Add it manually.
+	api.OpenAPI().AddOperation(&huma.Operation{
+		OperationID: "websocket-connection",
+		Method:      http.MethodGet,
+		Path:        "/api/v1/ws",
+		Summary:     "WebSocket connection",
+		Description: "Upgrades the HTTP connection to a WebSocket for real-time updates",
+		Tags:        []string{"websocket"},
+		Responses: map[string]*huma.Response{
+			"101": {
+				Description: "Switching Protocols to WebSocket",
+			},
+		},
+	})
 }

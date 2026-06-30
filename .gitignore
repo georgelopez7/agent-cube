@@ -28,7 +28,7 @@ wheels/
 go.work
 go.work.sum
 /backend/agent-cube
-/backend/openapi
+/backend/gen-openapi
 /backend/seed-db
 
 # --- Build output ---

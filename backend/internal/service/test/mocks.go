@@ -152,3 +152,39 @@ func (mr *MockRepositoryMockRecorder) UpdateRubiksCubeStatus(ctx, id, status any
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRubiksCubeStatus", reflect.TypeOf((*MockRepository)(nil).UpdateRubiksCubeStatus), ctx, id, status)
 }
+
+// MockEventBus is a mock of EventBus interface.
+type MockEventBus struct {
+	ctrl     *gomock.Controller
+	recorder *MockEventBusMockRecorder
+	isgomock struct{}
+}
+
+// MockEventBusMockRecorder is the mock recorder for MockEventBus.
+type MockEventBusMockRecorder struct {
+	mock *MockEventBus
+}
+
+// NewMockEventBus creates a new mock instance.
+func NewMockEventBus(ctrl *gomock.Controller) *MockEventBus {
+	mock := &MockEventBus{ctrl: ctrl}
+	mock.recorder = &MockEventBusMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockEventBus) EXPECT() *MockEventBusMockRecorder {
+	return m.recorder
+}
+
+// Publish mocks base method.
+func (m *MockEventBus) Publish(ctx context.Context, event domain.Event) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Publish", ctx, event)
+}
+
+// Publish indicates an expected call of Publish.
+func (mr *MockEventBusMockRecorder) Publish(ctx, event any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Publish", reflect.TypeOf((*MockEventBus)(nil).Publish), ctx, event)
+}

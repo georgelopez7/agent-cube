@@ -3,7 +3,8 @@ package test
 import (
 	"testing"
 
-	apihttp "agent-cube/api/http"
+	xhttp "agent-cube/api/http"
+	"agent-cube/internal/pkg/websocket"
 
 	"github.com/danielgtaylor/huma/v2/humatest"
 	"go.uber.org/mock/gomock"
@@ -32,8 +33,11 @@ func newMockServer(t *testing.T) (humatest.TestAPI, MockServerDependencies, func
 		MockSvc: mockSvc,
 	}
 
+	// WEBSOCKET
+	ws := websocket.NewWebSocketManager([]string{"*"})
+
 	// SERVER (MOCK)
-	server := apihttp.NewServer(name, version, port, mockSvc).Mock(t)
+	server := xhttp.NewServer(name, version, port, mockSvc, ws).Mock(t)
 	api := server.API.(humatest.TestAPI)
 
 	return api, deps, ctrl.Finish
