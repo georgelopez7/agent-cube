@@ -1,8 +1,7 @@
 import RubiksCubeCard from "#/components/(cards)/rubiks-cube-card/rubiks-cube-card";
 import { Skeleton } from "#/components/ui/skeleton";
-import { type RubiksCube, RubiksCubeStatus } from "#/domain/rubiks-cube";
+import type { RubiksCube } from "#/domain/rubiks-cube";
 import { useInvokeRubiksCubeAgent } from "#/services/rubiks-cubes.queries";
-import { useRubiksCubeStore } from "#/stores/rubiks-cube-store";
 
 interface RubiksCubeSectionProps {
   cubes?: RubiksCube[];
@@ -15,16 +14,12 @@ const RubiksCubeSection = ({
   isLoading,
   limit = 10,
 }: RubiksCubeSectionProps) => {
-  // STORE
-  const setStatus = useRubiksCubeStore((state) => state.SetStatus);
-
   // MUTATIONS
   const { mutateAsync: invokeAgent } = useInvokeRubiksCubeAgent();
 
   // HANDLERS
   const handleInvoke = async (id: string) => {
     await invokeAgent(id);
-    setStatus(id, RubiksCubeStatus.InProgress);
   };
 
   if (isLoading) {

@@ -60,6 +60,8 @@ export const useCreateRubiksCube = () => {
 
 // useInvokeRubiksCubeAgent - Invokes the agent for a rubiks cube by ID.
 export const useInvokeRubiksCubeAgent = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (id: string) => {
       const { message, error } = await invokeRubiksCubeAgent({
@@ -71,6 +73,9 @@ export const useInvokeRubiksCubeAgent = () => {
       }
 
       return message;
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: rubiksCubesKeys.all });
     },
   });
 };

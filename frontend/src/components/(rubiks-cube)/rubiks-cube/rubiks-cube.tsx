@@ -127,6 +127,17 @@ const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
     const AddRecord = useRubiksCubeStore((state) => state.AddRecord);
     const RemoveRecord = useRubiksCubeStore((state) => state.RemoveRecord);
 
+    // xrotations - Subscribe to live rotations from the store so websocket updates are
+    // reflected in the rotation list without waiting for a query refetch.
+    const cubeID = cube?.id;
+    const xrotations = useRubiksCubeStore(
+      useCallback(
+        (state) =>
+          cubeID ? state.records.get(cubeID)?.cube.cube.rotations : undefined,
+        [cubeID],
+      ),
+    );
+
     // Register this cube in the global store when a cube prop is provided, and
     // remove it when the component unmounts or the cube prop changes.
     useEffect(() => {
@@ -230,10 +241,10 @@ const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
             </div>
           )}
         </div>
-        {showRotationsCollapsible && cube?.cube.rotations && cube.cube.rotations.length > 0 && (
+        {showRotationsCollapsible && xrotations && xrotations.length > 0 && (
           <>
             <Spacer size="xs" />
-            <RotationCollapsible rotations={cube.cube.rotations} disabled={loading} />
+            <RotationCollapsible rotations={xrotations} disabled={loading} />
           </>
         )}
         <div className="flex flex-col">

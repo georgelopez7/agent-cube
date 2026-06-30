@@ -5,17 +5,19 @@ import (
 )
 
 // AddCubeRotation - records a rotation in the cube's history.
-func (c *Cube) AddCubeRotation(rotation Rotation, fromScramble bool) {
+func (c *Cube) AddCubeRotation(rotation Rotation, fromScramble bool) CubeRotation {
 	index := len(c.Rotations) // Index of the rotation to be added
-	xRotation := NewCubeRotation(index, rotation, fromScramble)
-	c.Rotations = append(c.Rotations, xRotation)
+	xrotation := NewCubeRotation(index, rotation, fromScramble)
+	c.Rotations = append(c.Rotations, xrotation)
+
+	return xrotation
 }
 
 // Rotate - applies the given rotation to the cube and records it.
 // Returns ErrInvalidRotation if the rotation is not a valid cube rotation.
-func (c *Cube) Rotate(rotation Rotation, fromScramble bool) error {
+func (c *Cube) Rotate(rotation Rotation, fromScramble bool) (*CubeRotation, error) {
 	if !IsValidRotation(rotation) {
-		return ErrInvalidRotation
+		return nil, ErrInvalidRotation
 	}
 
 	switch rotation {
@@ -45,9 +47,9 @@ func (c *Cube) Rotate(rotation Rotation, fromScramble bool) error {
 		c.R_()
 	}
 
-	c.AddCubeRotation(rotation, fromScramble)
+	xrotation := c.AddCubeRotation(rotation, fromScramble)
 
-	return nil
+	return &xrotation, nil
 }
 
 // Scramble - applies random rotations to the cube and returns the applied rotations.
@@ -62,7 +64,7 @@ func (c *Cube) Scramble(amount int) {
 
 		rotation := PossibleRotations[idx]
 
-		_ = c.Rotate(rotation, true) // Apply rotation to the cube
+		_, _ = c.Rotate(rotation, true) // Apply rotation to the cube
 	}
 }
 

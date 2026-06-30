@@ -28,11 +28,11 @@ const (
 
 // cube.rotated
 type CubeRotatedPayload struct {
-	CubeID   string        `json:"cube_id"`
-	Rotation cube.Rotation `json:"rotation"`
+	CubeID   string            `json:"cube_id"`
+	Rotation cube.CubeRotation `json:"rotation"`
 }
 
-func NewCubeRotatedEvent(cubeID string, rotation cube.Rotation) Event {
+func NewCubeRotatedEvent(cubeID string, rotation cube.CubeRotation) Event {
 	return Event{
 		Type:    EventCubeRotated,
 		Payload: CubeRotatedPayload{CubeID: cubeID, Rotation: rotation},

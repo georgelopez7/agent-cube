@@ -104,7 +104,8 @@ func (s *Service) ApplyRubiksCubeRotation(ctx context.Context, cubeID primitive.
 		return nil, domain.RubiksCubeNotFoundError
 	}
 
-	if err := cube.Cube.Rotate(rotation, false); err != nil {
+	xrotation, err := cube.Cube.Rotate(rotation, false)
+	if err != nil {
 		return nil, err
 	}
 
@@ -112,7 +113,7 @@ func (s *Service) ApplyRubiksCubeRotation(ctx context.Context, cubeID primitive.
 		return nil, err
 	}
 
-	s.bus.Publish(ctx, domain.NewCubeRotatedEvent(cubeID.Hex(), rotation))
+	s.bus.Publish(ctx, domain.NewCubeRotatedEvent(cubeID.Hex(), *xrotation))
 
 	return cube, nil
 }

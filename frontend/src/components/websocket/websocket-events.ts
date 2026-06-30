@@ -17,8 +17,7 @@ export type CubeRotatedEvent = {
 
 // cube.rotated
 export const CubeRotatedEventHandler = async (event: CubeRotatedEvent) => {
-  const { records } = useRubiksCubeStore.getState();
-  const AddRotation = useRubiksCubeStore((state) => state.AddRotation);
+  const { records, AddRotation } = useRubiksCubeStore.getState();
 
   const { cube_id, rotation } = event.payload;
 
@@ -27,7 +26,7 @@ export const CubeRotatedEventHandler = async (event: CubeRotatedEvent) => {
   if (!cube) return;
 
   AddRotation(cube_id, rotation);
-  cube.ref.rotate(rotation.rotation);
+  await cube.ref.rotate(rotation.rotation);
 };
 
 // type CubeSolvedEvent = {
