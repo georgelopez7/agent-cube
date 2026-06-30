@@ -5,7 +5,7 @@ export enum AIProvider {
   Google = "google",
   Meta = "meta",
   Deepseek = "deepseek",
-  XAI = "xai",
+  XAI = "x-ai",
   Qwen = "qwen",
   OpenRouter = "openrouter",
   Minimax = "minimax",

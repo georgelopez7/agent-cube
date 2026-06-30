@@ -1,18 +1,16 @@
 services:
-  agent-cube-app:
-    container_name: app
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    depends_on:
-      - agent-cube-api
-    ports:
-      - "3001:3000"
+  # agent-cube-app:
+  #   container_name: app
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     - agent-cube-api
+  #   ports:
+  #     - "3001:3000"
 
   agent-cube-api:
     container_name: api
-    profiles:
-      - backend
     build:
       context: ./backend
       dockerfile: ./cmd/Dockerfile
@@ -69,8 +67,6 @@ services:
 
   mongo-db:
     container_name: mongo-db
-    profiles:
-      - backend
     image: mongo:8.0
     environment:
       - MONGO_INITDB_ROOT_USERNAME=user
@@ -107,8 +103,6 @@ services:
   # ────────────────────────────────────────────────────────────────────────────
   langfuse-worker:
     image: docker.io/langfuse/langfuse-worker:3
-    profiles:
-      - backend
     restart: always
     depends_on: &langfuse-depends-on
       postgres:
@@ -174,8 +168,6 @@ services:
 
   langfuse-web:
     image: docker.io/langfuse/langfuse:3
-    profiles:
-      - backend
     restart: always
     depends_on: *langfuse-depends-on
     ports:
@@ -195,8 +187,6 @@ services:
 
   clickhouse:
     image: docker.io/clickhouse/clickhouse-server
-    profiles:
-      - backend
     restart: always
     user: "101:101"
     environment:
@@ -218,8 +208,6 @@ services:
 
   minio:
     image: cgr.dev/chainguard/minio
-    profiles:
-      - backend
     restart: always
     entrypoint: sh
     # create the 'langfuse' bucket before starting the service
@@ -241,8 +229,6 @@ services:
 
   redis:
     image: docker.io/redis:7
-    profiles:
-      - backend
     restart: always
     # CHANGEME: row below to secure redis password
     command: >
@@ -260,8 +246,6 @@ services:
 
   postgres:
     image: docker.io/postgres:${POSTGRES_VERSION:-17}
-    profiles:
-      - backend
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
