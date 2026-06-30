@@ -1,9 +1,5 @@
 import type { LLM } from "./ai";
 
-export type Cubie = {
-  stickers: Record<string, string>;
-};
-
 export type Cube = {
   centers: Record<string, Cubie>;
   corners: Record<string, Cubie>;
@@ -11,8 +7,26 @@ export type Cube = {
   rotations: CubeRotation[] | null;
 };
 
+export type Rotation =
+  | "F"
+  | "F'"
+  | "B"
+  | "B'"
+  | "U"
+  | "U'"
+  | "D"
+  | "D'"
+  | "L"
+  | "L'"
+  | "R"
+  | "R'";
+
+export type Cubie = {
+  stickers: Record<string, string>;
+};
+
 export type CubeRotation = {
-  rotation: string;
+  rotation: Rotation;
   index: number;
   from_scramble: boolean;
   created_at: string;

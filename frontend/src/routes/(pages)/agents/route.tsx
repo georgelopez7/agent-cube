@@ -10,6 +10,7 @@ import CreateAgentModal, {
 import { Skeleton } from "#/components/ui/skeleton";
 import { AIProvider, type LLM } from "#/domain/ai";
 import { RUBIKS_CUBES_QUERIES } from "#/services/rubiks-cubes.queries";
+import Websocket from "#/components/websocket/websocket";
 
 const SAMPLE_LLMS: LLM[] = [
   { provider: AIProvider.OpenAI, model: "openai/gpt-4o" },
@@ -30,6 +31,7 @@ function RouteComponent() {
 
   return (
     <PageLayout>
+      <Websocket debug />
       <div className="flex flex-col">
         <CreateAgentModal
           llms={SAMPLE_LLMS}

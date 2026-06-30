@@ -63,7 +63,7 @@ const RubiksCubeCard = ({ cube, onBegin }: IProps) => {
         <Button
           size="xs"
           onClick={() => onBegin?.(cube.id)}
-          className="w-full"
+          className="w-full rounded-sm"
           variant="outline"
         >
           <ArrowRight />

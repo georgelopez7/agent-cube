@@ -1,41 +1,49 @@
-export type RotationEvent = {
-  event_type: "cube.rotation";
-  id: string;
+import type { Rotation } from "#/domain/rubiks-cube";
+
+export enum WebSocketEventType {
+  CubeRotated = "cube.rotated",
+  // CubeSolved = "cube.solved",
+  // AgentMessage = "agent.message",
+}
+
+export type CubeRotatedEvent = {
+  type: WebSocketEventType.CubeRotated;
+  payload: {
+    cube_id: string;
+    rotation: Rotation;
+  };
 };
 
-export const RotationEventHandler = async (event: RotationEvent) => {
+// cube.rotated
+export const CubeRotatedEventHandler = async (event: CubeRotatedEvent) => {
   console.log(event);
-  // const { records, AddRotation } = useRubiksCubeStore.getState();
-
-  // const record = records.find((record) => record.record?._id === event.id);
-  // if (!record || !record.cube) return;
-
-  // await record.cube.rotate(event.rotation.rotation); // ROTATE CUBE
-
-  // AddRotation(event.id, event.rotation);
 };
 
-// type ISolvedEvent = {
-//   event_type: "cube.solved";
-//   id: string;
+// type CubeSolvedEvent = {
+//   type: "cube.solved";
+//   payload: {
+//     cube_id: string;
+//   };
 // };
 
-// export const SolvedEventHandler = async (event: ISolvedEvent) => {
+// export const SolvedEventHandler = async (event: CubeSolvedEvent) => {
 //   const { SetStatus } = useRubiksCubeStore.getState();
 
-//   SetStatus(event.id, IStatus.Completed);
+//   SetStatus(event.payload.cube_id, IStatus.Completed);
 // };
 
-// type IAgentMessageEvent = {
-//   event_type: "agent.message";
-//   id: string;
-//   message: IAgentMessage;
+// type AgentMessageEvent = {
+//   type: "agent.message";
+//   payload: {
+//     cube_id: string;
+//     message: IAgentMessage;
+//   };
 // };
 
-// export const AgentMessageEventHandler = async (event: IAgentMessageEvent) => {
+// export const AgentMessageEventHandler = async (event: AgentMessageEvent) => {
 //   const { AddAgentMessage } = useRubiksCubeStore.getState();
 
-//   AddAgentMessage(event.id, event.message);
+//   AddAgentMessage(event.payload.cube_id, event.payload.message);
 // };
 
-export type IEvent = RotationEvent;
+export type IEvent = CubeRotatedEvent;
