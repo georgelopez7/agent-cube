@@ -26,7 +26,7 @@ const Navbar = ({
       >
         <Link
           to="/"
-          className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground hover:text-primary transition-colors"
+          className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground hover:underline transition-colors"
         >
           <CubeLogo size={28} />
           Agent Cube
