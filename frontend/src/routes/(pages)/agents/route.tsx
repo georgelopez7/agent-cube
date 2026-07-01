@@ -1,6 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-
 import { PageLayout } from "#/components/(layouts)/page-layout/page-layout";
 import Spacer from "#/components/(layouts)/spacer/spacer";
 import CreateAgentModal, {
@@ -8,43 +7,51 @@ import CreateAgentModal, {
 } from "#/components/(modals)/create-agent-modal/create-agent-modal";
 import RubiksCubeSection from "#/components/(sections)/rubiks-cube-section/rubiks-cube-section";
 import Websocket from "#/components/websocket/websocket";
-import { AI_QUERIES } from "#/services/ai.queries";
+import { GetAIModels } from "#/services/ai.queries";
+import { CreateRubiksCubeFn } from "#/services/rubiks-cubes.actions";
 import {
-  RUBIKS_CUBES_QUERIES,
-  useCreateRubiksCube,
+  GetRubiksCubes,
+  rubiksCubeKeys,
 } from "#/services/rubiks-cubes.queries";
-
-const CUBES_LIMIT = 10;
 
 export const Route = createFileRoute("/(pages)/agents")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { data: cubes, isLoading } = useQuery(
-    RUBIKS_CUBES_QUERIES.getAll(CUBES_LIMIT),
-  );
+  const CubesLimit = 10;
 
-  const { data: llms } = useQuery(AI_QUERIES.getModels());
-  const { mutateAsync: createRubiksCube } = useCreateRubiksCube();
+  const _query = useQueryClient();
 
-  const handleCreateAgent = async (data: CreateAgentFormData) => {
-    await createRubiksCube({
-      llm: data.model,
-      scramble: data.scramble,
+  const { data: cubes, isLoading } = useQuery(GetRubiksCubes(CubesLimit));
+  const { data: llms } = useQuery(GetAIModels());
+
+  const handleCreateCube = async (data: CreateAgentFormData) => {
+    const { error } = await CreateRubiksCubeFn({
+      data: {
+        llm: data.model,
+        scramble: data.scramble,
+      },
     });
+
+    if (error) {
+      alert(error);
+      return;
+    }
+
+    _query.invalidateQueries({ queryKey: rubiksCubeKeys.lists() });
   };
 
   return (
     <PageLayout>
       <Websocket debug />
       <div className="flex flex-col">
-        <CreateAgentModal llms={llms ?? []} onSubmit={handleCreateAgent} />
+        <CreateAgentModal llms={llms ?? []} onSubmit={handleCreateCube} />
         <Spacer size="xs" />
         <RubiksCubeSection
           cubes={cubes}
           isLoading={isLoading}
-          limit={CUBES_LIMIT}
+          limit={CubesLimit}
         />
       </div>
     </PageLayout>

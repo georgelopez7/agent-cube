@@ -9,8 +9,8 @@ export type GetAllRubiksCubesResult = {
   error: XError;
 };
 
-// getAllRubiksCubes - Fetches all rubiks cubes with an optional limit.
-export const getAllRubiksCubes = createServerFn({ method: "GET" })
+// GetRubiksCubesFn - Fetches all rubiks cubes with an optional limit.
+export const GetRubiksCubesFn = createServerFn({ method: "GET" })
   .validator((data: { limit?: number }) => data)
   .handler(async ({ data }): Promise<GetAllRubiksCubesResult> => {
     const url = new URL("/api/v1/rubiks-cubes", API_BASE_URL);
@@ -45,8 +45,8 @@ export type CreateRubiksCubeResult = {
   error: XError;
 };
 
-// createRubiksCube - Creates a new rubiks cube configured for a specific LLM.
-export const createRubiksCube = createServerFn({ method: "POST" })
+// CreateRubiksCubeFn - Creates a new rubiks cube configured for a specific LLM.
+export const CreateRubiksCubeFn = createServerFn({ method: "POST" })
   .validator((data: { llm: LLM; scramble: number }) => data)
   .handler(async ({ data }): Promise<CreateRubiksCubeResult> => {
     const url = new URL("/api/v1/rubiks-cubes", API_BASE_URL);
@@ -86,8 +86,8 @@ export type InvokeRubiksCubeAgentResult = {
   error: XError;
 };
 
-// invokeRubiksCubeAgent - Invokes the agent for a rubiks cube by its hex ID.
-export const invokeRubiksCubeAgent = createServerFn({ method: "POST" })
+// InvokeRubiksCubeAgentFn - Invokes the agent for a rubiks cube by its hex ID.
+export const InvokeRubiksCubeAgentFn = createServerFn({ method: "POST" })
   .validator((data: { id: string }) => data)
   .handler(async ({ data }): Promise<InvokeRubiksCubeAgentResult> => {
     const url = new URL(

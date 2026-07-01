@@ -1,7 +1,9 @@
+import { useQueryClient } from "@tanstack/react-query";
 import RubiksCubeCard from "#/components/(cards)/rubiks-cube-card/rubiks-cube-card";
 import { Skeleton } from "#/components/ui/skeleton";
 import type { RubiksCube } from "#/domain/rubiks-cube";
-import { useInvokeRubiksCubeAgent } from "#/services/rubiks-cubes.queries";
+import { InvokeRubiksCubeAgentFn } from "#/services/rubiks-cubes.actions";
+import { rubiksCubeKeys } from "#/services/rubiks-cubes.queries";
 
 interface RubiksCubeSectionProps {
   cubes?: RubiksCube[];
@@ -14,12 +16,15 @@ const RubiksCubeSection = ({
   isLoading,
   limit = 10,
 }: RubiksCubeSectionProps) => {
-  // MUTATIONS
-  const { mutateAsync: invokeAgent } = useInvokeRubiksCubeAgent();
+  const _query = useQueryClient();
 
-  // HANDLERS
   const handleInvoke = async (id: string) => {
-    await invokeAgent(id);
+    const { error } = await InvokeRubiksCubeAgentFn({ data: { id } });
+    if (error) {
+      alert(error);
+    }
+
+    _query.invalidateQueries({ queryKey: rubiksCubeKeys.lists() });
   };
 
   if (isLoading) {
