@@ -65,6 +65,20 @@ func (s *Service) UpdateRubiksCubeStatus(ctx context.Context, id primitive.Objec
 	return existing, nil
 }
 
+// DeleteRubiksCubeByID - deletes a rubiks cube by ID after verifying it exists.
+func (s *Service) DeleteRubiksCubeByID(ctx context.Context, id primitive.ObjectID) error {
+	existing, err := s.repository.GetRubiksCubeByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if existing == nil {
+		return domain.RubiksCubeNotFoundError
+	}
+
+	return s.repository.DeleteRubiksCubeByID(ctx, id)
+}
+
 // GetRubiksCubeByID - retrieves a rubiks cube by ID.
 func (s *Service) GetRubiksCubeByID(ctx context.Context, id primitive.ObjectID) (*domain.RubiksCube, error) {
 	cube, err := s.repository.GetRubiksCubeByID(ctx, id)

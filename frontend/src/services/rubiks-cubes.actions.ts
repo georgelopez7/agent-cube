@@ -81,6 +81,37 @@ export const CreateRubiksCubeFn = createServerFn({ method: "POST" })
     };
   });
 
+export type DeleteRubiksCubeResult = {
+  success: boolean;
+  error: XError;
+};
+
+// DeleteRubiksCubeFn - Deletes a rubiks cube by its hex ID.
+export const DeleteRubiksCubeFn = createServerFn({ method: "POST" })
+  .validator((data: { id: string }) => data)
+  .handler(async ({ data }): Promise<DeleteRubiksCubeResult> => {
+    const url = new URL(`/api/v1/rubiks-cubes/${data.id}`, API_BASE_URL);
+
+    const response = await fetch(url.toString(), {
+      method: "DELETE",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: `Failed to delete rubiks cube: ${response.status} ${response.statusText}`,
+      };
+    }
+
+    return {
+      success: true,
+      error: null,
+    };
+  });
+
 export type InvokeRubiksCubeAgentResult = {
   message: string;
   error: XError;

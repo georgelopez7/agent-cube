@@ -17,6 +17,7 @@ type Service interface {
 	GetRubiksCubeByID(ctx context.Context, id primitive.ObjectID) (*domain.RubiksCube, error)
 	UpdateRubiksCube(ctx context.Context, cube *domain.RubiksCube) error
 	UpdateRubiksCubeStatus(ctx context.Context, id primitive.ObjectID, status domain.RubiksCubeStatus) (*domain.RubiksCube, error)
+	DeleteRubiksCubeByID(ctx context.Context, id primitive.ObjectID) error
 	GetAllRubiksCubes(ctx context.Context, limit int64) ([]domain.RubiksCube, error)
 	ApplyRubiksCubeRotation(ctx context.Context, cubeID primitive.ObjectID, rotation cube.Rotation) (*domain.RubiksCube, error)
 	IsRubiksCubeSolved(ctx context.Context, cubeID primitive.ObjectID) (bool, error)

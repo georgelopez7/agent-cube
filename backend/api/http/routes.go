@@ -52,6 +52,17 @@ func (s *Server) addRoutes(api huma.API) {
 	}, s.UpdateRubiksCubeStatusHandler)
 
 	huma.Register(api, huma.Operation{
+		OperationID:   "delete-rubiks-cube",
+		Method:        http.MethodDelete,
+		Path:          "/api/v1/rubiks-cubes/{id}",
+		Summary:       "Delete a rubiks cube",
+		Description:   "Deletes an existing rubiks cube by its hex ID",
+		Tags:          []string{"rubiks-cubes"},
+		DefaultStatus: http.StatusNoContent,
+		Errors:        []int{http.StatusBadRequest, http.StatusNotFound},
+	}, s.DeleteRubiksCubeHandler)
+
+	huma.Register(api, huma.Operation{
 		OperationID:   "get-all-rubiks-cubes",
 		Method:        http.MethodGet,
 		Path:          "/api/v1/rubiks-cubes",

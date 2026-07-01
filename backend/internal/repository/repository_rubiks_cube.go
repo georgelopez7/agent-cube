@@ -90,6 +90,24 @@ func (r *Repository) GetRubiksCubeByID(ctx context.Context, id primitive.ObjectI
 	return &cube, nil
 }
 
+// DeleteRubiksCubeByID - deletes a rubiks cube by its ID.
+func (r *Repository) DeleteRubiksCubeByID(ctx context.Context, id primitive.ObjectID) error {
+	collection := r.mongo.GetCollection(xmongo.RubiksCubes)
+
+	filter := bson.M{"_id": id}
+
+	result, err := collection.DeleteOne(ctx, filter)
+	if err != nil {
+		return fmt.Errorf("failed to delete rubiks cube: %w", err)
+	}
+
+	if result.DeletedCount == 0 {
+		return errors.New("rubiks cube not found")
+	}
+
+	return nil
+}
+
 // GetAllRubiksCubes - retrieves all rubiks cubes with an optional limit.
 func (r *Repository) GetAllRubiksCubes(ctx context.Context, limit int64) ([]domain.RubiksCube, error) {
 	collection := r.mongo.GetCollection(xmongo.RubiksCubes)

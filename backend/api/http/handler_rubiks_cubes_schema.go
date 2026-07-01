@@ -64,6 +64,14 @@ type UpdateRubiksCubeStatusResponse struct {
 	}
 }
 
+// DeleteRubiksCubeInput - input for deleting a rubiks cube.
+type DeleteRubiksCubeInput struct {
+	ID string `path:"id"`
+}
+
+// DeleteRubiksCubeResponse - response after deleting a rubiks cube.
+type DeleteRubiksCubeResponse struct{}
+
 // GetAllRubiksCubesInput - input for listing rubiks cubes.
 type GetAllRubiksCubesInput struct {
 	Limit int64 `query:"limit" default:"10"`

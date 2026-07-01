@@ -93,6 +93,25 @@ func (s *Server) UpdateRubiksCubeStatusHandler(ctx context.Context, input *Updat
 	}
 }
 
+// DeleteRubiksCubeHandler - deletes a rubiks cube by its hex ID.
+func (s *Server) DeleteRubiksCubeHandler(ctx context.Context, input *DeleteRubiksCubeInput) (*DeleteRubiksCubeResponse, error) {
+	id, err := primitive.ObjectIDFromHex(input.ID)
+	if err != nil {
+		return nil, huma.Error400BadRequest("invalid rubiks cube id")
+	}
+
+	if err := s.svc.DeleteRubiksCubeByID(ctx, id); err != nil {
+		switch err {
+		case domain.RubiksCubeNotFoundError:
+			return nil, huma.Error404NotFound("rubiks cube not found")
+		default:
+			return nil, err
+		}
+	}
+
+	return &DeleteRubiksCubeResponse{}, nil
+}
+
 // GetAllRubiksCubesHandler - lists rubiks cubes with an optional limit.
 func (s *Server) GetAllRubiksCubesHandler(ctx context.Context, input *GetAllRubiksCubesInput) (*GetAllRubiksCubesResponse, error) {
 	cubes, err := s.svc.GetAllRubiksCubes(ctx, input.Limit)

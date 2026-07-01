@@ -124,6 +124,47 @@ func TestService_GetRubiksCubeByID(t *testing.T) {
 	})
 }
 
+func TestService_DeleteRubiksCubeByID(t *testing.T) {
+	ctx := t.Context()
+	svc, deps := newMockService(t)
+
+	id := primitive.NewObjectID()
+
+	t.Run("should delete existing cube", func(t *testing.T) {
+		existing := &domain.RubiksCube{ID: id}
+
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(existing, nil)
+		deps.Repository.EXPECT().DeleteRubiksCubeByID(gomock.Any(), id).Return(nil)
+
+		err := svc.DeleteRubiksCubeByID(ctx, id)
+		require.NoError(t, err)
+	})
+
+	t.Run("should return not found when cube does not exist", func(t *testing.T) {
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, nil)
+
+		err := svc.DeleteRubiksCubeByID(ctx, id)
+		require.ErrorIs(t, err, domain.RubiksCubeNotFoundError)
+	})
+
+	t.Run("should propagate get error", func(t *testing.T) {
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, errors.New("boom"))
+
+		err := svc.DeleteRubiksCubeByID(ctx, id)
+		require.Error(t, err)
+	})
+
+	t.Run("should propagate delete error", func(t *testing.T) {
+		existing := &domain.RubiksCube{ID: id}
+
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(existing, nil)
+		deps.Repository.EXPECT().DeleteRubiksCubeByID(gomock.Any(), id).Return(errors.New("boom"))
+
+		err := svc.DeleteRubiksCubeByID(ctx, id)
+		require.Error(t, err)
+	})
+}
+
 func TestService_GetAllRubiksCubes(t *testing.T) {
 	ctx := t.Context()
 	svc, deps := newMockService(t)
@@ -275,6 +316,7 @@ func TestService_InvokeRubiksCubeAgent(t *testing.T) {
 		expectedMessage := "agent invoked successfully"
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(existing, nil)
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(nil)
 		deps.AgentAPI.EXPECT().InvokeAgent(id.Hex(), llm.Model).Return(expectedMessage, nil)
 
 		message, err := svc.InvokeRubiksCubeAgent(ctx, id)
@@ -305,6 +347,7 @@ func TestService_InvokeRubiksCubeAgent(t *testing.T) {
 		}
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(existing, nil)
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(nil)
 		deps.AgentAPI.EXPECT().InvokeAgent(id.Hex(), llm.Model).Return("", errors.New("agent boom"))
 
 		message, err := svc.InvokeRubiksCubeAgent(ctx, id)

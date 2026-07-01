@@ -1,11 +1,27 @@
 import { cn } from "cnfast";
 import { format } from "date-fns";
-import { ArrowRight, CheckCircle, Circle, LoaderCircle } from "lucide-react";
-import { useState, type ReactNode } from "react";
-
+import {
+  ArrowRight,
+  CheckCircle,
+  Circle,
+  LoaderCircle,
+  Trash2,
+} from "lucide-react";
+import { type ReactNode, useState } from "react";
 import { getAIProviderIcon } from "#/components/(icons)/helpers";
 import Spacer from "#/components/(layouts)/spacer/spacer";
 import RubiksCube from "#/components/(rubiks-cube)/rubiks-cube/rubiks-cube";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "#/components/ui/alert-dialog";
 import { Button } from "#/components/ui/button";
 import {
   generateAlgorithm,
@@ -16,6 +32,7 @@ import {
 interface IProps {
   cube: RubiksCubeType;
   onInvoke?: (id: string) => Promise<void>;
+  onDelete?: (id: string) => Promise<void>;
 }
 
 const STATUS_CONFIG: Record<
@@ -39,7 +56,7 @@ const STATUS_CONFIG: Record<
   },
 };
 
-const RubiksCubeCard = ({ cube, onInvoke }: IProps) => {
+const RubiksCubeCard = ({ cube, onInvoke, onDelete }: IProps) => {
   const ProviderIcon = getAIProviderIcon(cube.llm.provider);
 
   const algorithm = generateAlgorithm(cube.cube.rotations ?? []);
@@ -48,15 +65,29 @@ const RubiksCubeCard = ({ cube, onInvoke }: IProps) => {
   const status = STATUS_CONFIG[cube.status];
 
   const [invoking, setInvoking] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleInvoke = async (id: string) => {
-    if (invoking) return;
+    if (!onInvoke || invoking) return;
 
     setInvoking(true);
     try {
-      await onInvoke?.(id);
+      await onInvoke(id);
     } finally {
       setInvoking(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!onDelete || deleting) return;
+
+    setDeleting(true);
+    try {
+      await onDelete(id);
+      setDeleteDialogOpen(false);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -78,11 +109,47 @@ const RubiksCubeCard = ({ cube, onInvoke }: IProps) => {
             {status.icon}
             {status.label}
           </span>
+          <div className="flex flex-col items-start gap-0.5 text-xs text-muted-foreground tabular-nums">
+            <span>{date}</span>
+            <span>{time}</span>
+          </div>
         </div>
-        <div className="flex flex-col items-end gap-0.5 text-xs text-muted-foreground tabular-nums">
-          <span>{date}</span>
-          <span>{time}</span>
-        </div>
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogTrigger
+            disabled={cube.status === RubiksCubeStatus.InProgress}
+            render={
+              <Button
+                size="icon-sm"
+                variant="ghost"
+                disabled={cube.status === RubiksCubeStatus.InProgress}
+                className="text-muted-foreground hover:text-destructive"
+                aria-label="Delete cube"
+              >
+                <Trash2 className="size-5" />
+              </Button>
+            }
+          />
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Cube</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this cube? This action cannot be
+                undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                variant="destructive"
+                onClick={() => handleDelete(cube.id)}
+                disabled={!onDelete || deleting}
+              >
+                {deleting && <LoaderCircle className="size-4 animate-spin" />}
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
       <Spacer size="xs" />
       {cube.status === RubiksCubeStatus.Created && (

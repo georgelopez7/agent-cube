@@ -95,6 +95,20 @@ func (mr *MockRepositoryMockRecorder) CreateRubiksCube(ctx, cube any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRubiksCube", reflect.TypeOf((*MockRepository)(nil).CreateRubiksCube), ctx, cube)
 }
 
+// DeleteRubiksCubeByID mocks base method.
+func (m *MockRepository) DeleteRubiksCubeByID(ctx context.Context, id primitive.ObjectID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRubiksCubeByID", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRubiksCubeByID indicates an expected call of DeleteRubiksCubeByID.
+func (mr *MockRepositoryMockRecorder) DeleteRubiksCubeByID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRubiksCubeByID", reflect.TypeOf((*MockRepository)(nil).DeleteRubiksCubeByID), ctx, id)
+}
+
 // GetAllRubiksCubes mocks base method.
 func (m *MockRepository) GetAllRubiksCubes(ctx context.Context, limit int64) ([]domain.RubiksCube, error) {
 	m.ctrl.T.Helper()

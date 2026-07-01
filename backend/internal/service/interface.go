@@ -20,6 +20,7 @@ type Repository interface {
 	CreateRubiksCube(ctx context.Context, cube domain.RubiksCube) error
 	UpdateRubiksCube(ctx context.Context, cube *domain.RubiksCube) error
 	UpdateRubiksCubeStatus(ctx context.Context, id primitive.ObjectID, status domain.RubiksCubeStatus) error
+	DeleteRubiksCubeByID(ctx context.Context, id primitive.ObjectID) error
 	GetRubiksCubeByID(ctx context.Context, id primitive.ObjectID) (*domain.RubiksCube, error)
 	GetAllRubiksCubes(ctx context.Context, limit int64) ([]domain.RubiksCube, error)
 }
