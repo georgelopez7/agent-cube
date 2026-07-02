@@ -28,7 +28,8 @@ wheels/
 go.work
 go.work.sum
 /backend/agent-cube
-/backend/openapi
+/backend/gen-openapi
+/backend/seed-db
 
 # --- Build output ---
 bin/
@@ -38,3 +39,22 @@ build/
 # --- Misc ---
 tmp
 *.mp4
+
+# --- Frontend ---
+node_modules
+.DS_Store
+dist
+dist-ssr
+*.local
+.env
+.nitro
+.tanstack
+.wrangler
+.output
+.vinxi
+__unconfig*
+todos.json
+
+
+*storybook.log
+storybook-static

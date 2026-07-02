@@ -73,6 +73,20 @@ func (mr *MockServiceMockRecorder) CreateRubiksCube(ctx, llm, scramble any) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRubiksCube", reflect.TypeOf((*MockService)(nil).CreateRubiksCube), ctx, llm, scramble)
 }
 
+// DeleteRubiksCubeByID mocks base method.
+func (m *MockService) DeleteRubiksCubeByID(ctx context.Context, id primitive.ObjectID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRubiksCubeByID", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRubiksCubeByID indicates an expected call of DeleteRubiksCubeByID.
+func (mr *MockServiceMockRecorder) DeleteRubiksCubeByID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRubiksCubeByID", reflect.TypeOf((*MockService)(nil).DeleteRubiksCubeByID), ctx, id)
+}
+
 // GetAllRubiksCubes mocks base method.
 func (m *MockService) GetAllRubiksCubes(ctx context.Context, limit int64) ([]domain.RubiksCube, error) {
 	m.ctrl.T.Helper()
@@ -101,6 +115,21 @@ func (m *MockService) GetRubiksCubeByID(ctx context.Context, id primitive.Object
 func (mr *MockServiceMockRecorder) GetRubiksCubeByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRubiksCubeByID", reflect.TypeOf((*MockService)(nil).GetRubiksCubeByID), ctx, id)
+}
+
+// InvokeRubiksCubeAgent mocks base method.
+func (m *MockService) InvokeRubiksCubeAgent(ctx context.Context, id primitive.ObjectID) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InvokeRubiksCubeAgent", ctx, id)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// InvokeRubiksCubeAgent indicates an expected call of InvokeRubiksCubeAgent.
+func (mr *MockServiceMockRecorder) InvokeRubiksCubeAgent(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InvokeRubiksCubeAgent", reflect.TypeOf((*MockService)(nil).InvokeRubiksCubeAgent), ctx, id)
 }
 
 // IsRubiksCubeSolved mocks base method.

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	apihttp "agent-cube/api/http"
+	"agent-cube/internal/pkg/event"
 	"agent-cube/internal/service"
 
 	"github.com/danielgtaylor/huma/v2/humacli"
@@ -21,8 +22,9 @@ func main() {
 		Use:   "openapi",
 		Short: "Print the OpenAPI spec",
 		Run: func(cmd *cobra.Command, args []string) {
-			svc := service.NewService(nil)
-			server := apihttp.NewServer("Agent Cube API", "v1", "8080", svc)
+			svc := service.NewService(nil, nil, event.NewEventBus())
+
+			server := apihttp.NewServer("Agent Cube API", "v1", "8080", svc, nil)
 			server.AddRoutes(server.API)
 
 			b, err := server.API.OpenAPI().YAML()

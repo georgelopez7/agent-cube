@@ -64,6 +64,14 @@ type UpdateRubiksCubeStatusResponse struct {
 	}
 }
 
+// DeleteRubiksCubeInput - input for deleting a rubiks cube.
+type DeleteRubiksCubeInput struct {
+	ID string `path:"id"`
+}
+
+// DeleteRubiksCubeResponse - response after deleting a rubiks cube.
+type DeleteRubiksCubeResponse struct{}
+
 // GetAllRubiksCubesInput - input for listing rubiks cubes.
 type GetAllRubiksCubesInput struct {
 	Limit int64 `query:"limit" default:"10"`
@@ -110,5 +118,17 @@ type GetSolvedCubeInput struct{}
 type GetSolvedCubeResponse struct {
 	Body struct {
 		Cube cube.Cube `json:"cube"`
+	}
+}
+
+// InvokeRubiksCubeAgentInput - input for invoking the agent for a rubiks cube.
+type InvokeRubiksCubeAgentInput struct {
+	ID string `path:"id"`
+}
+
+// InvokeRubiksCubeAgentResponse - response after invoking the agent for a rubiks cube.
+type InvokeRubiksCubeAgentResponse struct {
+	Body struct {
+		Message string `json:"message"`
 	}
 }

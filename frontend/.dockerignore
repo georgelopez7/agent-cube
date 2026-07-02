@@ -1,0 +1,12 @@
+node_modules/
+.output/
+dist/
+coverage/
+storybook-static/
+.storybook/
+.git/
+.gitignore
+.vscode/
+.env*
+*.log
+.DS_Store

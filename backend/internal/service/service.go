@@ -3,11 +3,15 @@ package service
 // Service - orchestrates repository operations and applies domain logic.
 type Service struct {
 	repository Repository
+	agentAPI   AgentAPI
+	bus        EventBus
 }
 
 // NewService - creates a new service instance.
-func NewService(repository Repository) *Service {
+func NewService(repository Repository, agentAPI AgentAPI, bus EventBus) *Service {
 	return &Service{
 		repository: repository,
+		agentAPI:   agentAPI,
+		bus:        bus,
 	}
 }

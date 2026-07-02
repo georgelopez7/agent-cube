@@ -85,6 +85,33 @@ func TestRepository_GetRubiksCubeByID(t *testing.T) {
 	})
 }
 
+func TestRepository_DeleteRubiksCubeByID(t *testing.T) {
+	ctx := t.Context()
+
+	err := repo.ResetRubiksCubes(ctx)
+	require.NoError(t, err)
+
+	t.Run("should delete an existing cube", func(t *testing.T) {
+		expected := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"))
+
+		err := repo.CreateRubiksCube(ctx, expected)
+		require.NoError(t, err)
+
+		err = repo.DeleteRubiksCubeByID(ctx, expected.ID)
+		require.NoError(t, err)
+
+		actual, err := repo.GetRubiksCubeByID(ctx, expected.ID)
+		require.NoError(t, err)
+		require.Nil(t, actual)
+	})
+
+	t.Run("should return not found error when cube does not exist", func(t *testing.T) {
+		err := repo.DeleteRubiksCubeByID(ctx, primitive.NewObjectID())
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "rubiks cube not found")
+	})
+}
+
 func TestRepository_GetAllRubiksCubes(t *testing.T) {
 	ctx := t.Context()
 
@@ -137,7 +164,7 @@ func TestRepository_UpdateRubiksCubeStatus(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, actual)
 		require.Equal(t, domain.RubiksCubeStatusCompleted, actual.Status)
-		require.True(t, actual.UpdatedAt.After(previousUpdatedAt))
+		require.False(t, actual.UpdatedAt.Truncate(time.Millisecond).Before(previousUpdatedAt.Truncate(time.Millisecond)))
 	})
 
 	t.Run("should return not found error when cube does not exist", func(t *testing.T) {

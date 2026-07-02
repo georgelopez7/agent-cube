@@ -18,6 +18,45 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
+// MockAgentAPI is a mock of AgentAPI interface.
+type MockAgentAPI struct {
+	ctrl     *gomock.Controller
+	recorder *MockAgentAPIMockRecorder
+	isgomock struct{}
+}
+
+// MockAgentAPIMockRecorder is the mock recorder for MockAgentAPI.
+type MockAgentAPIMockRecorder struct {
+	mock *MockAgentAPI
+}
+
+// NewMockAgentAPI creates a new mock instance.
+func NewMockAgentAPI(ctrl *gomock.Controller) *MockAgentAPI {
+	mock := &MockAgentAPI{ctrl: ctrl}
+	mock.recorder = &MockAgentAPIMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAgentAPI) EXPECT() *MockAgentAPIMockRecorder {
+	return m.recorder
+}
+
+// InvokeAgent mocks base method.
+func (m *MockAgentAPI) InvokeAgent(id, model string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InvokeAgent", id, model)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// InvokeAgent indicates an expected call of InvokeAgent.
+func (mr *MockAgentAPIMockRecorder) InvokeAgent(id, model any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InvokeAgent", reflect.TypeOf((*MockAgentAPI)(nil).InvokeAgent), id, model)
+}
+
 // MockRepository is a mock of Repository interface.
 type MockRepository struct {
 	ctrl     *gomock.Controller
@@ -54,6 +93,20 @@ func (m *MockRepository) CreateRubiksCube(ctx context.Context, cube domain.Rubik
 func (mr *MockRepositoryMockRecorder) CreateRubiksCube(ctx, cube any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRubiksCube", reflect.TypeOf((*MockRepository)(nil).CreateRubiksCube), ctx, cube)
+}
+
+// DeleteRubiksCubeByID mocks base method.
+func (m *MockRepository) DeleteRubiksCubeByID(ctx context.Context, id primitive.ObjectID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRubiksCubeByID", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRubiksCubeByID indicates an expected call of DeleteRubiksCubeByID.
+func (mr *MockRepositoryMockRecorder) DeleteRubiksCubeByID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRubiksCubeByID", reflect.TypeOf((*MockRepository)(nil).DeleteRubiksCubeByID), ctx, id)
 }
 
 // GetAllRubiksCubes mocks base method.
@@ -112,4 +165,40 @@ func (m *MockRepository) UpdateRubiksCubeStatus(ctx context.Context, id primitiv
 func (mr *MockRepositoryMockRecorder) UpdateRubiksCubeStatus(ctx, id, status any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRubiksCubeStatus", reflect.TypeOf((*MockRepository)(nil).UpdateRubiksCubeStatus), ctx, id, status)
+}
+
+// MockEventBus is a mock of EventBus interface.
+type MockEventBus struct {
+	ctrl     *gomock.Controller
+	recorder *MockEventBusMockRecorder
+	isgomock struct{}
+}
+
+// MockEventBusMockRecorder is the mock recorder for MockEventBus.
+type MockEventBusMockRecorder struct {
+	mock *MockEventBus
+}
+
+// NewMockEventBus creates a new mock instance.
+func NewMockEventBus(ctrl *gomock.Controller) *MockEventBus {
+	mock := &MockEventBus{ctrl: ctrl}
+	mock.recorder = &MockEventBusMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockEventBus) EXPECT() *MockEventBusMockRecorder {
+	return m.recorder
+}
+
+// Publish mocks base method.
+func (m *MockEventBus) Publish(ctx context.Context, event domain.Event) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Publish", ctx, event)
+}
+
+// Publish indicates an expected call of Publish.
+func (mr *MockEventBusMockRecorder) Publish(ctx, event any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Publish", reflect.TypeOf((*MockEventBus)(nil).Publish), ctx, event)
 }

@@ -124,6 +124,47 @@ func TestService_GetRubiksCubeByID(t *testing.T) {
 	})
 }
 
+func TestService_DeleteRubiksCubeByID(t *testing.T) {
+	ctx := t.Context()
+	svc, deps := newMockService(t)
+
+	id := primitive.NewObjectID()
+
+	t.Run("should delete existing cube", func(t *testing.T) {
+		existing := &domain.RubiksCube{ID: id}
+
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(existing, nil)
+		deps.Repository.EXPECT().DeleteRubiksCubeByID(gomock.Any(), id).Return(nil)
+
+		err := svc.DeleteRubiksCubeByID(ctx, id)
+		require.NoError(t, err)
+	})
+
+	t.Run("should return not found when cube does not exist", func(t *testing.T) {
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, nil)
+
+		err := svc.DeleteRubiksCubeByID(ctx, id)
+		require.ErrorIs(t, err, domain.RubiksCubeNotFoundError)
+	})
+
+	t.Run("should propagate get error", func(t *testing.T) {
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, errors.New("boom"))
+
+		err := svc.DeleteRubiksCubeByID(ctx, id)
+		require.Error(t, err)
+	})
+
+	t.Run("should propagate delete error", func(t *testing.T) {
+		existing := &domain.RubiksCube{ID: id}
+
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(existing, nil)
+		deps.Repository.EXPECT().DeleteRubiksCubeByID(gomock.Any(), id).Return(errors.New("boom"))
+
+		err := svc.DeleteRubiksCubeByID(ctx, id)
+		require.Error(t, err)
+	})
+}
+
 func TestService_GetAllRubiksCubes(t *testing.T) {
 	ctx := t.Context()
 	svc, deps := newMockService(t)
@@ -173,6 +214,7 @@ func TestService_ApplyRubiksCubeRotation(t *testing.T) {
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(&existing, nil)
 		deps.Repository.EXPECT().UpdateRubiksCube(gomock.Any(), gomock.Any()).Return(nil)
+		deps.EventBus.EXPECT().Publish(gomock.Any(), gomock.Any())
 
 		actual, err := svc.ApplyRubiksCubeRotation(ctx, id, cube.RotationF)
 		require.NoError(t, err)
@@ -255,6 +297,62 @@ func TestService_IsRubiksCubeSolved(t *testing.T) {
 		solved, err := svc.IsRubiksCubeSolved(ctx, id)
 		require.Error(t, err)
 		require.False(t, solved)
+	})
+}
+
+func TestService_InvokeRubiksCubeAgent(t *testing.T) {
+	ctx := t.Context()
+	svc, deps := newMockService(t)
+
+	id := primitive.NewObjectID()
+	llm := domain.NewLLM("openai", "openai/gpt-5.4-mini")
+
+	t.Run("should invoke agent and return message", func(t *testing.T) {
+		existing := &domain.RubiksCube{
+			ID:   id,
+			LLM:  llm,
+		}
+
+		expectedMessage := "agent invoked successfully"
+
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(existing, nil)
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(nil)
+		deps.AgentAPI.EXPECT().InvokeAgent(id.Hex(), llm.Model).Return(expectedMessage, nil)
+
+		message, err := svc.InvokeRubiksCubeAgent(ctx, id)
+		require.NoError(t, err)
+		require.Equal(t, expectedMessage, message)
+	})
+
+	t.Run("should return not found error when cube does not exist", func(t *testing.T) {
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, nil)
+
+		message, err := svc.InvokeRubiksCubeAgent(ctx, id)
+		require.ErrorIs(t, err, domain.RubiksCubeNotFoundError)
+		require.Empty(t, message)
+	})
+
+	t.Run("should propagate repository error", func(t *testing.T) {
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, errors.New("boom"))
+
+		message, err := svc.InvokeRubiksCubeAgent(ctx, id)
+		require.Error(t, err)
+		require.Empty(t, message)
+	})
+
+	t.Run("should propagate agent api error", func(t *testing.T) {
+		existing := &domain.RubiksCube{
+			ID:   id,
+			LLM:  llm,
+		}
+
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(existing, nil)
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(nil)
+		deps.AgentAPI.EXPECT().InvokeAgent(id.Hex(), llm.Model).Return("", errors.New("agent boom"))
+
+		message, err := svc.InvokeRubiksCubeAgent(ctx, id)
+		require.Error(t, err)
+		require.Empty(t, message)
 	})
 }
 

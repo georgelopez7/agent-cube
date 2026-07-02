@@ -7,6 +7,7 @@ import (
 )
 
 func (s *Server) addRoutes(api huma.API) {
+	// HTTP ROUTES
 	huma.Register(api, huma.Operation{
 		OperationID:   "create-rubiks-cube",
 		Method:        http.MethodPost,
@@ -51,6 +52,17 @@ func (s *Server) addRoutes(api huma.API) {
 	}, s.UpdateRubiksCubeStatusHandler)
 
 	huma.Register(api, huma.Operation{
+		OperationID:   "delete-rubiks-cube",
+		Method:        http.MethodDelete,
+		Path:          "/api/v1/rubiks-cubes/{id}",
+		Summary:       "Delete a rubiks cube",
+		Description:   "Deletes an existing rubiks cube by its hex ID",
+		Tags:          []string{"rubiks-cubes"},
+		DefaultStatus: http.StatusNoContent,
+		Errors:        []int{http.StatusBadRequest, http.StatusNotFound},
+	}, s.DeleteRubiksCubeHandler)
+
+	huma.Register(api, huma.Operation{
 		OperationID:   "get-all-rubiks-cubes",
 		Method:        http.MethodGet,
 		Path:          "/api/v1/rubiks-cubes",
@@ -72,6 +84,17 @@ func (s *Server) addRoutes(api huma.API) {
 	}, s.ApplyRubiksCubeRotationHandler)
 
 	huma.Register(api, huma.Operation{
+		OperationID:   "invoke-rubiks-cube-agent",
+		Method:        http.MethodPost,
+		Path:          "/api/v1/rubiks-cubes/{id}/agents/invoke",
+		Summary:       "Invoke the Rubik's Cube agent",
+		Description:   "Invokes the agent for the rubiks cube with the given hex ID",
+		Tags:          []string{"rubiks-cubes"},
+		DefaultStatus: http.StatusOK,
+		Errors:        []int{http.StatusBadRequest, http.StatusNotFound},
+	}, s.InvokeRubiksCubeAgentHandler)
+
+	huma.Register(api, huma.Operation{
 		OperationID:   "is-rubiks-cube-solved",
 		Method:        http.MethodGet,
 		Path:          "/api/v1/rubiks-cubes/{id}/solved",
@@ -91,4 +114,33 @@ func (s *Server) addRoutes(api huma.API) {
 		Tags:          []string{"rubiks-cubes"},
 		DefaultStatus: http.StatusOK,
 	}, s.GetSolvedCubeHandler)
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "get-ai-models",
+		Method:        http.MethodGet,
+		Path:          "/api/v1/ai/models",
+		Summary:       "List AI models",
+		Description:   "Returns the list of available LLMs",
+		Tags:          []string{"ai"},
+		DefaultStatus: http.StatusOK,
+	}, s.GetAIModelsHandler)
+
+	// WEBSOCKET ROUTES
+	s.Router.HandleFunc("/api/v1/ws", s.WebsocketHandler)
+
+	// The WebSocket endpoint is registered directly on the router, so Huma
+	// does not know to include it in the generated OpenAPI spec. Add it manually.
+	api.OpenAPI().AddOperation(&huma.Operation{
+		OperationID: "websocket-connection",
+		Method:      http.MethodGet,
+		Path:        "/api/v1/ws",
+		Summary:     "WebSocket connection",
+		Description: "Upgrades the HTTP connection to a WebSocket for real-time updates",
+		Tags:        []string{"websocket"},
+		Responses: map[string]*huma.Response{
+			"101": {
+				Description: "Switching Protocols to WebSocket",
+			},
+		},
+	})
 }

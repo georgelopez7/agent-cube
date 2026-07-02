@@ -65,6 +65,20 @@ func (s *Service) UpdateRubiksCubeStatus(ctx context.Context, id primitive.Objec
 	return existing, nil
 }
 
+// DeleteRubiksCubeByID - deletes a rubiks cube by ID after verifying it exists.
+func (s *Service) DeleteRubiksCubeByID(ctx context.Context, id primitive.ObjectID) error {
+	existing, err := s.repository.GetRubiksCubeByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if existing == nil {
+		return domain.RubiksCubeNotFoundError
+	}
+
+	return s.repository.DeleteRubiksCubeByID(ctx, id)
+}
+
 // GetRubiksCubeByID - retrieves a rubiks cube by ID.
 func (s *Service) GetRubiksCubeByID(ctx context.Context, id primitive.ObjectID) (*domain.RubiksCube, error) {
 	cube, err := s.repository.GetRubiksCubeByID(ctx, id)
@@ -104,13 +118,16 @@ func (s *Service) ApplyRubiksCubeRotation(ctx context.Context, cubeID primitive.
 		return nil, domain.RubiksCubeNotFoundError
 	}
 
-	if err := cube.Cube.Rotate(rotation, false); err != nil {
+	xrotation, err := cube.Cube.Rotate(rotation, false)
+	if err != nil {
 		return nil, err
 	}
 
 	if err := s.repository.UpdateRubiksCube(ctx, cube); err != nil {
 		return nil, err
 	}
+
+	s.bus.Publish(ctx, domain.NewCubeRotatedEvent(cubeID.Hex(), *xrotation))
 
 	return cube, nil
 }
@@ -127,4 +144,27 @@ func (s *Service) IsRubiksCubeSolved(ctx context.Context, cubeID primitive.Objec
 	}
 
 	return cube.Cube.Solved(), nil
+}
+
+// InvokeRubiksCubeAgent - invokes the agent for the given cube ID using the cube's LLM model.
+func (s *Service) InvokeRubiksCubeAgent(ctx context.Context, id primitive.ObjectID) (string, error) {
+	cube, err := s.repository.GetRubiksCubeByID(ctx, id)
+	if err != nil {
+		return "", err
+	}
+
+	if cube == nil {
+		return "", domain.RubiksCubeNotFoundError
+	}
+
+	if err := s.repository.UpdateRubiksCubeStatus(ctx, id, domain.RubiksCubeStatusInProgress); err != nil {
+		return "", err
+	}
+
+	message, err := s.agentAPI.InvokeAgent(id.Hex(), cube.LLM.Model)
+	if err != nil {
+		return "", err
+	}
+
+	return message, nil
 }
