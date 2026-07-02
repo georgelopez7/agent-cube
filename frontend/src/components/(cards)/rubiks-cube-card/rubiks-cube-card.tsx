@@ -2,9 +2,11 @@ import { cn } from "cnfast";
 import { format } from "date-fns";
 import {
   ArrowRight,
+  Ban,
   CheckCircle,
   Circle,
   LoaderCircle,
+  Square,
   Trash2,
 } from "lucide-react";
 import { type ReactNode, useState } from "react";
@@ -32,6 +34,7 @@ import {
 interface IProps {
   cube: RubiksCubeType;
   onInvoke?: (id: string) => Promise<void>;
+  onStop?: (id: string) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
 }
 
@@ -54,9 +57,14 @@ const STATUS_CONFIG: Record<
     icon: <CheckCircle className="size-3.5" />,
     label: "Completed",
   },
+  [RubiksCubeStatus.Stopped]: {
+    styles: "bg-muted text-muted-foreground",
+    icon: <Ban className="size-3.5" />,
+    label: "Stopped",
+  },
 };
 
-const RubiksCubeCard = ({ cube, onInvoke, onDelete }: IProps) => {
+const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
   const ProviderIcon = getAIProviderIcon(cube.llm.provider);
 
   const algorithm = generateAlgorithm(cube.cube.rotations ?? []);
@@ -65,6 +73,7 @@ const RubiksCubeCard = ({ cube, onInvoke, onDelete }: IProps) => {
   const status = STATUS_CONFIG[cube.status];
 
   const [invoking, setInvoking] = useState(false);
+  const [stopping, setStopping] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -76,6 +85,17 @@ const RubiksCubeCard = ({ cube, onInvoke, onDelete }: IProps) => {
       await onInvoke(id);
     } finally {
       setInvoking(false);
+    }
+  };
+
+  const handleStop = async (id: string) => {
+    if (!onStop || stopping) return;
+
+    setStopping(true);
+    try {
+      await onStop(id);
+    } finally {
+      setStopping(false);
     }
   };
 
@@ -166,6 +186,22 @@ const RubiksCubeCard = ({ cube, onInvoke, onDelete }: IProps) => {
             <ArrowRight />
           )}
           Invoke Agent
+        </Button>
+      )}
+      {cube.status === RubiksCubeStatus.InProgress && (
+        <Button
+          size="xs"
+          onClick={() => handleStop(cube.id)}
+          disabled={stopping}
+          className="w-full rounded-sm bg-red-600 text-white hover:bg-red-700 gap-2"
+          variant="destructive"
+        >
+          {stopping ? (
+            <LoaderCircle className="size-3 animate-spin" />
+          ) : (
+            <Square className="size-3 fill-current" />
+          )}
+          Stop Agent
         </Button>
       )}
       <Spacer size="xs" />

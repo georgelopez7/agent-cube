@@ -3,7 +3,7 @@ package test
 import (
 	"testing"
 
-	"agent-cube/internal/service"
+	rubikscube "agent-cube/internal/service/rubiks-cube"
 
 	"go.uber.org/mock/gomock"
 )
@@ -11,26 +11,26 @@ import (
 // Dependencies - holds the mocked dependencies for service tests.
 type Dependencies struct {
 	Repository *MockRepository
-	AgentAPI   *MockAgentAPI
 	EventBus   *MockEventBus
+	AgentHub   *MockAgentHub
 }
 
-// newMockService - creates a service instance backed by generated mocks.
-func newMockService(t *testing.T) (*service.Service, Dependencies) {
+// newMockService - creates a RubiksCubeService instance backed by generated mocks.
+func newMockService(t *testing.T) (*rubikscube.RubiksCubeService, Dependencies) {
 	ctrl := gomock.NewController(t)
 	t.Cleanup(ctrl.Finish)
 
 	repository := NewMockRepository(ctrl)
-	agentAPI := NewMockAgentAPI(ctrl)
 	eventBus := NewMockEventBus(ctrl)
+	agentHub := NewMockAgentHub(ctrl)
 
 	deps := Dependencies{
 		Repository: repository,
-		AgentAPI:   agentAPI,
 		EventBus:   eventBus,
+		AgentHub:   agentHub,
 	}
 
-	svc := service.NewService(repository, agentAPI, eventBus)
+	svc := rubikscube.NewRubiksCubeService(repository, eventBus, nil, nil, agentHub)
 
 	return svc, deps
 }

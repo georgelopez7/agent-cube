@@ -20,12 +20,13 @@ const (
 	RubiksCubeStatusCreated    RubiksCubeStatus = "created"
 	RubiksCubeStatusInProgress RubiksCubeStatus = "in_progress"
 	RubiksCubeStatusCompleted  RubiksCubeStatus = "completed"
+	RubiksCubeStatusStopped    RubiksCubeStatus = "stopped"
 )
 
 // IsValidRubiksCubeStatus - reports whether the given status is a recognized RubiksCubeStatus.
 func IsValidRubiksCubeStatus(status RubiksCubeStatus) bool {
 	switch status {
-	case RubiksCubeStatusCreated, RubiksCubeStatusInProgress, RubiksCubeStatusCompleted:
+	case RubiksCubeStatusCreated, RubiksCubeStatusInProgress, RubiksCubeStatusCompleted, RubiksCubeStatusStopped:
 		return true
 	default:
 		return false

@@ -45,6 +45,7 @@ export enum RubiksCubeStatus {
   Created = "created",
   InProgress = "in_progress",
   Completed = "completed",
+  Stopped = "stopped",
 }
 
 // generateAlgorithm - generates a string representation of the cubes rotations

@@ -177,22 +177,51 @@ func (s *Server) GetSolvedCubeHandler(ctx context.Context, input *GetSolvedCubeI
 	return resp, nil
 }
 
-// InvokeRubiksCubeAgentHandler - invokes the Rubik's Cube agent for the given cube ID.
+// InvokeRubiksCubeAgentHandler - invokes the Rubik's Cube agent for the given cube ID asynchronously.
 func (s *Server) InvokeRubiksCubeAgentHandler(ctx context.Context, input *InvokeRubiksCubeAgentInput) (*InvokeRubiksCubeAgentResponse, error) {
 	id, err := primitive.ObjectIDFromHex(input.ID)
 	if err != nil {
 		return nil, huma.Error400BadRequest("invalid rubiks cube id")
 	}
 
-	message, err := s.svc.InvokeRubiksCubeAgent(ctx, id)
+	cube, err := s.svc.GetRubiksCubeByID(ctx, id)
 	switch err {
 	case nil:
-		resp := &InvokeRubiksCubeAgentResponse{}
-		resp.Body.Message = message
-		return resp, nil
+		break
 	case domain.RubiksCubeNotFoundError:
 		return nil, huma.Error404NotFound("rubiks cube not found")
 	default:
 		return nil, err
 	}
+
+	if _, err := s.svc.UpdateRubiksCubeStatus(ctx, id, domain.RubiksCubeStatusInProgress); err != nil {
+		return nil, err
+	}
+
+	go s.svc.RunAgent(context.WithoutCancel(ctx), id, cube.LLM)
+
+	resp := &InvokeRubiksCubeAgentResponse{}
+	resp.Body.Message = "agent invocation started"
+	return resp, nil
+}
+
+// StopRubiksCubeAgentHandler - stops the Rubik's Cube agent for the given cube ID.
+func (s *Server) StopRubiksCubeAgentHandler(ctx context.Context, input *StopRubiksCubeAgentInput) (*StopRubiksCubeAgentResponse, error) {
+	id, err := primitive.ObjectIDFromHex(input.ID)
+	if err != nil {
+		return nil, huma.Error400BadRequest("invalid rubiks cube id")
+	}
+
+	if err := s.svc.StopAgent(ctx, id); err != nil {
+		switch err {
+		case domain.RubiksCubeNotFoundError:
+			return nil, huma.Error404NotFound("rubiks cube not found")
+		default:
+			return nil, err
+		}
+	}
+
+	resp := &StopRubiksCubeAgentResponse{}
+	resp.Body.Message = "agent stop requested"
+	return resp, nil
 }

@@ -150,3 +150,42 @@ export const InvokeRubiksCubeAgentFn = createServerFn({ method: "POST" })
       error: null,
     };
   });
+
+export type StopRubiksCubeAgentResult = {
+  message: string;
+  error: XError;
+};
+
+// StopRubiksCubeAgentFn - Stops the running agent for a rubiks cube by its hex ID.
+export const StopRubiksCubeAgentFn = createServerFn({ method: "POST" })
+  .validator((data: { id: string }) => data)
+  .handler(async ({ data }): Promise<StopRubiksCubeAgentResult> => {
+    const url = new URL(
+      `/api/v1/rubiks-cubes/${data.id}/agents/stop`,
+      API_BASE_URL,
+    );
+
+    const response = await fetch(url.toString(), {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      return {
+        message: "",
+        error: `Failed to stop rubiks cube agent: ${response.status} ${response.statusText}`,
+      };
+    }
+
+    type StopRubiksCubeAgentResponseBody = {
+      message: string;
+    };
+
+    const body: StopRubiksCubeAgentResponseBody = await response.json();
+    return {
+      message: body.message,
+      error: null,
+    };
+  });

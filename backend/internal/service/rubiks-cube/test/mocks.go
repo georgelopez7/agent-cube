@@ -18,43 +18,80 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockAgentAPI is a mock of AgentAPI interface.
-type MockAgentAPI struct {
+// MockAgentHub is a mock of AgentHub interface.
+type MockAgentHub struct {
 	ctrl     *gomock.Controller
-	recorder *MockAgentAPIMockRecorder
+	recorder *MockAgentHubMockRecorder
 	isgomock struct{}
 }
 
-// MockAgentAPIMockRecorder is the mock recorder for MockAgentAPI.
-type MockAgentAPIMockRecorder struct {
-	mock *MockAgentAPI
+// MockAgentHubMockRecorder is the mock recorder for MockAgentHub.
+type MockAgentHubMockRecorder struct {
+	mock *MockAgentHub
 }
 
-// NewMockAgentAPI creates a new mock instance.
-func NewMockAgentAPI(ctrl *gomock.Controller) *MockAgentAPI {
-	mock := &MockAgentAPI{ctrl: ctrl}
-	mock.recorder = &MockAgentAPIMockRecorder{mock}
+// NewMockAgentHub creates a new mock instance.
+func NewMockAgentHub(ctrl *gomock.Controller) *MockAgentHub {
+	mock := &MockAgentHub{ctrl: ctrl}
+	mock.recorder = &MockAgentHubMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockAgentAPI) EXPECT() *MockAgentAPIMockRecorder {
+func (m *MockAgentHub) EXPECT() *MockAgentHubMockRecorder {
 	return m.recorder
 }
 
-// InvokeAgent mocks base method.
-func (m *MockAgentAPI) InvokeAgent(id, model string) (string, error) {
+// Deregister mocks base method.
+func (m *MockAgentHub) Deregister(id string) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InvokeAgent", id, model)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	m.ctrl.Call(m, "Deregister", id)
 }
 
-// InvokeAgent indicates an expected call of InvokeAgent.
-func (mr *MockAgentAPIMockRecorder) InvokeAgent(id, model any) *gomock.Call {
+// Deregister indicates an expected call of Deregister.
+func (mr *MockAgentHubMockRecorder) Deregister(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InvokeAgent", reflect.TypeOf((*MockAgentAPI)(nil).InvokeAgent), id, model)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Deregister", reflect.TypeOf((*MockAgentHub)(nil).Deregister), id)
+}
+
+// IsRunning mocks base method.
+func (m *MockAgentHub) IsRunning(id string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsRunning", id)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsRunning indicates an expected call of IsRunning.
+func (mr *MockAgentHubMockRecorder) IsRunning(id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsRunning", reflect.TypeOf((*MockAgentHub)(nil).IsRunning), id)
+}
+
+// Register mocks base method.
+func (m *MockAgentHub) Register(id string, cancel context.CancelFunc) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Register", id, cancel)
+}
+
+// Register indicates an expected call of Register.
+func (mr *MockAgentHubMockRecorder) Register(id, cancel any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockAgentHub)(nil).Register), id, cancel)
+}
+
+// Stop mocks base method.
+func (m *MockAgentHub) Stop(id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Stop", id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Stop indicates an expected call of Stop.
+func (mr *MockAgentHubMockRecorder) Stop(id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stop", reflect.TypeOf((*MockAgentHub)(nil).Stop), id)
 }
 
 // MockRepository is a mock of Repository interface.

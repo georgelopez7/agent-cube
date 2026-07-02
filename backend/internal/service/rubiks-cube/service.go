@@ -1,0 +1,266 @@
+package rubikscube
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+
+	"agent-cube/internal/domain"
+	"agent-cube/internal/pkg/cube"
+	"agent-cube/internal/pkg/langfuse"
+	"agent-cube/internal/pkg/openrouter"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"google.golang.org/adk/agent"
+	"google.golang.org/adk/agent/llmagent"
+	"google.golang.org/adk/runner"
+	"google.golang.org/adk/session"
+	"google.golang.org/adk/tool"
+	"google.golang.org/genai"
+)
+
+type RubiksCubeService struct {
+	repository Repository
+	bus        EventBus
+	langfuse   *langfuse.Langfuse
+	openrouter *openrouter.OpenRouter
+	agentHub   AgentHub
+}
+
+func NewRubiksCubeService(repository Repository, bus EventBus, langfuse *langfuse.Langfuse, openrouter *openrouter.OpenRouter, agentHub AgentHub) *RubiksCubeService {
+	return &RubiksCubeService{
+		repository: repository,
+		bus:        bus,
+		langfuse:   langfuse,
+		openrouter: openrouter,
+		agentHub:   agentHub,
+	}
+}
+
+// CreateRubiksCube - creates a new rubiks cube with the given LLM configuration.
+// If scramble is greater than 0, the cube is scrambled with that many rotations.
+func (s RubiksCubeService) CreateRubiksCube(ctx context.Context, llm domain.LLM, scramble int) (*domain.RubiksCube, error) {
+	cube := domain.NewRubiksCube(llm)
+
+	if scramble > 0 {
+		cube.Cube.Scramble(scramble)
+	}
+
+	if err := s.repository.CreateRubiksCube(ctx, cube); err != nil {
+		return nil, err
+	}
+
+	return &cube, nil
+}
+
+// UpdateRubiksCube - updates an existing rubiks cube after verifying it exists.
+func (s RubiksCubeService) UpdateRubiksCube(ctx context.Context, cube *domain.RubiksCube) error {
+	existing, err := s.repository.GetRubiksCubeByID(ctx, cube.ID)
+	if err != nil {
+		return err
+	}
+
+	if existing == nil {
+		return domain.RubiksCubeNotFoundError
+	}
+
+	return s.repository.UpdateRubiksCube(ctx, cube)
+}
+
+// UpdateRubiksCubeStatus - updates only the status of a rubiks cube by ID.
+// It validates the status, verifies the cube exists, persists the change,
+// and returns the refreshed cube.
+func (s RubiksCubeService) UpdateRubiksCubeStatus(ctx context.Context, id primitive.ObjectID, status domain.RubiksCubeStatus) (*domain.RubiksCube, error) {
+	if !domain.IsValidRubiksCubeStatus(status) {
+		return nil, domain.ErrInvalidRubiksCubeStatus
+	}
+
+	existing, err := s.repository.GetRubiksCubeByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if existing == nil {
+		return nil, domain.RubiksCubeNotFoundError
+	}
+
+	if err := s.repository.UpdateRubiksCubeStatus(ctx, id, status); err != nil {
+		return nil, err
+	}
+
+	existing.Status = status
+
+	return existing, nil
+}
+
+// DeleteRubiksCubeByID - deletes a rubiks cube by ID after verifying it exists.
+func (s RubiksCubeService) DeleteRubiksCubeByID(ctx context.Context, id primitive.ObjectID) error {
+	existing, err := s.repository.GetRubiksCubeByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if existing == nil {
+		return domain.RubiksCubeNotFoundError
+	}
+
+	return s.repository.DeleteRubiksCubeByID(ctx, id)
+}
+
+// GetRubiksCubeByID - retrieves a rubiks cube by ID.
+func (s RubiksCubeService) GetRubiksCubeByID(ctx context.Context, id primitive.ObjectID) (*domain.RubiksCube, error) {
+	cube, err := s.repository.GetRubiksCubeByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if cube == nil {
+		return nil, domain.RubiksCubeNotFoundError
+	}
+
+	return cube, nil
+}
+
+// GetAllRubiksCubes - retrieves all rubiks cubes with an optional limit.
+func (s RubiksCubeService) GetAllRubiksCubes(ctx context.Context, limit int64) ([]domain.RubiksCube, error) {
+	cubes, err := s.repository.GetAllRubiksCubes(ctx, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	if cubes == nil {
+		return []domain.RubiksCube{}, nil
+	}
+
+	return cubes, nil
+}
+
+// ApplyRubiksCubeRotation - applies a rotation to a rubiks cube and persists it.
+func (s RubiksCubeService) ApplyRubiksCubeRotation(ctx context.Context, cubeID primitive.ObjectID, rotation cube.Rotation) (*domain.RubiksCube, error) {
+	cube, err := s.repository.GetRubiksCubeByID(ctx, cubeID)
+	if err != nil {
+		return nil, err
+	}
+
+	if cube == nil {
+		return nil, domain.RubiksCubeNotFoundError
+	}
+
+	xrotation, err := cube.Cube.Rotate(rotation, false)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.repository.UpdateRubiksCube(ctx, cube); err != nil {
+		return nil, err
+	}
+
+	s.bus.Publish(ctx, domain.NewCubeRotatedEvent(cubeID.Hex(), *xrotation))
+
+	return cube, nil
+}
+
+// IsRubiksCubeSolved - returns true if the cube with the given ID is solved.
+func (s RubiksCubeService) IsRubiksCubeSolved(ctx context.Context, cubeID primitive.ObjectID) (bool, error) {
+	cube, err := s.repository.GetRubiksCubeByID(ctx, cubeID)
+	if err != nil {
+		return false, err
+	}
+
+	if cube == nil {
+		return false, domain.RubiksCubeNotFoundError
+	}
+
+	return cube.Cube.Solved(), nil
+}
+
+// RunAgent - runs the agent for the given cube ID using the cube's LLM model.
+func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID, llm domain.LLM) (string, error) {
+	name := fmt.Sprintf("agent-cube-%s-%s", id.Hex(), llm.Model)
+	model := s.openrouter.NewModel(llm.Model)
+
+	agentCtx, cancel := context.WithCancel(ctx) // Used as agent kill switch
+	s.agentHub.Register(id.Hex(), cancel)       // Register agent with the agent hub
+	defer s.agentHub.Deregister(id.Hex())       // Remove agent from hub on completion
+
+	_agent, err := llmagent.New(llmagent.Config{
+		Name:        "Rubiks Cube Agent",
+		Description: "Agent specialized in solving Rubik's cubes.",
+		Instruction: systemPrompt,
+		Model:       model,
+		Tools: []tool.Tool{
+			s.GetCubeTool(),
+			s.RotateCubeTool(),
+			s.IsCubeSolvedTool(),
+			s.GetSolvedExampleTool(),
+			s.SetCubeAsCompletedTool(),
+		},
+	})
+
+	sessionSvc := session.InMemoryService()
+	_session, err := sessionSvc.Create(agentCtx, &session.CreateRequest{
+		AppName: name,
+		UserID:  "default",
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	runner, err := runner.New(runner.Config{
+		AppName:        name,
+		Agent:          _agent,
+		SessionService: sessionSvc,
+		PluginConfig:   s.langfuse.Config,
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	prompt := NewStarterPrompt(id.Hex())
+	msg := genai.NewContentFromText(prompt, genai.RoleUser)
+
+	var finalMsg string
+
+	for event, err := range runner.Run(agentCtx, "default", _session.Session.ID(), msg, agent.RunConfig{}) {
+		if err != nil {
+			return "", err
+		}
+
+		if event.Content == nil {
+			continue
+		}
+
+		for _, part := range event.Content.Parts {
+			if part.FunctionCall != nil {
+				slog.Info("[TOOL]", "name", part.FunctionCall.Name)
+			}
+
+			if part.Text != "" {
+				slog.Info("[AGENT]", "text", part.Text)
+				finalMsg = part.Text
+			}
+		}
+	}
+
+	return finalMsg, nil
+}
+
+// StopAgent - stops a running agent for the given cube ID and updates its status to stopped.
+func (s RubiksCubeService) StopAgent(ctx context.Context, id primitive.ObjectID) error {
+	existing, err := s.repository.GetRubiksCubeByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if existing == nil {
+		return domain.RubiksCubeNotFoundError
+	}
+
+	if err := s.agentHub.Stop(id.Hex()); err != nil {
+		return err
+	}
+
+	return s.repository.UpdateRubiksCubeStatus(ctx, id, domain.RubiksCubeStatusStopped)
+}

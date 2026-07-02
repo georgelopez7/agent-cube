@@ -98,3 +98,12 @@ export const Completed: Story = {
     },
   },
 };
+
+export const Stopped: Story = {
+  args: {
+    cube: {
+      ...withRotations(baseCube.cube.rotations),
+      status: RubiksCubeStatus.Stopped,
+    },
+  },
+};

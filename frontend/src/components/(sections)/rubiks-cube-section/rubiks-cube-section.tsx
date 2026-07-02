@@ -5,6 +5,7 @@ import type { RubiksCube } from "#/domain/rubiks-cube";
 import {
   DeleteRubiksCubeFn,
   InvokeRubiksCubeAgentFn,
+  StopRubiksCubeAgentFn,
 } from "#/services/rubiks-cubes.actions";
 import { rubiksCubeKeys } from "#/services/rubiks-cubes.queries";
 
@@ -23,6 +24,15 @@ const RubiksCubeSection = ({
 
   const handleInvoke = async (id: string) => {
     const { error } = await InvokeRubiksCubeAgentFn({ data: { id } });
+    if (error) {
+      alert(error);
+    }
+
+    _query.invalidateQueries({ queryKey: rubiksCubeKeys.lists() });
+  };
+
+  const handleStop = async (id: string) => {
+    const { error } = await StopRubiksCubeAgentFn({ data: { id } });
     if (error) {
       alert(error);
     }
@@ -60,6 +70,7 @@ const RubiksCubeSection = ({
           key={cube.id}
           cube={cube}
           onInvoke={handleInvoke}
+          onStop={handleStop}
           onDelete={handleDelete}
         />
       ))}

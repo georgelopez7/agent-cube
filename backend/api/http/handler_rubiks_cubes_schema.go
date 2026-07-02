@@ -121,13 +121,25 @@ type GetSolvedCubeResponse struct {
 	}
 }
 
-// InvokeRubiksCubeAgentInput - input for invoking the agent for a rubiks cube.
+// InvokeRubiksCubeAgentInput - input for invoking the agent for a rubiks cube asynchronously.
 type InvokeRubiksCubeAgentInput struct {
 	ID string `path:"id"`
 }
 
-// InvokeRubiksCubeAgentResponse - response after invoking the agent for a rubiks cube.
+// InvokeRubiksCubeAgentResponse - response after starting the agent for a rubiks cube asynchronously.
 type InvokeRubiksCubeAgentResponse struct {
+	Body struct {
+		Message string `json:"message"`
+	}
+}
+
+// StopRubiksCubeAgentInput - input for stopping the agent for a rubiks cube.
+type StopRubiksCubeAgentInput struct {
+	ID string `path:"id"`
+}
+
+// StopRubiksCubeAgentResponse - response after stopping the agent for a rubiks cube.
+type StopRubiksCubeAgentResponse struct {
 	Body struct {
 		Message string `json:"message"`
 	}

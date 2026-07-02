@@ -19,32 +19,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockService is a mock of Service interface.
-type MockService struct {
+// MockRubiksCubeService is a mock of RubiksCubeService interface.
+type MockRubiksCubeService struct {
 	ctrl     *gomock.Controller
-	recorder *MockServiceMockRecorder
+	recorder *MockRubiksCubeServiceMockRecorder
 	isgomock struct{}
 }
 
-// MockServiceMockRecorder is the mock recorder for MockService.
-type MockServiceMockRecorder struct {
-	mock *MockService
+// MockRubiksCubeServiceMockRecorder is the mock recorder for MockRubiksCubeService.
+type MockRubiksCubeServiceMockRecorder struct {
+	mock *MockRubiksCubeService
 }
 
-// NewMockService creates a new mock instance.
-func NewMockService(ctrl *gomock.Controller) *MockService {
-	mock := &MockService{ctrl: ctrl}
-	mock.recorder = &MockServiceMockRecorder{mock}
+// NewMockRubiksCubeService creates a new mock instance.
+func NewMockRubiksCubeService(ctrl *gomock.Controller) *MockRubiksCubeService {
+	mock := &MockRubiksCubeService{ctrl: ctrl}
+	mock.recorder = &MockRubiksCubeServiceMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockService) EXPECT() *MockServiceMockRecorder {
+func (m *MockRubiksCubeService) EXPECT() *MockRubiksCubeServiceMockRecorder {
 	return m.recorder
 }
 
 // ApplyRubiksCubeRotation mocks base method.
-func (m *MockService) ApplyRubiksCubeRotation(ctx context.Context, cubeID primitive.ObjectID, rotation cube.Rotation) (*domain.RubiksCube, error) {
+func (m *MockRubiksCubeService) ApplyRubiksCubeRotation(ctx context.Context, cubeID primitive.ObjectID, rotation cube.Rotation) (*domain.RubiksCube, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ApplyRubiksCubeRotation", ctx, cubeID, rotation)
 	ret0, _ := ret[0].(*domain.RubiksCube)
@@ -53,13 +53,13 @@ func (m *MockService) ApplyRubiksCubeRotation(ctx context.Context, cubeID primit
 }
 
 // ApplyRubiksCubeRotation indicates an expected call of ApplyRubiksCubeRotation.
-func (mr *MockServiceMockRecorder) ApplyRubiksCubeRotation(ctx, cubeID, rotation any) *gomock.Call {
+func (mr *MockRubiksCubeServiceMockRecorder) ApplyRubiksCubeRotation(ctx, cubeID, rotation any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyRubiksCubeRotation", reflect.TypeOf((*MockService)(nil).ApplyRubiksCubeRotation), ctx, cubeID, rotation)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyRubiksCubeRotation", reflect.TypeOf((*MockRubiksCubeService)(nil).ApplyRubiksCubeRotation), ctx, cubeID, rotation)
 }
 
 // CreateRubiksCube mocks base method.
-func (m *MockService) CreateRubiksCube(ctx context.Context, llm domain.LLM, scramble int) (*domain.RubiksCube, error) {
+func (m *MockRubiksCubeService) CreateRubiksCube(ctx context.Context, llm domain.LLM, scramble int) (*domain.RubiksCube, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateRubiksCube", ctx, llm, scramble)
 	ret0, _ := ret[0].(*domain.RubiksCube)
@@ -68,13 +68,13 @@ func (m *MockService) CreateRubiksCube(ctx context.Context, llm domain.LLM, scra
 }
 
 // CreateRubiksCube indicates an expected call of CreateRubiksCube.
-func (mr *MockServiceMockRecorder) CreateRubiksCube(ctx, llm, scramble any) *gomock.Call {
+func (mr *MockRubiksCubeServiceMockRecorder) CreateRubiksCube(ctx, llm, scramble any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRubiksCube", reflect.TypeOf((*MockService)(nil).CreateRubiksCube), ctx, llm, scramble)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRubiksCube", reflect.TypeOf((*MockRubiksCubeService)(nil).CreateRubiksCube), ctx, llm, scramble)
 }
 
 // DeleteRubiksCubeByID mocks base method.
-func (m *MockService) DeleteRubiksCubeByID(ctx context.Context, id primitive.ObjectID) error {
+func (m *MockRubiksCubeService) DeleteRubiksCubeByID(ctx context.Context, id primitive.ObjectID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteRubiksCubeByID", ctx, id)
 	ret0, _ := ret[0].(error)
@@ -82,13 +82,13 @@ func (m *MockService) DeleteRubiksCubeByID(ctx context.Context, id primitive.Obj
 }
 
 // DeleteRubiksCubeByID indicates an expected call of DeleteRubiksCubeByID.
-func (mr *MockServiceMockRecorder) DeleteRubiksCubeByID(ctx, id any) *gomock.Call {
+func (mr *MockRubiksCubeServiceMockRecorder) DeleteRubiksCubeByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRubiksCubeByID", reflect.TypeOf((*MockService)(nil).DeleteRubiksCubeByID), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRubiksCubeByID", reflect.TypeOf((*MockRubiksCubeService)(nil).DeleteRubiksCubeByID), ctx, id)
 }
 
 // GetAllRubiksCubes mocks base method.
-func (m *MockService) GetAllRubiksCubes(ctx context.Context, limit int64) ([]domain.RubiksCube, error) {
+func (m *MockRubiksCubeService) GetAllRubiksCubes(ctx context.Context, limit int64) ([]domain.RubiksCube, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllRubiksCubes", ctx, limit)
 	ret0, _ := ret[0].([]domain.RubiksCube)
@@ -97,13 +97,13 @@ func (m *MockService) GetAllRubiksCubes(ctx context.Context, limit int64) ([]dom
 }
 
 // GetAllRubiksCubes indicates an expected call of GetAllRubiksCubes.
-func (mr *MockServiceMockRecorder) GetAllRubiksCubes(ctx, limit any) *gomock.Call {
+func (mr *MockRubiksCubeServiceMockRecorder) GetAllRubiksCubes(ctx, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllRubiksCubes", reflect.TypeOf((*MockService)(nil).GetAllRubiksCubes), ctx, limit)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllRubiksCubes", reflect.TypeOf((*MockRubiksCubeService)(nil).GetAllRubiksCubes), ctx, limit)
 }
 
 // GetRubiksCubeByID mocks base method.
-func (m *MockService) GetRubiksCubeByID(ctx context.Context, id primitive.ObjectID) (*domain.RubiksCube, error) {
+func (m *MockRubiksCubeService) GetRubiksCubeByID(ctx context.Context, id primitive.ObjectID) (*domain.RubiksCube, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRubiksCubeByID", ctx, id)
 	ret0, _ := ret[0].(*domain.RubiksCube)
@@ -112,28 +112,13 @@ func (m *MockService) GetRubiksCubeByID(ctx context.Context, id primitive.Object
 }
 
 // GetRubiksCubeByID indicates an expected call of GetRubiksCubeByID.
-func (mr *MockServiceMockRecorder) GetRubiksCubeByID(ctx, id any) *gomock.Call {
+func (mr *MockRubiksCubeServiceMockRecorder) GetRubiksCubeByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRubiksCubeByID", reflect.TypeOf((*MockService)(nil).GetRubiksCubeByID), ctx, id)
-}
-
-// InvokeRubiksCubeAgent mocks base method.
-func (m *MockService) InvokeRubiksCubeAgent(ctx context.Context, id primitive.ObjectID) (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InvokeRubiksCubeAgent", ctx, id)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// InvokeRubiksCubeAgent indicates an expected call of InvokeRubiksCubeAgent.
-func (mr *MockServiceMockRecorder) InvokeRubiksCubeAgent(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InvokeRubiksCubeAgent", reflect.TypeOf((*MockService)(nil).InvokeRubiksCubeAgent), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRubiksCubeByID", reflect.TypeOf((*MockRubiksCubeService)(nil).GetRubiksCubeByID), ctx, id)
 }
 
 // IsRubiksCubeSolved mocks base method.
-func (m *MockService) IsRubiksCubeSolved(ctx context.Context, cubeID primitive.ObjectID) (bool, error) {
+func (m *MockRubiksCubeService) IsRubiksCubeSolved(ctx context.Context, cubeID primitive.ObjectID) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsRubiksCubeSolved", ctx, cubeID)
 	ret0, _ := ret[0].(bool)
@@ -142,13 +127,42 @@ func (m *MockService) IsRubiksCubeSolved(ctx context.Context, cubeID primitive.O
 }
 
 // IsRubiksCubeSolved indicates an expected call of IsRubiksCubeSolved.
-func (mr *MockServiceMockRecorder) IsRubiksCubeSolved(ctx, cubeID any) *gomock.Call {
+func (mr *MockRubiksCubeServiceMockRecorder) IsRubiksCubeSolved(ctx, cubeID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsRubiksCubeSolved", reflect.TypeOf((*MockService)(nil).IsRubiksCubeSolved), ctx, cubeID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsRubiksCubeSolved", reflect.TypeOf((*MockRubiksCubeService)(nil).IsRubiksCubeSolved), ctx, cubeID)
+}
+
+// RunAgent mocks base method.
+func (m *MockRubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID, llm domain.LLM) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RunAgent", ctx, id, llm)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RunAgent indicates an expected call of RunAgent.
+func (mr *MockRubiksCubeServiceMockRecorder) RunAgent(ctx, id, llm any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunAgent", reflect.TypeOf((*MockRubiksCubeService)(nil).RunAgent), ctx, id, llm)
+}
+
+// StopAgent mocks base method.
+func (m *MockRubiksCubeService) StopAgent(ctx context.Context, id primitive.ObjectID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StopAgent", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// StopAgent indicates an expected call of StopAgent.
+func (mr *MockRubiksCubeServiceMockRecorder) StopAgent(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StopAgent", reflect.TypeOf((*MockRubiksCubeService)(nil).StopAgent), ctx, id)
 }
 
 // UpdateRubiksCube mocks base method.
-func (m *MockService) UpdateRubiksCube(ctx context.Context, arg1 *domain.RubiksCube) error {
+func (m *MockRubiksCubeService) UpdateRubiksCube(ctx context.Context, arg1 *domain.RubiksCube) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateRubiksCube", ctx, arg1)
 	ret0, _ := ret[0].(error)
@@ -156,13 +170,13 @@ func (m *MockService) UpdateRubiksCube(ctx context.Context, arg1 *domain.RubiksC
 }
 
 // UpdateRubiksCube indicates an expected call of UpdateRubiksCube.
-func (mr *MockServiceMockRecorder) UpdateRubiksCube(ctx, arg1 any) *gomock.Call {
+func (mr *MockRubiksCubeServiceMockRecorder) UpdateRubiksCube(ctx, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRubiksCube", reflect.TypeOf((*MockService)(nil).UpdateRubiksCube), ctx, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRubiksCube", reflect.TypeOf((*MockRubiksCubeService)(nil).UpdateRubiksCube), ctx, arg1)
 }
 
 // UpdateRubiksCubeStatus mocks base method.
-func (m *MockService) UpdateRubiksCubeStatus(ctx context.Context, id primitive.ObjectID, status domain.RubiksCubeStatus) (*domain.RubiksCube, error) {
+func (m *MockRubiksCubeService) UpdateRubiksCubeStatus(ctx context.Context, id primitive.ObjectID, status domain.RubiksCubeStatus) (*domain.RubiksCube, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateRubiksCubeStatus", ctx, id, status)
 	ret0, _ := ret[0].(*domain.RubiksCube)
@@ -171,7 +185,7 @@ func (m *MockService) UpdateRubiksCubeStatus(ctx context.Context, id primitive.O
 }
 
 // UpdateRubiksCubeStatus indicates an expected call of UpdateRubiksCubeStatus.
-func (mr *MockServiceMockRecorder) UpdateRubiksCubeStatus(ctx, id, status any) *gomock.Call {
+func (mr *MockRubiksCubeServiceMockRecorder) UpdateRubiksCubeStatus(ctx, id, status any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRubiksCubeStatus", reflect.TypeOf((*MockService)(nil).UpdateRubiksCubeStatus), ctx, id, status)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRubiksCubeStatus", reflect.TypeOf((*MockRubiksCubeService)(nil).UpdateRubiksCubeStatus), ctx, id, status)
 }
