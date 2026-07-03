@@ -10,10 +10,11 @@ import {
   Square,
   Trash2,
 } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useCallback, useState } from "react";
 import { getAIProviderIcon } from "#/components/(icons)/helpers";
 import Spacer from "#/components/(layouts)/spacer/spacer";
 import RubiksCube from "#/components/(rubiks-cube)/rubiks-cube/rubiks-cube";
+import { useRubiksCubeStore } from "#/stores/rubiks-cube-store";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -82,10 +83,20 @@ const formatMaxDuration = (ms: number): string => {
 const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
   const ProviderIcon = getAIProviderIcon(cube.llm.provider);
 
+  // Subscribe to live status updates from the global store (e.g. websocket timeout events).
+  const storeStatus = useRubiksCubeStore(
+    useCallback(
+      (state) => state.records.get(cube.id)?.cube.status,
+      [cube.id],
+    ),
+  );
+
+  const cubeStatus = storeStatus ?? cube.status;
+
   const algorithm = generateAlgorithm(cube.cube.rotations ?? []);
   const date = format(new Date(cube.created_at), "yyyy-MM-dd");
   const time = format(new Date(cube.created_at), "HH:mm:ss");
-  const status = STATUS_CONFIG[cube.status];
+  const status = STATUS_CONFIG[cubeStatus];
   const maxDuration = formatMaxDuration(cube.max_duration_ms);
 
   const [invoking, setInvoking] = useState(false);
@@ -149,12 +160,12 @@ const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
         </div>
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogTrigger
-            disabled={cube.status === RubiksCubeStatus.InProgress}
+            disabled={cubeStatus === RubiksCubeStatus.InProgress}
             render={
               <Button
                 size="icon-sm"
                 variant="ghost"
-                disabled={cube.status === RubiksCubeStatus.InProgress}
+                disabled={cubeStatus === RubiksCubeStatus.InProgress}
                 className="text-muted-foreground hover:text-destructive"
                 aria-label="Delete cube"
               >
@@ -196,7 +207,7 @@ const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
         </div>
       </div>
       <Spacer size="xs" />
-      {cube.status === RubiksCubeStatus.Created && (
+      {cubeStatus === RubiksCubeStatus.Created && (
         <Button
           size="xs"
           onClick={() => handleInvoke(cube.id)}
@@ -212,7 +223,7 @@ const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
           Invoke Agent
         </Button>
       )}
-      {cube.status === RubiksCubeStatus.InProgress && (
+      {cubeStatus === RubiksCubeStatus.InProgress && (
         <Button
           size="xs"
           onClick={() => handleStop(cube.id)}

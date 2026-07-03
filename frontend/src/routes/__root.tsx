@@ -4,6 +4,7 @@ import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 // import { TanStackDevtools } from "@tanstack/react-devtools";
 
 import appCss from "../styles.css?url";
+import { Toaster } from "sonner";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body>
         <QueryClientProvider client={queryClient}>
           {children}
+          <Toaster richColors />
         </QueryClientProvider>
         {/* <TanStackDevtools
           config={{

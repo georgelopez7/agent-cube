@@ -9,6 +9,7 @@ import RubiksCubeSection from "#/components/(sections)/rubiks-cube-section/rubik
 import Websocket from "#/components/websocket/websocket";
 import { GetAIModels } from "#/services/ai.queries";
 import { CreateRubiksCubeFn } from "#/services/rubiks-cubes.actions";
+import { toast } from "sonner";
 import {
   GetRubiksCubes,
   rubiksCubeKeys,
@@ -36,7 +37,7 @@ function RouteComponent() {
     });
 
     if (error) {
-      alert(error);
+      toast.error(error);
       return;
     }
 

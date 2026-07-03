@@ -8,6 +8,7 @@ import {
   StopRubiksCubeAgentFn,
 } from "#/services/rubiks-cubes.actions";
 import { rubiksCubeKeys } from "#/services/rubiks-cubes.queries";
+import { toast } from "sonner";
 
 interface RubiksCubeSectionProps {
   cubes?: RubiksCube[];
@@ -25,7 +26,7 @@ const RubiksCubeSection = ({
   const handleInvoke = async (id: string) => {
     const { error } = await InvokeRubiksCubeAgentFn({ data: { id } });
     if (error) {
-      alert(error);
+      toast.error(error);
     }
 
     _query.invalidateQueries({ queryKey: rubiksCubeKeys.lists() });
@@ -34,7 +35,7 @@ const RubiksCubeSection = ({
   const handleStop = async (id: string) => {
     const { error } = await StopRubiksCubeAgentFn({ data: { id } });
     if (error) {
-      alert(error);
+      toast.error(error);
     }
 
     _query.invalidateQueries({ queryKey: rubiksCubeKeys.lists() });
@@ -43,7 +44,7 @@ const RubiksCubeSection = ({
   const handleDelete = async (id: string) => {
     const { error } = await DeleteRubiksCubeFn({ data: { id } });
     if (error) {
-      alert(error);
+      toast.error(error);
       return;
     }
 

@@ -1,10 +1,10 @@
-import type { CubeRotation } from "#/domain/rubiks-cube";
+import { RubiksCubeStatus, type CubeRotation } from "#/domain/rubiks-cube";
 import { useRubiksCubeStore } from "#/stores/rubiks-cube-store";
 
 export enum WebSocketEventType {
   CubeRotated = "cube.rotated",
-  // CubeSolved = "cube.solved",
-  // AgentMessage = "agent.message",
+  CubeAgentTimeout = "cube.agent.timeout",
+  CubeCompleted = "cube.completed",
 }
 
 export type CubeRotatedEvent = {
@@ -29,31 +29,37 @@ export const CubeRotatedEventHandler = async (event: CubeRotatedEvent) => {
   await cube.ref.rotate(rotation.rotation);
 };
 
-// type CubeSolvedEvent = {
-//   type: "cube.solved";
-//   payload: {
-//     cube_id: string;
-//   };
-// };
+export type CubeAgentTimeoutEvent = {
+  type: WebSocketEventType.CubeAgentTimeout;
+  payload: {
+    cube_id: string;
+  };
+};
 
-// export const SolvedEventHandler = async (event: CubeSolvedEvent) => {
-//   const { SetStatus } = useRubiksCubeStore.getState();
+// cube.agent.timeout
+export const CubeAgentTimeoutEventHandler = async (
+  event: CubeAgentTimeoutEvent,
+) => {
+  const { SetStatus } = useRubiksCubeStore.getState();
 
-//   SetStatus(event.payload.cube_id, IStatus.Completed);
-// };
+  SetStatus(event.payload.cube_id, RubiksCubeStatus.TimedOut);
+};
 
-// type AgentMessageEvent = {
-//   type: "agent.message";
-//   payload: {
-//     cube_id: string;
-//     message: IAgentMessage;
-//   };
-// };
+export type CubeCompletedEvent = {
+  type: WebSocketEventType.CubeCompleted;
+  payload: {
+    cube_id: string;
+  };
+};
 
-// export const AgentMessageEventHandler = async (event: AgentMessageEvent) => {
-//   const { AddAgentMessage } = useRubiksCubeStore.getState();
+// cube.completed
+export const CubeCompletedEventHandler = async (event: CubeCompletedEvent) => {
+  const { SetStatus } = useRubiksCubeStore.getState();
 
-//   AddAgentMessage(event.payload.cube_id, event.payload.message);
-// };
+  SetStatus(event.payload.cube_id, RubiksCubeStatus.Completed);
+};
 
-export type IEvent = CubeRotatedEvent;
+export type IEvent =
+  | CubeRotatedEvent
+  | CubeAgentTimeoutEvent
+  | CubeCompletedEvent;
