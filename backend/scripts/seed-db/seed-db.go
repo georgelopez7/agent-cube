@@ -18,6 +18,7 @@ import (
 
 const MaxCubes = 10
 const MaxScrambles = 10
+const MaxDurationMS = 30000 // 30 seconds
 
 func main() {
 	// CONTEXT
@@ -57,7 +58,7 @@ func main() {
 
 		scrambles := rand.Intn(MaxScrambles)
 
-		if _, err := svc.CreateRubiksCube(ctx, llm, scrambles); err != nil {
+		if _, err := svc.CreateRubiksCube(ctx, llm, scrambles, MaxDurationMS); err != nil {
 			slog.Error("failed to seed cube", "err", err)
 			continue
 		}

@@ -47,7 +47,9 @@ export type CreateRubiksCubeResult = {
 
 // CreateRubiksCubeFn - Creates a new rubiks cube configured for a specific LLM.
 export const CreateRubiksCubeFn = createServerFn({ method: "POST" })
-  .validator((data: { llm: LLM; scramble: number }) => data)
+  .validator(
+    (data: { llm: LLM; scramble: number; maxDurationMS: number }) => data,
+  )
   .handler(async ({ data }): Promise<CreateRubiksCubeResult> => {
     const url = new URL("/api/v1/rubiks-cubes", API_BASE_URL);
 
@@ -60,6 +62,7 @@ export const CreateRubiksCubeFn = createServerFn({ method: "POST" })
       body: JSON.stringify({
         llm: data.llm,
         scramble: data.scramble,
+        max_duration_ms: data.maxDurationMS,
       }),
     });
 

@@ -13,7 +13,7 @@ import (
 
 // CreateRubiksCubeHandler - creates a new rubiks cube.
 func (s *Server) CreateRubiksCubeHandler(ctx context.Context, input *CreateRubiksCubeInput) (*CreateRubiksCubeResponse, error) {
-	cube, err := s.svc.CreateRubiksCube(ctx, input.Body.LLM, input.Body.Scramble)
+	cube, err := s.svc.CreateRubiksCube(ctx, input.Body.LLM, input.Body.Scramble, input.Body.MaxDurationMS)
 	if err != nil {
 		return nil, err
 	}
@@ -184,21 +184,7 @@ func (s *Server) InvokeRubiksCubeAgentHandler(ctx context.Context, input *Invoke
 		return nil, huma.Error400BadRequest("invalid rubiks cube id")
 	}
 
-	cube, err := s.svc.GetRubiksCubeByID(ctx, id)
-	switch err {
-	case nil:
-		break
-	case domain.RubiksCubeNotFoundError:
-		return nil, huma.Error404NotFound("rubiks cube not found")
-	default:
-		return nil, err
-	}
-
-	if _, err := s.svc.UpdateRubiksCubeStatus(ctx, id, domain.RubiksCubeStatusInProgress); err != nil {
-		return nil, err
-	}
-
-	go s.svc.RunAgent(context.WithoutCancel(ctx), id, cube.LLM)
+	go s.svc.RunAgent(context.WithoutCancel(ctx), id)
 
 	resp := &InvokeRubiksCubeAgentResponse{}
 	resp.Body.Message = "agent invocation started"

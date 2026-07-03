@@ -14,6 +14,9 @@ var RubiksCubeNotFoundError = errors.New("rubiks cube not found")
 // ErrInvalidRubiksCubeStatus - returned when a rubiks cube status is not recognized.
 var ErrInvalidRubiksCubeStatus = errors.New("invalid rubiks cube status")
 
+// ErrInvalidRubiksCubeMaxDuration - returned when a rubiks cube max duration is not valid.
+var ErrInvalidRubiksCubeMaxDuration = errors.New("invalid rubiks cube max duration")
+
 type RubiksCubeStatus string
 
 const (
@@ -21,12 +24,13 @@ const (
 	RubiksCubeStatusInProgress RubiksCubeStatus = "in_progress"
 	RubiksCubeStatusCompleted  RubiksCubeStatus = "completed"
 	RubiksCubeStatusStopped    RubiksCubeStatus = "stopped"
+	RubiksCubeStatusTimedOut   RubiksCubeStatus = "timed_out"
 )
 
 // IsValidRubiksCubeStatus - reports whether the given status is a recognized RubiksCubeStatus.
 func IsValidRubiksCubeStatus(status RubiksCubeStatus) bool {
 	switch status {
-	case RubiksCubeStatusCreated, RubiksCubeStatusInProgress, RubiksCubeStatusCompleted, RubiksCubeStatusStopped:
+	case RubiksCubeStatusCreated, RubiksCubeStatusInProgress, RubiksCubeStatusCompleted, RubiksCubeStatusStopped, RubiksCubeStatusTimedOut:
 		return true
 	default:
 		return false
@@ -34,21 +38,23 @@ func IsValidRubiksCubeStatus(status RubiksCubeStatus) bool {
 }
 
 type RubiksCube struct {
-	ID        primitive.ObjectID `json:"id" bson:"_id"`
-	LLM       LLM                `json:"llm" bson:"llm"`
-	Status    RubiksCubeStatus   `json:"status" bson:"status"`
-	Cube      cube.Cube          `json:"cube" bson:"cube"`
-	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
+	ID            primitive.ObjectID `json:"id" bson:"_id"`
+	LLM           LLM                `json:"llm" bson:"llm"`
+	Status        RubiksCubeStatus   `json:"status" bson:"status"`
+	Cube          cube.Cube          `json:"cube" bson:"cube"`
+	MaxDurationMS int                `json:"max_duration_ms" bson:"max_duration_ms"`
+	CreatedAt     time.Time          `json:"created_at" bson:"created_at"`
+	UpdatedAt     time.Time          `json:"updated_at" bson:"updated_at"`
 }
 
-func NewRubiksCube(llm LLM) RubiksCube {
+func NewRubiksCube(llm LLM, maxDuration int) RubiksCube {
 	return RubiksCube{
-		ID:        primitive.NewObjectID(),
-		LLM:       llm,
-		Status:    RubiksCubeStatusCreated,
-		Cube:      cube.NewCube(),
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
+		ID:            primitive.NewObjectID(),
+		LLM:           llm,
+		Status:        RubiksCubeStatusCreated,
+		Cube:          cube.NewCube(),
+		MaxDurationMS: maxDuration,
+		CreatedAt:     time.Now().UTC(),
+		UpdatedAt:     time.Now().UTC(),
 	}
 }

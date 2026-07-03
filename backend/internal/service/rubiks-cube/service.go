@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"agent-cube/internal/domain"
 	"agent-cube/internal/pkg/cube"
@@ -39,8 +40,8 @@ func NewRubiksCubeService(repository Repository, bus EventBus, langfuse *langfus
 
 // CreateRubiksCube - creates a new rubiks cube with the given LLM configuration.
 // If scramble is greater than 0, the cube is scrambled with that many rotations.
-func (s RubiksCubeService) CreateRubiksCube(ctx context.Context, llm domain.LLM, scramble int) (*domain.RubiksCube, error) {
-	cube := domain.NewRubiksCube(llm)
+func (s RubiksCubeService) CreateRubiksCube(ctx context.Context, llm domain.LLM, scramble int, maxDuration int) (*domain.RubiksCube, error) {
+	cube := domain.NewRubiksCube(llm, maxDuration)
 
 	if scramble > 0 {
 		cube.Cube.Scramble(scramble)
@@ -174,14 +175,30 @@ func (s RubiksCubeService) IsRubiksCubeSolved(ctx context.Context, cubeID primit
 	return cube.Cube.Solved(), nil
 }
 
-// RunAgent - runs the agent for the given cube ID using the cube's LLM model.
-func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID, llm domain.LLM) (string, error) {
-	name := fmt.Sprintf("agent-cube-%s-%s", id.Hex(), llm.Model)
-	model := s.openrouter.NewModel(llm.Model)
+// RunAgent - runs the agent for the given cube ID using the cube's LLM model and max duration.
+func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID) (string, error) {
+	cube, err := s.repository.GetRubiksCubeByID(ctx, id)
+	if err != nil {
+		return "", err
+	}
 
-	agentCtx, cancel := context.WithCancel(ctx) // Used as agent kill switch
-	s.agentHub.Register(id.Hex(), cancel)       // Register agent with the agent hub
-	defer s.agentHub.Deregister(id.Hex())       // Remove agent from hub on completion
+	if cube == nil {
+		return "", domain.RubiksCubeNotFoundError
+	}
+
+	if err := s.repository.UpdateRubiksCubeStatus(ctx, id, domain.RubiksCubeStatusInProgress); err != nil {
+		return "", err
+	}
+
+	name := fmt.Sprintf("agent-cube-%s-%s", id.Hex(), cube.LLM.Model)
+	model := s.openrouter.NewModel(cube.LLM.Model)
+
+	timeout := time.Duration(cube.MaxDurationMS) * time.Millisecond
+	agentCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), timeout)
+
+	s.agentHub.Register(id.Hex(), cancel)
+	defer s.agentHub.Deregister(id.Hex())
+	defer cancel()
 
 	_agent, err := llmagent.New(llmagent.Config{
 		Name:        "Rubiks Cube Agent",
@@ -197,6 +214,10 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID, 
 		},
 	})
 
+	if err != nil {
+		return "", fmt.Errorf("failed to create agent: %w", err)
+	}
+
 	sessionSvc := session.InMemoryService()
 	_session, err := sessionSvc.Create(agentCtx, &session.CreateRequest{
 		AppName: name,
@@ -204,7 +225,7 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID, 
 	})
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create session: %w", err)
 	}
 
 	runner, err := runner.New(runner.Config{
@@ -215,7 +236,7 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID, 
 	})
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create runner: %w", err)
 	}
 
 	prompt := NewStarterPrompt(id.Hex())
@@ -225,7 +246,10 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID, 
 
 	for event, err := range runner.Run(agentCtx, "default", _session.Session.ID(), msg, agent.RunConfig{}) {
 		if err != nil {
-			return "", err
+			if agentCtx.Err() == context.DeadlineExceeded {
+				break
+			}
+			return "", fmt.Errorf("failed to run agent: %w", err)
 		}
 
 		if event.Content == nil {
@@ -242,6 +266,22 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID, 
 				finalMsg = part.Text
 			}
 		}
+	}
+
+	// AGENT TIMEOUT
+	if agentCtx.Err() == context.DeadlineExceeded {
+		slog.Info("agent timed out", "id", id.Hex(), "max_duration_ms", cube.MaxDurationMS)
+
+		existing, err := s.repository.GetRubiksCubeByID(ctx, id)
+		if err != nil || existing == nil || existing.Status != domain.RubiksCubeStatusInProgress {
+			return "", fmt.Errorf("agent timed out after %s: %w", timeout, agentCtx.Err())
+		}
+
+		if err := s.repository.UpdateRubiksCubeStatus(ctx, id, domain.RubiksCubeStatusTimedOut); err != nil {
+			slog.Error("failed to update rubiks cube status to timed_out", "id", id.Hex(), "error", err)
+		}
+
+		return "", fmt.Errorf("agent timed out after %s: %w", timeout, agentCtx.Err())
 	}
 
 	return finalMsg, nil

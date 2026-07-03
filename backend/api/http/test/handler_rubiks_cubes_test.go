@@ -21,15 +21,16 @@ func TestServer_CreateRubiksCubeHandler(t *testing.T) {
 
 	t.Run("should successfully create rubiks cube", func(t *testing.T) {
 		llm := domain.NewLLM("openai", "gpt-4.0")
-		cube := domain.NewRubiksCube(llm)
+		cube := domain.NewRubiksCube(llm, 300)
 
-		deps.MockSvc.EXPECT().CreateRubiksCube(gomock.Any(), llm, 0).Return(&cube, nil)
+		deps.MockSvc.EXPECT().CreateRubiksCube(gomock.Any(), llm, 0, 300).Return(&cube, nil)
 
 		resp := api.Post(endpoint, map[string]any{
 			"llm": map[string]any{
 				"provider": llm.Provider,
 				"model":    llm.Model,
 			},
+			"max_duration_ms": 300,
 		})
 
 		require.Equal(t, http.StatusCreated, resp.Code)
@@ -38,16 +39,17 @@ func TestServer_CreateRubiksCubeHandler(t *testing.T) {
 
 	t.Run("should create scrambled rubiks cube when scramble is provided", func(t *testing.T) {
 		llm := domain.NewLLM("openai", "gpt-4.0")
-		cube := domain.NewRubiksCube(llm)
+		cube := domain.NewRubiksCube(llm, 300)
 
-		deps.MockSvc.EXPECT().CreateRubiksCube(gomock.Any(), llm, 10).Return(&cube, nil)
+		deps.MockSvc.EXPECT().CreateRubiksCube(gomock.Any(), llm, 10, 300).Return(&cube, nil)
 
 		resp := api.Post(endpoint, map[string]any{
 			"llm": map[string]any{
 				"provider": llm.Provider,
 				"model":    llm.Model,
 			},
-			"scramble": 10,
+			"scramble":        10,
+			"max_duration_ms": 300,
 		})
 
 		require.Equal(t, http.StatusCreated, resp.Code)
@@ -57,13 +59,14 @@ func TestServer_CreateRubiksCubeHandler(t *testing.T) {
 	t.Run("should return error when error occurs creating rubiks cube", func(t *testing.T) {
 		llm := domain.NewLLM("openai", "gpt-4.0")
 
-		deps.MockSvc.EXPECT().CreateRubiksCube(gomock.Any(), llm, 0).Return(nil, errors.New("failed to create rubiks cube"))
+		deps.MockSvc.EXPECT().CreateRubiksCube(gomock.Any(), llm, 0, 300).Return(nil, errors.New("failed to create rubiks cube"))
 
 		resp := api.Post(endpoint, map[string]any{
 			"llm": map[string]any{
 				"provider": llm.Provider,
 				"model":    llm.Model,
 			},
+			"max_duration_ms": 300,
 		})
 
 		require.Equal(t, http.StatusInternalServerError, resp.Code)
@@ -77,7 +80,8 @@ func TestServer_CreateRubiksCubeHandler(t *testing.T) {
 				"provider": llm.Provider,
 				"model":    llm.Model,
 			},
-			"scramble": -1,
+			"scramble":        -1,
+			"max_duration_ms": 300,
 		})
 
 		require.Equal(t, http.StatusUnprocessableEntity, resp.Code)
@@ -89,7 +93,7 @@ func TestServer_GetRubiksCubeByIDHandler(t *testing.T) {
 	defer teardown()
 
 	llm := domain.NewLLM("openai", "gpt-4.0")
-	cube := domain.NewRubiksCube(llm)
+	cube := domain.NewRubiksCube(llm, 300)
 
 	var endpoint = "/api/v1/rubiks-cubes/" + cube.ID.Hex()
 
@@ -122,7 +126,7 @@ func TestServer_UpdateRubiksCubeHandler(t *testing.T) {
 	defer teardown()
 
 	llm := domain.NewLLM("openai", "gpt-4.0")
-	existing := domain.NewRubiksCube(llm)
+	existing := domain.NewRubiksCube(llm, 300)
 
 	var endpoint = "/api/v1/rubiks-cubes/" + existing.ID.Hex()
 
@@ -175,7 +179,7 @@ func TestServer_UpdateRubiksCubeStatusHandler(t *testing.T) {
 	defer teardown()
 
 	llm := domain.NewLLM("openai", "gpt-4.0")
-	existing := domain.NewRubiksCube(llm)
+	existing := domain.NewRubiksCube(llm, 300)
 
 	var endpoint = "/api/v1/rubiks-cubes/" + existing.ID.Hex() + "/status"
 
@@ -237,7 +241,7 @@ func TestServer_DeleteRubiksCubeHandler(t *testing.T) {
 	defer teardown()
 
 	llm := domain.NewLLM("openai", "gpt-4.0")
-	existing := domain.NewRubiksCube(llm)
+	existing := domain.NewRubiksCube(llm, 300)
 
 	var endpoint = "/api/v1/rubiks-cubes/" + existing.ID.Hex()
 
@@ -281,7 +285,7 @@ func TestServer_GetAllRubiksCubesHandler(t *testing.T) {
 
 	t.Run("should successfully get all rubiks cubes", func(t *testing.T) {
 		cubes := []domain.RubiksCube{
-			domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0")),
+			domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"), 300),
 		}
 
 		deps.MockSvc.EXPECT().GetAllRubiksCubes(gomock.Any(), int64(10)).Return(cubes, nil)
@@ -306,7 +310,7 @@ func TestServer_ApplyRubiksCubeRotationHandler(t *testing.T) {
 	defer teardown()
 
 	llm := domain.NewLLM("openai", "gpt-4.0")
-	existing := domain.NewRubiksCube(llm)
+	existing := domain.NewRubiksCube(llm, 300)
 
 	var endpoint = "/api/v1/rubiks-cubes/" + existing.ID.Hex() + "/rotations"
 
@@ -367,7 +371,7 @@ func TestServer_IsRubiksCubeSolvedHandler(t *testing.T) {
 	defer teardown()
 
 	llm := domain.NewLLM("openai", "gpt-4.0")
-	existing := domain.NewRubiksCube(llm)
+	existing := domain.NewRubiksCube(llm, 300)
 
 	var endpoint = "/api/v1/rubiks-cubes/" + existing.ID.Hex() + "/solved"
 
@@ -436,7 +440,7 @@ func TestServer_StopRubiksCubeAgentHandler(t *testing.T) {
 	defer teardown()
 
 	llm := domain.NewLLM("openai", "gpt-4.0")
-	existing := domain.NewRubiksCube(llm)
+	existing := domain.NewRubiksCube(llm, 300)
 
 	var endpoint = "/api/v1/rubiks-cubes/" + existing.ID.Hex() + "/agents/stop"
 

@@ -21,7 +21,7 @@ func TestService_CreateRubiksCube(t *testing.T) {
 	t.Run("should create and return a new cube", func(t *testing.T) {
 		deps.Repository.EXPECT().CreateRubiksCube(gomock.Any(), gomock.Any()).Return(nil)
 
-		cube, err := svc.CreateRubiksCube(ctx, llm, 0)
+		cube, err := svc.CreateRubiksCube(ctx, llm, 0, 300)
 		require.NoError(t, err)
 		require.NotNil(t, cube)
 		require.Equal(t, llm, cube.LLM)
@@ -32,7 +32,7 @@ func TestService_CreateRubiksCube(t *testing.T) {
 	t.Run("should scramble cube when scramble is greater than 0", func(t *testing.T) {
 		deps.Repository.EXPECT().CreateRubiksCube(gomock.Any(), gomock.Any()).Return(nil)
 
-		cube, err := svc.CreateRubiksCube(ctx, llm, 10)
+		cube, err := svc.CreateRubiksCube(ctx, llm, 10, 300)
 		require.NoError(t, err)
 		require.NotNil(t, cube)
 		require.Equal(t, llm, cube.LLM)
@@ -42,7 +42,7 @@ func TestService_CreateRubiksCube(t *testing.T) {
 	t.Run("should propagate repository error", func(t *testing.T) {
 		deps.Repository.EXPECT().CreateRubiksCube(gomock.Any(), gomock.Any()).Return(errors.New("boom"))
 
-		cube, err := svc.CreateRubiksCube(ctx, llm, 0)
+		cube, err := svc.CreateRubiksCube(ctx, llm, 0, 300)
 		require.Error(t, err)
 		require.Nil(t, cube)
 	})
@@ -207,7 +207,7 @@ func TestService_ApplyRubiksCubeRotation(t *testing.T) {
 	id := primitive.NewObjectID()
 
 	t.Run("should apply rotation and return updated cube", func(t *testing.T) {
-		existing := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"))
+		existing := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"), 300)
 		existing.ID = id
 
 		rotationCountBefore := len(existing.Cube.Rotations)
@@ -242,7 +242,7 @@ func TestService_ApplyRubiksCubeRotation(t *testing.T) {
 	})
 
 	t.Run("should propagate update error", func(t *testing.T) {
-		existing := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"))
+		existing := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"), 300)
 		existing.ID = id
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(&existing, nil)
@@ -261,7 +261,7 @@ func TestService_IsRubiksCubeSolved(t *testing.T) {
 	id := primitive.NewObjectID()
 
 	t.Run("should return true when cube is solved", func(t *testing.T) {
-		existing := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"))
+		existing := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"), 300)
 		existing.ID = id
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(&existing, nil)
@@ -272,7 +272,7 @@ func TestService_IsRubiksCubeSolved(t *testing.T) {
 	})
 
 	t.Run("should return false when cube is scrambled", func(t *testing.T) {
-		existing := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"))
+		existing := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"), 300)
 		existing.ID = id
 		existing.Cube.Scramble(5)
 

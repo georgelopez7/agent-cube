@@ -31,6 +31,7 @@ function RouteComponent() {
       data: {
         llm: data.model,
         scramble: data.scramble,
+        maxDurationMS: data.maxDuration,
       },
     });
 

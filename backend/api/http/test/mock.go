@@ -59,18 +59,18 @@ func (mr *MockRubiksCubeServiceMockRecorder) ApplyRubiksCubeRotation(ctx, cubeID
 }
 
 // CreateRubiksCube mocks base method.
-func (m *MockRubiksCubeService) CreateRubiksCube(ctx context.Context, llm domain.LLM, scramble int) (*domain.RubiksCube, error) {
+func (m *MockRubiksCubeService) CreateRubiksCube(ctx context.Context, llm domain.LLM, scramble, maxDurationSeconds int) (*domain.RubiksCube, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateRubiksCube", ctx, llm, scramble)
+	ret := m.ctrl.Call(m, "CreateRubiksCube", ctx, llm, scramble, maxDurationSeconds)
 	ret0, _ := ret[0].(*domain.RubiksCube)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateRubiksCube indicates an expected call of CreateRubiksCube.
-func (mr *MockRubiksCubeServiceMockRecorder) CreateRubiksCube(ctx, llm, scramble any) *gomock.Call {
+func (mr *MockRubiksCubeServiceMockRecorder) CreateRubiksCube(ctx, llm, scramble, maxDurationSeconds any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRubiksCube", reflect.TypeOf((*MockRubiksCubeService)(nil).CreateRubiksCube), ctx, llm, scramble)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRubiksCube", reflect.TypeOf((*MockRubiksCubeService)(nil).CreateRubiksCube), ctx, llm, scramble, maxDurationSeconds)
 }
 
 // DeleteRubiksCubeByID mocks base method.
@@ -133,18 +133,18 @@ func (mr *MockRubiksCubeServiceMockRecorder) IsRubiksCubeSolved(ctx, cubeID any)
 }
 
 // RunAgent mocks base method.
-func (m *MockRubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID, llm domain.LLM) (string, error) {
+func (m *MockRubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RunAgent", ctx, id, llm)
+	ret := m.ctrl.Call(m, "RunAgent", ctx, id)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // RunAgent indicates an expected call of RunAgent.
-func (mr *MockRubiksCubeServiceMockRecorder) RunAgent(ctx, id, llm any) *gomock.Call {
+func (mr *MockRubiksCubeServiceMockRecorder) RunAgent(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunAgent", reflect.TypeOf((*MockRubiksCubeService)(nil).RunAgent), ctx, id, llm)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunAgent", reflect.TypeOf((*MockRubiksCubeService)(nil).RunAgent), ctx, id)
 }
 
 // StopAgent mocks base method.

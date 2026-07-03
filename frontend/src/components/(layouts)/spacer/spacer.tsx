@@ -2,10 +2,11 @@ import { cn } from "cnfast";
 
 interface IProps {
   className?: string;
-  size?: "xs" | "sm" | "md" | "lg" | "xl";
+  size?: "xxs" | "xs" | "sm" | "md" | "lg" | "xl";
 }
 
 const SIZE_CLASSES = {
+  xxs: "py-1",
   xs: "py-2",
   sm: "py-4",
   md: "py-8",

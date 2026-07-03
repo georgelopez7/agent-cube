@@ -8,8 +8,9 @@ import (
 // CreateRubiksCubeInput - input for creating a new rubiks cube.
 type CreateRubiksCubeInput struct {
 	Body struct {
-		LLM      domain.LLM `json:"llm"`
-		Scramble int        `json:"scramble,omitempty" minimum:"1"`
+		LLM           domain.LLM `json:"llm"`
+		Scramble      int        `json:"scramble,omitempty" minimum:"1"`
+		MaxDurationMS int        `json:"max_duration_ms" minimum:"1"`
 	}
 }
 

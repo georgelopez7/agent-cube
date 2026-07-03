@@ -5,6 +5,7 @@ export type RubiksCube = {
   llm: LLM;
   status: RubiksCubeStatus;
   cube: Cube;
+  max_duration_ms: number;
   created_at: string;
   updated_at: string;
 };
@@ -46,6 +47,7 @@ export enum RubiksCubeStatus {
   InProgress = "in_progress",
   Completed = "completed",
   Stopped = "stopped",
+  TimedOut = "timed_out",
 }
 
 // generateAlgorithm - generates a string representation of the cubes rotations

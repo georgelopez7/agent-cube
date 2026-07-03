@@ -1,10 +1,11 @@
 import { cn } from "cnfast";
-import { format } from "date-fns";
+import { format, formatDistance } from "date-fns";
 import {
   ArrowRight,
   Ban,
   CheckCircle,
   Circle,
+  Clock,
   LoaderCircle,
   Square,
   Trash2,
@@ -62,6 +63,20 @@ const STATUS_CONFIG: Record<
     icon: <Ban className="size-3.5" />,
     label: "Stopped",
   },
+  [RubiksCubeStatus.TimedOut]: {
+    styles: "bg-yellow-500 text-white",
+    icon: <Clock className="size-3.5" />,
+    label: "Timed Out",
+  },
+};
+
+const formatMaxDuration = (ms: number): string => {
+  if (ms >= 86400000) return "Infinity";
+  if (ms < 60000) {
+    const seconds = Math.round(ms / 1000);
+    return `${seconds} second${seconds === 1 ? "" : "s"}`;
+  }
+  return formatDistance(new Date(0), new Date(ms));
 };
 
 const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
@@ -71,6 +86,7 @@ const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
   const date = format(new Date(cube.created_at), "yyyy-MM-dd");
   const time = format(new Date(cube.created_at), "HH:mm:ss");
   const status = STATUS_CONFIG[cube.status];
+  const maxDuration = formatMaxDuration(cube.max_duration_ms);
 
   const [invoking, setInvoking] = useState(false);
   const [stopping, setStopping] = useState(false);
@@ -115,11 +131,12 @@ const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
     <div className="flex flex-col items-center border-2 px-3 rounded-lg">
       <Spacer size="xs" />
       <div className="flex w-full items-start justify-between">
-        <div className="flex flex-col items-start gap-2">
+        <div className="flex flex-col items-start">
           <div className="inline-flex items-center gap-1.5 rounded-md bg-secondary px-3 py-1 text-xs text-secondary-foreground">
             <ProviderIcon className="size-4" />
             <span className="text-[14px]">{cube.llm.model}</span>
           </div>
+          <Spacer size="xxs" />
           <span
             className={cn(
               "inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1 text-xs font-medium uppercase tracking-wide",
@@ -129,10 +146,6 @@ const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
             {status.icon}
             {status.label}
           </span>
-          <div className="flex flex-col items-start gap-0.5 text-xs text-muted-foreground tabular-nums">
-            <span>{date}</span>
-            <span>{time}</span>
-          </div>
         </div>
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogTrigger
@@ -170,6 +183,17 @@ const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+      </div>
+      <Spacer size="xxs" />
+      <div className="flex w-full items-start justify-between">
+        <div className="flex flex-col items-start gap-0.5 text-xs text-muted-foreground tabular-nums">
+          <span>{date}</span>
+          <span>{time}</span>
+        </div>
+        <div className="flex flex-col items-end gap-0.5 text-right text-xs text-muted-foreground tabular-nums">
+          <span>Max Duration:</span>
+          <span>{maxDuration}</span>
+        </div>
       </div>
       <Spacer size="xs" />
       {cube.status === RubiksCubeStatus.Created && (
