@@ -258,11 +258,11 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID) 
 
 		for _, part := range event.Content.Parts {
 			if part.FunctionCall != nil {
-				slog.Info("[TOOL]", "name", part.FunctionCall.Name)
+				slog.Info("[ TOOL ]", "name", part.FunctionCall.Name)
 			}
 
 			if part.Text != "" {
-				slog.Info("[AGENT]", "text", part.Text)
+				slog.Info("[ AGENT ]", "text", part.Text)
 				finalMsg = part.Text
 			}
 		}
@@ -272,14 +272,7 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID) 
 	if agentCtx.Err() == context.DeadlineExceeded {
 		slog.Info("agent timed out", "id", id.Hex(), "max_duration_ms", cube.MaxDurationMS)
 
-		existing, err := s.repository.GetRubiksCubeByID(ctx, id)
-		if err != nil || existing == nil || existing.Status != domain.RubiksCubeStatusInProgress {
-			return "", fmt.Errorf("agent timed out after %s: %w", timeout, agentCtx.Err())
-		}
-
-		if err := s.repository.UpdateRubiksCubeStatus(ctx, id, domain.RubiksCubeStatusTimedOut); err != nil {
-			slog.Error("failed to update rubiks cube status to timed_out", "id", id.Hex(), "error", err)
-		}
+		s.bus.Publish(ctx, domain.NewCubeAgentTimeoutEvent(id.Hex()))
 
 		return "", fmt.Errorf("agent timed out after %s: %w", timeout, agentCtx.Err())
 	}

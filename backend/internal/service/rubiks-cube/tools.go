@@ -148,6 +148,8 @@ func (s *RubiksCubeService) SetCubeAsCompletedTool() tool.Tool {
 			return "", err
 		}
 
+		s.bus.Publish(ctx, domain.NewCubeCompletedEvent(in.ID))
+
 		return "Cube " + in.ID + " marked as completed", nil
 	}
 

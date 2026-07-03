@@ -55,7 +55,7 @@ func main() {
 	svc := rubikscube.NewRubiksCubeService(repo, bus, langfuse, openrouter, agentHub)
 
 	// CONSUMER
-	consumer := NewConsumer(ws, bus)
+	consumer := NewConsumer(ws, bus, svc)
 	consumer.Start()
 
 	// SERVER
