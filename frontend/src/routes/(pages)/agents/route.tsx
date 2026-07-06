@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { PageLayout } from "#/components/(layouts)/page-layout/page-layout";
 import Spacer from "#/components/(layouts)/spacer/spacer";
 import CreateAgentModal, {
@@ -9,14 +10,65 @@ import RubiksCubeSection from "#/components/(sections)/rubiks-cube-section/rubik
 import Websocket from "#/components/websocket/websocket";
 import { GetAIModels } from "#/services/ai.queries";
 import { CreateRubiksCubeFn } from "#/services/rubiks-cubes.actions";
-import { toast } from "sonner";
 import {
   GetRubiksCubes,
   rubiksCubeKeys,
 } from "#/services/rubiks-cubes.queries";
+import { getOGImage, getSiteUrl } from "#/utils/seo";
+
+const SEO = {
+  url: `${getSiteUrl()}/agents`,
+  title: "Agents | Agent Cube",
+  description:
+    "Create and run AI agents that attempt to solve Rubik's Cube scrambles. Benchmark LLM reasoning, track progress, and compare how different models approach the challenge.",
+  image: getOGImage(),
+};
 
 export const Route = createFileRoute("/(pages)/agents")({
   component: RouteComponent,
+  head: () => ({
+    meta: [
+      {
+        title: SEO.title,
+      },
+      {
+        name: "description",
+        content: SEO.description,
+      },
+      {
+        property: "og:title",
+        content: SEO.title,
+      },
+      {
+        property: "og:description",
+        content: SEO.description,
+      },
+      {
+        property: "og:type",
+        content: "website",
+      },
+      {
+        property: "og:image",
+        content: SEO.image,
+      },
+      {
+        name: "twitter:card",
+        content: "summary_large_image",
+      },
+      {
+        name: "twitter:title",
+        content: SEO.title,
+      },
+      {
+        name: "twitter:description",
+        content: SEO.description,
+      },
+      {
+        name: "twitter:image",
+        content: SEO.image,
+      },
+    ],
+  }),
 });
 
 function RouteComponent() {
