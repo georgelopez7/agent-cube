@@ -18,11 +18,11 @@ type Server struct {
 	BaseURL string
 	Router  *http.ServeMux
 	API     huma.API
-	svc     Service
+	svc     RubiksCubeService
 	ws      *websocket.WebSocketManager
 }
 
-func NewServer(name string, version string, port string, svc Service, ws *websocket.WebSocketManager) *Server {
+func NewServer(name string, version string, port string, svc RubiksCubeService, ws *websocket.WebSocketManager) *Server {
 	router := http.NewServeMux()
 	config := huma.DefaultConfig(name, version)
 

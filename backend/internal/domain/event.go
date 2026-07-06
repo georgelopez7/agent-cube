@@ -23,7 +23,9 @@ func (e Event) Raw() ([]byte, error) {
 type EventType string
 
 const (
-	EventCubeRotated EventType = "cube.rotated"
+	EventCubeRotated      EventType = "cube.rotated"
+	EventCubeAgentTimeout EventType = "cube.agent.timeout"
+	EventCubeCompleted    EventType = "cube.completed"
 )
 
 // cube.rotated
@@ -38,3 +40,29 @@ func NewCubeRotatedEvent(cubeID string, rotation cube.CubeRotation) Event {
 		Payload: CubeRotatedPayload{CubeID: cubeID, Rotation: rotation},
 	}
 }
+
+// cube.agent.timeout
+type CubeAgentTimeoutPayload struct {
+	CubeID string `json:"cube_id"`
+}
+
+func NewCubeAgentTimeoutEvent(cubeID string) Event {
+	return Event{
+		Type:    EventCubeAgentTimeout,
+		Payload: CubeAgentTimeoutPayload{CubeID: cubeID},
+	}
+}
+
+// cube.completed
+type CubeCompletedPayload struct {
+	CubeID string `json:"cube_id"`
+}
+
+func NewCubeCompletedEvent(cubeID string) Event {
+	return Event{
+		Type:    EventCubeCompleted,
+		Payload: CubeCompletedPayload{CubeID: cubeID},
+	}
+}
+
+

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/tanstack-react";
 import { AIProvider } from "#/domain/ai";
-import { RubiksCubeStatus } from "#/domain/rubiks-cube";
+import { type RubiksCube, RubiksCubeStatus } from "#/domain/rubiks-cube";
 import RubiksCubeCard from "./rubiks-cube-card";
 
 const meta: Meta<typeof RubiksCubeCard> = {
@@ -23,6 +23,8 @@ const baseCube = {
     provider: AIProvider.OpenAI,
     model: "gpt-4o",
   },
+  status: RubiksCubeStatus.Created,
+  max_duration_ms: 60_000,
   cube: {
     centers: {},
     corners: {},
@@ -56,7 +58,7 @@ const baseCube = {
   },
   created_at: "2024-01-01T12:34:56Z",
   updated_at: "2024-01-01T12:34:56Z",
-};
+} satisfies RubiksCube;
 
 const withRotations = (rotations: typeof baseCube.cube.rotations) => ({
   ...baseCube,
@@ -95,6 +97,24 @@ export const Completed: Story = {
     cube: {
       ...withRotations(baseCube.cube.rotations),
       status: RubiksCubeStatus.Completed,
+    },
+  },
+};
+
+export const Stopped: Story = {
+  args: {
+    cube: {
+      ...withRotations(baseCube.cube.rotations),
+      status: RubiksCubeStatus.Stopped,
+    },
+  },
+};
+
+export const TimedOut: Story = {
+  args: {
+    cube: {
+      ...withRotations(baseCube.cube.rotations),
+      status: RubiksCubeStatus.TimedOut,
     },
   },
 };

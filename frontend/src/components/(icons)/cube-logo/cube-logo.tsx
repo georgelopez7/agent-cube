@@ -11,7 +11,7 @@ const CubeLogo = ({ className, size = 28 }: IProps) => {
       role="img"
       aria-label="Agent Cube logo"
       className={cn(
-        "grid grid-cols-3 grid-rows-3 gap-[2px] p-[2px] bg-slate-900/80 rounded-md border border-slate-500/30",
+        "grid grid-cols-3 grid-rows-3 gap-0.5 p-0.5 bg-slate-900/80 rounded-md border border-slate-500/30",
         className,
       )}
       style={{ width: size, height: size }}

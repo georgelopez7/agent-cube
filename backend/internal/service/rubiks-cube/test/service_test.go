@@ -21,7 +21,7 @@ func TestService_CreateRubiksCube(t *testing.T) {
 	t.Run("should create and return a new cube", func(t *testing.T) {
 		deps.Repository.EXPECT().CreateRubiksCube(gomock.Any(), gomock.Any()).Return(nil)
 
-		cube, err := svc.CreateRubiksCube(ctx, llm, 0)
+		cube, err := svc.CreateRubiksCube(ctx, llm, 0, 300)
 		require.NoError(t, err)
 		require.NotNil(t, cube)
 		require.Equal(t, llm, cube.LLM)
@@ -32,7 +32,7 @@ func TestService_CreateRubiksCube(t *testing.T) {
 	t.Run("should scramble cube when scramble is greater than 0", func(t *testing.T) {
 		deps.Repository.EXPECT().CreateRubiksCube(gomock.Any(), gomock.Any()).Return(nil)
 
-		cube, err := svc.CreateRubiksCube(ctx, llm, 10)
+		cube, err := svc.CreateRubiksCube(ctx, llm, 10, 300)
 		require.NoError(t, err)
 		require.NotNil(t, cube)
 		require.Equal(t, llm, cube.LLM)
@@ -42,7 +42,7 @@ func TestService_CreateRubiksCube(t *testing.T) {
 	t.Run("should propagate repository error", func(t *testing.T) {
 		deps.Repository.EXPECT().CreateRubiksCube(gomock.Any(), gomock.Any()).Return(errors.New("boom"))
 
-		cube, err := svc.CreateRubiksCube(ctx, llm, 0)
+		cube, err := svc.CreateRubiksCube(ctx, llm, 0, 300)
 		require.Error(t, err)
 		require.Nil(t, cube)
 	})
@@ -207,7 +207,7 @@ func TestService_ApplyRubiksCubeRotation(t *testing.T) {
 	id := primitive.NewObjectID()
 
 	t.Run("should apply rotation and return updated cube", func(t *testing.T) {
-		existing := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"))
+		existing := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"), 300)
 		existing.ID = id
 
 		rotationCountBefore := len(existing.Cube.Rotations)
@@ -242,7 +242,7 @@ func TestService_ApplyRubiksCubeRotation(t *testing.T) {
 	})
 
 	t.Run("should propagate update error", func(t *testing.T) {
-		existing := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"))
+		existing := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"), 300)
 		existing.ID = id
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(&existing, nil)
@@ -261,7 +261,7 @@ func TestService_IsRubiksCubeSolved(t *testing.T) {
 	id := primitive.NewObjectID()
 
 	t.Run("should return true when cube is solved", func(t *testing.T) {
-		existing := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"))
+		existing := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"), 300)
 		existing.ID = id
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(&existing, nil)
@@ -272,7 +272,7 @@ func TestService_IsRubiksCubeSolved(t *testing.T) {
 	})
 
 	t.Run("should return false when cube is scrambled", func(t *testing.T) {
-		existing := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"))
+		existing := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"), 300)
 		existing.ID = id
 		existing.Cube.Scramble(5)
 
@@ -297,62 +297,6 @@ func TestService_IsRubiksCubeSolved(t *testing.T) {
 		solved, err := svc.IsRubiksCubeSolved(ctx, id)
 		require.Error(t, err)
 		require.False(t, solved)
-	})
-}
-
-func TestService_InvokeRubiksCubeAgent(t *testing.T) {
-	ctx := t.Context()
-	svc, deps := newMockService(t)
-
-	id := primitive.NewObjectID()
-	llm := domain.NewLLM("openai", "openai/gpt-5.4-mini")
-
-	t.Run("should invoke agent and return message", func(t *testing.T) {
-		existing := &domain.RubiksCube{
-			ID:   id,
-			LLM:  llm,
-		}
-
-		expectedMessage := "agent invoked successfully"
-
-		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(existing, nil)
-		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(nil)
-		deps.AgentAPI.EXPECT().InvokeAgent(id.Hex(), llm.Model).Return(expectedMessage, nil)
-
-		message, err := svc.InvokeRubiksCubeAgent(ctx, id)
-		require.NoError(t, err)
-		require.Equal(t, expectedMessage, message)
-	})
-
-	t.Run("should return not found error when cube does not exist", func(t *testing.T) {
-		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, nil)
-
-		message, err := svc.InvokeRubiksCubeAgent(ctx, id)
-		require.ErrorIs(t, err, domain.RubiksCubeNotFoundError)
-		require.Empty(t, message)
-	})
-
-	t.Run("should propagate repository error", func(t *testing.T) {
-		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, errors.New("boom"))
-
-		message, err := svc.InvokeRubiksCubeAgent(ctx, id)
-		require.Error(t, err)
-		require.Empty(t, message)
-	})
-
-	t.Run("should propagate agent api error", func(t *testing.T) {
-		existing := &domain.RubiksCube{
-			ID:   id,
-			LLM:  llm,
-		}
-
-		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(existing, nil)
-		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(nil)
-		deps.AgentAPI.EXPECT().InvokeAgent(id.Hex(), llm.Model).Return("", errors.New("agent boom"))
-
-		message, err := svc.InvokeRubiksCubeAgent(ctx, id)
-		require.Error(t, err)
-		require.Empty(t, message)
 	})
 }
 
@@ -409,5 +353,40 @@ func TestService_UpdateRubiksCubeStatus(t *testing.T) {
 		updated, err := svc.UpdateRubiksCubeStatus(ctx, id, domain.RubiksCubeStatusCompleted)
 		require.Error(t, err)
 		require.Nil(t, updated)
+	})
+}
+
+func TestService_StopAgent(t *testing.T) {
+	ctx := t.Context()
+	svc, deps := newMockService(t)
+
+	id := primitive.NewObjectID()
+
+	t.Run("should stop a running agent and update status to stopped", func(t *testing.T) {
+		existing := &domain.RubiksCube{ID: id, Status: domain.RubiksCubeStatusInProgress}
+
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(existing, nil)
+		deps.AgentHub.EXPECT().Stop(id.Hex()).Return(nil)
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusStopped).Return(nil)
+
+		err := svc.StopAgent(ctx, id)
+		require.NoError(t, err)
+	})
+
+	t.Run("should return not found when cube does not exist", func(t *testing.T) {
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, nil)
+
+		err := svc.StopAgent(ctx, id)
+		require.ErrorIs(t, err, domain.RubiksCubeNotFoundError)
+	})
+
+	t.Run("should propagate agent hub stop error", func(t *testing.T) {
+		existing := &domain.RubiksCube{ID: id, Status: domain.RubiksCubeStatusInProgress}
+
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(existing, nil)
+		deps.AgentHub.EXPECT().Stop(id.Hex()).Return(errors.New("agent not found"))
+
+		err := svc.StopAgent(ctx, id)
+		require.Error(t, err)
 	})
 }

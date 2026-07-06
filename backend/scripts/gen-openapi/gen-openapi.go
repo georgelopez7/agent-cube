@@ -3,9 +3,8 @@ package main
 import (
 	"fmt"
 
-	apihttp "agent-cube/api/http"
-	"agent-cube/internal/pkg/event"
-	"agent-cube/internal/service"
+	xhttp "agent-cube/api/http"
+	rubikscube "agent-cube/internal/service/rubiks-cube"
 
 	"github.com/danielgtaylor/huma/v2/humacli"
 	"github.com/spf13/cobra"
@@ -22,9 +21,9 @@ func main() {
 		Use:   "openapi",
 		Short: "Print the OpenAPI spec",
 		Run: func(cmd *cobra.Command, args []string) {
-			svc := service.NewService(nil, nil, event.NewEventBus())
+			svc := rubikscube.NewRubiksCubeService(nil, nil, nil, nil, nil)
 
-			server := apihttp.NewServer("Agent Cube API", "v1", "8080", svc, nil)
+			server := xhttp.NewServer("Agent Cube API", "v1", "8080", svc, nil)
 			server.AddRoutes(server.API)
 
 			b, err := server.API.OpenAPI().YAML()

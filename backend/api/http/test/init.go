@@ -12,7 +12,7 @@ import (
 
 // MockServerDependencies - holds the mocked dependencies for HTTP tests.
 type MockServerDependencies struct {
-	MockSvc *MockService
+	MockSvc *MockRubiksCubeService
 }
 
 // newMockServer - creates a test server instance backed by generated mocks.
@@ -26,7 +26,7 @@ func newMockServer(t *testing.T) (humatest.TestAPI, MockServerDependencies, func
 	)
 
 	// SERVICES
-	mockSvc := NewMockService(ctrl)
+	mockSvc := NewMockRubiksCubeService(ctrl)
 
 	// DEPENDENCIES
 	deps := MockServerDependencies{

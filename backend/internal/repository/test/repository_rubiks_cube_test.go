@@ -17,7 +17,7 @@ func TestRepository_CreateRubiksCube(t *testing.T) {
 	require.NoError(t, err)
 
 	llm := domain.NewLLM("openai", "gpt-4.0")
-	expected := domain.NewRubiksCube(llm)
+	expected := domain.NewRubiksCube(llm, 300)
 
 	err = repo.CreateRubiksCube(ctx, expected)
 	require.NoError(t, err)
@@ -38,7 +38,7 @@ func TestRepository_UpdateRubiksCube(t *testing.T) {
 	require.NoError(t, err)
 
 	llm := domain.NewLLM("openai", "gpt-4.0")
-	expected := domain.NewRubiksCube(llm)
+	expected := domain.NewRubiksCube(llm, 300)
 
 	err = repo.CreateRubiksCube(ctx, expected)
 	require.NoError(t, err)
@@ -67,7 +67,7 @@ func TestRepository_GetRubiksCubeByID(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("should return cube when found", func(t *testing.T) {
-		expected := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"))
+		expected := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"), 300)
 
 		err := repo.CreateRubiksCube(ctx, expected)
 		require.NoError(t, err)
@@ -92,7 +92,7 @@ func TestRepository_DeleteRubiksCubeByID(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("should delete an existing cube", func(t *testing.T) {
-		expected := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"))
+		expected := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"), 300)
 
 		err := repo.CreateRubiksCube(ctx, expected)
 		require.NoError(t, err)
@@ -118,9 +118,9 @@ func TestRepository_GetAllRubiksCubes(t *testing.T) {
 	err := repo.ResetRubiksCubes(ctx)
 	require.NoError(t, err)
 
-	cube1 := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"))
-	cube2 := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"))
-	cube3 := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"))
+	cube1 := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"), 300)
+	cube2 := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"), 300)
+	cube3 := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"), 300)
 
 	err = repo.CreateRubiksCube(ctx, cube1)
 	require.NoError(t, err)
@@ -149,7 +149,7 @@ func TestRepository_UpdateRubiksCubeStatus(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("should update the status of an existing cube", func(t *testing.T) {
-		expected := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"))
+		expected := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"), 300)
 		require.Equal(t, domain.RubiksCubeStatusCreated, expected.Status)
 
 		err := repo.CreateRubiksCube(ctx, expected)

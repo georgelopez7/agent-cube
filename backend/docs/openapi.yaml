@@ -458,6 +458,45 @@ paths:
       tags:
         - rubiks-cubes
   /api/v1/rubiks-cubes/{id}:
+    delete:
+      description: Deletes an existing rubiks cube by its hex ID
+      operationId: delete-rubiks-cube
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Bad Request
+        "404":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Not Found
+        "422":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Internal Server Error
+      summary: Delete a rubiks cube
+      tags:
+        - rubiks-cubes
     get:
       description: Retrieves a rubiks cube by its hex ID
       operationId: get-rubiks-cube-by-id
@@ -548,50 +587,6 @@ paths:
                 $ref: "#/components/schemas/ErrorModel"
           description: Internal Server Error
       summary: Update a rubiks cube
-      tags:
-        - rubiks-cubes
-  /api/v1/rubiks-cubes/{id}/agents/invoke:
-    post:
-      description: Invokes the agent for the rubiks cube with the given hex ID
-      operationId: invoke-rubiks-cube-agent
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/InvokeRubiksCubeAgentResponseBody"
-          description: OK
-        "400":
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ErrorModel"
-          description: Bad Request
-        "404":
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ErrorModel"
-          description: Not Found
-        "422":
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ErrorModel"
-          description: Unprocessable Entity
-        "500":
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ErrorModel"
-          description: Internal Server Error
-      summary: Invoke the Rubik's Cube agent
       tags:
         - rubiks-cubes
   /api/v1/rubiks-cubes/{id}/rotations:
@@ -768,6 +763,50 @@ paths:
       summary: WebSocket connection
       tags:
         - websocket
+  /api/v1/rubiks-cubes/{id}/agents/invoke:
+    post:
+      description: Starts the agent for the rubiks cube with the given hex ID asynchronously
+      operationId: invoke-rubiks-cube-agent
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvokeRubiksCubeAgentResponseBody"
+          description: Accepted
+        "400":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Bad Request
+        "404":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Not Found
+        "422":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Internal Server Error
+      summary: Invoke the Rubik's Cube agent asynchronously
+      tags:
+        - rubiks-cubes
 servers:
   - url: http://localhost:8080
 

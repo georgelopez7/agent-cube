@@ -2,6 +2,8 @@ import { cn } from "cnfast";
 import { Wifi, WifiOff } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
+  CubeAgentTimeoutEventHandler,
+  CubeCompletedEventHandler,
   CubeRotatedEventHandler,
   type IEvent,
   WebSocketEventType,
@@ -34,12 +36,12 @@ const Websocket = ({ debug = false }: WebsocketProps) => {
         case WebSocketEventType.CubeRotated:
           await CubeRotatedEventHandler(ev);
           break;
-        // case "cube.solved":
-        //   await SolvedEventHandler(payload);
-        //   break;
-        // case "agent.message":
-        //   await AgentMessageEventHandler(payload);
-        //   break;
+        case WebSocketEventType.CubeAgentTimeout:
+          await CubeAgentTimeoutEventHandler(ev);
+          break;
+        case WebSocketEventType.CubeCompleted:
+          await CubeCompletedEventHandler(ev);
+          break;
         default:
           break;
       }

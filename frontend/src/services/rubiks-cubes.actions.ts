@@ -47,7 +47,9 @@ export type CreateRubiksCubeResult = {
 
 // CreateRubiksCubeFn - Creates a new rubiks cube configured for a specific LLM.
 export const CreateRubiksCubeFn = createServerFn({ method: "POST" })
-  .validator((data: { llm: LLM; scramble: number }) => data)
+  .validator(
+    (data: { llm: LLM; scramble: number; maxDurationMS: number }) => data,
+  )
   .handler(async ({ data }): Promise<CreateRubiksCubeResult> => {
     const url = new URL("/api/v1/rubiks-cubes", API_BASE_URL);
 
@@ -60,6 +62,7 @@ export const CreateRubiksCubeFn = createServerFn({ method: "POST" })
       body: JSON.stringify({
         llm: data.llm,
         scramble: data.scramble,
+        max_duration_ms: data.maxDurationMS,
       }),
     });
 
@@ -145,6 +148,45 @@ export const InvokeRubiksCubeAgentFn = createServerFn({ method: "POST" })
     };
 
     const body: InvokeRubiksCubeAgentResponseBody = await response.json();
+    return {
+      message: body.message,
+      error: null,
+    };
+  });
+
+export type StopRubiksCubeAgentResult = {
+  message: string;
+  error: XError;
+};
+
+// StopRubiksCubeAgentFn - Stops the running agent for a rubiks cube by its hex ID.
+export const StopRubiksCubeAgentFn = createServerFn({ method: "POST" })
+  .validator((data: { id: string }) => data)
+  .handler(async ({ data }): Promise<StopRubiksCubeAgentResult> => {
+    const url = new URL(
+      `/api/v1/rubiks-cubes/${data.id}/agents/stop`,
+      API_BASE_URL,
+    );
+
+    const response = await fetch(url.toString(), {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      return {
+        message: "",
+        error: `Failed to stop rubiks cube agent: ${response.status} ${response.statusText}`,
+      };
+    }
+
+    type StopRubiksCubeAgentResponseBody = {
+      message: string;
+    };
+
+    const body: StopRubiksCubeAgentResponseBody = await response.json();
     return {
       message: body.message,
       error: null,

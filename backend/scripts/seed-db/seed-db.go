@@ -10,15 +10,15 @@ import (
 	"strconv"
 
 	"agent-cube/internal/domain"
-	_agent "agent-cube/internal/pkg/agent-api"
 	"agent-cube/internal/pkg/event"
 	"agent-cube/internal/pkg/mongo"
 	"agent-cube/internal/repository"
-	"agent-cube/internal/service"
+	rubikscube "agent-cube/internal/service/rubiks-cube"
 )
 
 const MaxCubes = 10
 const MaxScrambles = 10
+const MaxDurationMS = 30000 // 30 seconds
 
 func main() {
 	// CONTEXT
@@ -46,14 +46,11 @@ func main() {
 	// REPOSITORY
 	repo := repository.NewRepository(mongoDB)
 
-	// AGENT API
-	agentAPI := _agent.NewAgentAPI(os.Getenv("AGENT_API_URL"))
-
 	// EVENT BUS
 	bus := event.NewNoopBus()
 
 	// SERVICE
-	svc := service.NewService(repo, agentAPI, bus)
+	svc := rubikscube.NewRubiksCubeService(repo, bus, nil, nil, nil)
 
 	// SEED
 	for i := 0; i < count; i++ {
@@ -61,7 +58,7 @@ func main() {
 
 		scrambles := rand.Intn(MaxScrambles)
 
-		if _, err := svc.CreateRubiksCube(ctx, llm, scrambles); err != nil {
+		if _, err := svc.CreateRubiksCube(ctx, llm, scrambles, MaxDurationMS); err != nil {
 			slog.Error("failed to seed cube", "err", err)
 			continue
 		}

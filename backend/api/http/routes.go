@@ -87,12 +87,23 @@ func (s *Server) addRoutes(api huma.API) {
 		OperationID:   "invoke-rubiks-cube-agent",
 		Method:        http.MethodPost,
 		Path:          "/api/v1/rubiks-cubes/{id}/agents/invoke",
-		Summary:       "Invoke the Rubik's Cube agent",
-		Description:   "Invokes the agent for the rubiks cube with the given hex ID",
+		Summary:       "Invoke the Rubik's Cube agent asynchronously",
+		Description:   "Starts the agent for the rubiks cube with the given hex ID asynchronously",
 		Tags:          []string{"rubiks-cubes"},
-		DefaultStatus: http.StatusOK,
+		DefaultStatus: http.StatusAccepted,
 		Errors:        []int{http.StatusBadRequest, http.StatusNotFound},
 	}, s.InvokeRubiksCubeAgentHandler)
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "stop-rubiks-cube-agent",
+		Method:        http.MethodPost,
+		Path:          "/api/v1/rubiks-cubes/{id}/agents/stop",
+		Summary:       "Stop the Rubik's Cube agent",
+		Description:   "Stops the running agent for the rubiks cube with the given hex ID",
+		Tags:          []string{"rubiks-cubes"},
+		DefaultStatus: http.StatusAccepted,
+		Errors:        []int{http.StatusBadRequest, http.StatusNotFound},
+	}, s.StopRubiksCubeAgentHandler)
 
 	huma.Register(api, huma.Operation{
 		OperationID:   "is-rubiks-cube-solved",

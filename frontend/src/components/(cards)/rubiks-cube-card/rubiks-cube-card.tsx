@@ -1,16 +1,20 @@
 import { cn } from "cnfast";
-import { format } from "date-fns";
+import { format, formatDistance } from "date-fns";
 import {
   ArrowRight,
+  Ban,
   CheckCircle,
   Circle,
+  Clock,
   LoaderCircle,
+  Square,
   Trash2,
 } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useCallback, useState } from "react";
 import { getAIProviderIcon } from "#/components/(icons)/helpers";
 import Spacer from "#/components/(layouts)/spacer/spacer";
 import RubiksCube from "#/components/(rubiks-cube)/rubiks-cube/rubiks-cube";
+import { useRubiksCubeStore } from "#/stores/rubiks-cube-store";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +36,7 @@ import {
 interface IProps {
   cube: RubiksCubeType;
   onInvoke?: (id: string) => Promise<void>;
+  onStop?: (id: string) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
 }
 
@@ -54,17 +59,48 @@ const STATUS_CONFIG: Record<
     icon: <CheckCircle className="size-3.5" />,
     label: "Completed",
   },
+  [RubiksCubeStatus.Stopped]: {
+    styles: "bg-muted text-muted-foreground",
+    icon: <Ban className="size-3.5" />,
+    label: "Stopped",
+  },
+  [RubiksCubeStatus.TimedOut]: {
+    styles: "bg-yellow-500 text-white",
+    icon: <Clock className="size-3.5" />,
+    label: "Timed Out",
+  },
 };
 
-const RubiksCubeCard = ({ cube, onInvoke, onDelete }: IProps) => {
+const formatMaxDuration = (ms: number): string => {
+  if (ms >= 86400000) return "Infinity";
+  if (ms < 60000) {
+    const seconds = Math.round(ms / 1000);
+    return `${seconds} second${seconds === 1 ? "" : "s"}`;
+  }
+  return formatDistance(new Date(0), new Date(ms));
+};
+
+const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
   const ProviderIcon = getAIProviderIcon(cube.llm.provider);
+
+  // Subscribe to live status updates from the global store (e.g. websocket timeout events).
+  const storeStatus = useRubiksCubeStore(
+    useCallback(
+      (state) => state.records.get(cube.id)?.cube.status,
+      [cube.id],
+    ),
+  );
+
+  const cubeStatus = storeStatus ?? cube.status;
 
   const algorithm = generateAlgorithm(cube.cube.rotations ?? []);
   const date = format(new Date(cube.created_at), "yyyy-MM-dd");
   const time = format(new Date(cube.created_at), "HH:mm:ss");
-  const status = STATUS_CONFIG[cube.status];
+  const status = STATUS_CONFIG[cubeStatus];
+  const maxDuration = formatMaxDuration(cube.max_duration_ms);
 
   const [invoking, setInvoking] = useState(false);
+  const [stopping, setStopping] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -76,6 +112,17 @@ const RubiksCubeCard = ({ cube, onInvoke, onDelete }: IProps) => {
       await onInvoke(id);
     } finally {
       setInvoking(false);
+    }
+  };
+
+  const handleStop = async (id: string) => {
+    if (!onStop || stopping) return;
+
+    setStopping(true);
+    try {
+      await onStop(id);
+    } finally {
+      setStopping(false);
     }
   };
 
@@ -95,11 +142,12 @@ const RubiksCubeCard = ({ cube, onInvoke, onDelete }: IProps) => {
     <div className="flex flex-col items-center border-2 px-3 rounded-lg">
       <Spacer size="xs" />
       <div className="flex w-full items-start justify-between">
-        <div className="flex flex-col items-start gap-2">
+        <div className="flex flex-col items-start">
           <div className="inline-flex items-center gap-1.5 rounded-md bg-secondary px-3 py-1 text-xs text-secondary-foreground">
             <ProviderIcon className="size-4" />
             <span className="text-[14px]">{cube.llm.model}</span>
           </div>
+          <Spacer size="xxs" />
           <span
             className={cn(
               "inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1 text-xs font-medium uppercase tracking-wide",
@@ -109,19 +157,15 @@ const RubiksCubeCard = ({ cube, onInvoke, onDelete }: IProps) => {
             {status.icon}
             {status.label}
           </span>
-          <div className="flex flex-col items-start gap-0.5 text-xs text-muted-foreground tabular-nums">
-            <span>{date}</span>
-            <span>{time}</span>
-          </div>
         </div>
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogTrigger
-            disabled={cube.status === RubiksCubeStatus.InProgress}
+            disabled={cubeStatus === RubiksCubeStatus.InProgress}
             render={
               <Button
                 size="icon-sm"
                 variant="ghost"
-                disabled={cube.status === RubiksCubeStatus.InProgress}
+                disabled={cubeStatus === RubiksCubeStatus.InProgress}
                 className="text-muted-foreground hover:text-destructive"
                 aria-label="Delete cube"
               >
@@ -151,8 +195,19 @@ const RubiksCubeCard = ({ cube, onInvoke, onDelete }: IProps) => {
           </AlertDialogContent>
         </AlertDialog>
       </div>
+      <Spacer size="xxs" />
+      <div className="flex w-full items-start justify-between">
+        <div className="flex flex-col items-start gap-0.5 text-xs text-muted-foreground tabular-nums">
+          <span>{date}</span>
+          <span>{time}</span>
+        </div>
+        <div className="flex flex-col items-end gap-0.5 text-right text-xs text-muted-foreground tabular-nums">
+          <span>Max Duration:</span>
+          <span>{maxDuration}</span>
+        </div>
+      </div>
       <Spacer size="xs" />
-      {cube.status === RubiksCubeStatus.Created && (
+      {cubeStatus === RubiksCubeStatus.Created && (
         <Button
           size="xs"
           onClick={() => handleInvoke(cube.id)}
@@ -166,6 +221,22 @@ const RubiksCubeCard = ({ cube, onInvoke, onDelete }: IProps) => {
             <ArrowRight />
           )}
           Invoke Agent
+        </Button>
+      )}
+      {cubeStatus === RubiksCubeStatus.InProgress && (
+        <Button
+          size="xs"
+          onClick={() => handleStop(cube.id)}
+          disabled={stopping}
+          className="w-full rounded-sm bg-red-600 text-white hover:bg-red-700 gap-2"
+          variant="destructive"
+        >
+          {stopping ? (
+            <LoaderCircle className="size-3 animate-spin" />
+          ) : (
+            <Square className="size-3 fill-current" />
+          )}
+          Stop Agent
         </Button>
       )}
       <Spacer size="xs" />

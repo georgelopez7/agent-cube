@@ -1,4 +1,4 @@
-package service
+package rubikscube
 
 import (
 	"context"
@@ -10,9 +10,12 @@ import (
 
 //go:generate mockgen -source=interface.go -destination=test/mocks.go -package=test
 
-// AgentAPI - defines the agent API operations required by the service layer.
-type AgentAPI interface {
-	InvokeAgent(id string, model string) (string, error)
+// AgentHub - defines the agent hub operations required by the service layer.
+type AgentHub interface {
+	Register(id string, cancel context.CancelFunc)
+	Stop(id string) error
+	Deregister(id string)
+	IsRunning(id string) bool
 }
 
 // Repository - defines the repository operations required by the service layer.

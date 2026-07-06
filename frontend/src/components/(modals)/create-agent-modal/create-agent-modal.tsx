@@ -1,7 +1,8 @@
 import { useForm } from "@tanstack/react-form";
-import { Plus } from "lucide-react";
+import { AlertTriangle, Plus } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
+import Spacer from "#/components/(layouts)/spacer/spacer";
 import { LLMSelect } from "@/components/(selects)/llm-select/llm-select";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,8 +16,23 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { AIProvider, type LLM } from "@/domain/ai";
-import Spacer from "#/components/(layouts)/spacer/spacer";
+
+const MAX_DURATION_OPTIONS = [
+  { label: "15 seconds", value: 15000 },
+  { label: "30 seconds", value: 30000 },
+  { label: "1 minute", value: 60000 },
+  { label: "5 minutes", value: 300000 },
+  { label: "10 minutes", value: 600000 },
+  { label: "Infinity", value: 86400000 },
+];
 
 const schema = z.object({
   model: z.object({
@@ -28,6 +44,7 @@ const schema = z.object({
     .int("Scramble must be a whole number")
     .min(0, "Scramble must be at least 0")
     .max(100, "Scramble must be at most 100"),
+  maxDuration: z.number({ message: "Max duration must be a number" }),
 });
 
 export type CreateAgentFormData = z.infer<typeof schema>;
@@ -44,7 +61,8 @@ const CreateAgentModal = ({ llms, onSubmit }: IProps) => {
     defaultValues: {
       model: llms[0] ?? { provider: AIProvider.OpenAI, model: "" },
       scramble: 10,
-    } satisfies CreateAgentFormData,
+      maxDuration: 60000,
+    } as CreateAgentFormData,
     validators: {
       onChange: schema,
     },
@@ -124,6 +142,58 @@ const CreateAgentModal = ({ llms, onSubmit }: IProps) => {
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.valueAsNumber)}
                   />
+                  {field.state.meta.errors.length > 0 && (
+                    <p className="text-sm text-destructive">
+                      {field.state.meta.errors
+                        .map((error) =>
+                          typeof error === "string" ? error : error?.message,
+                        )
+                        .filter(Boolean)
+                        .join(", ")}
+                    </p>
+                  )}
+                </div>
+              )}
+            </form.Field>
+            <Spacer size="xs" />
+            <Spacer size="xs" />
+            <form.Field name="maxDuration">
+              {(field) => (
+                <div className="grid gap-1.5">
+                  <label
+                    htmlFor="maxDuration"
+                    className="text-sm font-medium leading-none text-muted-foreground"
+                  >
+                    Max Duration
+                  </label>
+                  <Select
+                    value={String(field.state.value)}
+                    onValueChange={(value) => field.handleChange(Number(value))}
+                  >
+                    <SelectTrigger id="maxDuration" className="w-full">
+                      <SelectValue placeholder="Select max duration">
+                        {MAX_DURATION_OPTIONS.find(
+                          (option) => option.value === field.state.value,
+                        )?.label ?? "Select max duration"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MAX_DURATION_OPTIONS.map((option) => (
+                        <SelectItem
+                          key={option.value}
+                          value={String(option.value)}
+                        >
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {field.state.value === 86400000 && (
+                    <p className="inline-flex items-center gap-1.5 text-sm text-yellow-600">
+                      <AlertTriangle className="size-4" />
+                      Infinity means this agent could continue forever.
+                    </p>
+                  )}
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-sm text-destructive">
                       {field.state.meta.errors

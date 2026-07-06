@@ -23,11 +23,19 @@ services:
       - PORT=8080
       - MONGODB_URI=mongodb://user:password@mongo-db:27017/agent-cube-db?authSource=admin
       - MONGODB_DB=agent-cube-db
-      - AGENT_API_URL=http://agent-cube-worker:8000
       - WEBSOCKET_ALLOWED_ORIGINS=http://agent-cube-app:3000,http://localhost:3000,http://localhost:3001,http://localhost:3002
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:?OPENROUTER_API_KEY must be set in .env}
+      - OPENROUTER_BASE_URL=${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      - OPENROUTER_HTTP_REFERRER=${OPENROUTER_HTTP_REFERRER:-http://localhost:3001}
+      - OPENROUTER_X_TITLE=${OPENROUTER_X_TITLE:-Agent Cube}
+      - LANGFUSE_HOST=${LANGFUSE_HOST:-http://langfuse-web:3000}
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
     depends_on:
       mongo-db:
         condition: service_healthy
+      langfuse-web:
+        condition: service_started
 
   seed-db:
     container_name: seed-db
@@ -43,31 +51,6 @@ services:
     depends_on:
       mongo-db:
         condition: service_healthy
-
-  agent-cube-worker:
-    container_name: worker
-    build:
-      context: ./agent
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    environment:
-      - ENVIRONMENT=development
-      - PORT=8000
-      - AGENT_CUBE_API_URL=http://agent-cube-api:8080
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:?OPENROUTER_API_KEY must be set in .env}
-      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
-      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
-      - LANGFUSE_BASE_URL=http://langfuse-web:3000
-    depends_on:
-      langfuse-web:
-        condition: service_started
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
 
   mongo-db:
     container_name: mongo-db

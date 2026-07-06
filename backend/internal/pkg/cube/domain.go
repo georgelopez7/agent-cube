@@ -18,6 +18,21 @@ func NewCube() Cube {
 	return *c
 }
 
+type CubeState struct {
+	Centers map[Face]Cubie   `json:"centers" bson:"centers"`
+	Edges   map[string]Cubie `json:"edges" bson:"edges"`
+	Corners map[string]Cubie `json:"corners" bson:"corners"`
+}
+
+// RawState - returns the raw state of the cube.
+func (c *Cube) RawState() CubeState {
+	return CubeState{
+		Centers: c.Centers,
+		Edges:   c.Edges,
+		Corners: c.Corners,
+	}
+}
+
 type Face string
 
 const (

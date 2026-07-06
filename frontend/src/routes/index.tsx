@@ -5,8 +5,62 @@ import { PageLayout } from "#/components/(layouts)/page-layout/page-layout";
 import Spacer from "#/components/(layouts)/spacer/spacer";
 import CubePulse from "#/components/(rubiks-cube)/cube-pulse/cube-pulse";
 import { buttonVariants } from "#/components/ui/button";
+import { getOGImage, getSiteUrl } from "#/utils/seo";
 
-export const Route = createFileRoute("/")({ component: Home });
+const SEO = {
+  url: getSiteUrl(),
+  title: "Agent Cube | Benchmark LLMs on the Rubik's Cube",
+  description:
+    "Agent Cube is an open benchmark that tests large language models by challenging them to solve Rubik's Cube puzzles. Compare reasoning, planning, and problem-solving across top LLMs.",
+  image: getOGImage(),
+};
+
+export const Route = createFileRoute("/")({
+  component: Home,
+  head: () => ({
+    meta: [
+      {
+        title: SEO.title,
+      },
+      {
+        name: "description",
+        content: SEO.description,
+      },
+      {
+        property: "og:title",
+        content: SEO.title,
+      },
+      {
+        property: "og:description",
+        content: SEO.description,
+      },
+      {
+        property: "og:type",
+        content: "website",
+      },
+      {
+        property: "og:image",
+        content: SEO.image,
+      },
+      {
+        name: "twitter:card",
+        content: "summary_large_image",
+      },
+      {
+        name: "twitter:title",
+        content: SEO.title,
+      },
+      {
+        name: "twitter:description",
+        content: SEO.description,
+      },
+      {
+        name: "twitter:image",
+        content: SEO.image,
+      },
+    ],
+  }),
+});
 
 function Home() {
   return (
