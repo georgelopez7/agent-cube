@@ -44,7 +44,7 @@ This following services will be available:
 
 Go to [http://localhost:3001](http://localhost:3001) - create a **Rubik's Cube** and watch the **agent** attempt to solve it!
 
-**4. Extend the available models (optional):**
+**4. (Optional) Extend the suite of large language models:**
 
 The list of supported LLMs is defined in [`backend/internal/domain/ai.go`](./backend/internal/domain/ai.go).
 
@@ -66,7 +66,3 @@ Then run the **build** command again:
 ```bash
 docker compose up --build -d
 ```
-
-## Demo
-
-<video src="./docs/assets/demo.mp4" poster="./docs/assets/demo-splash.png" width="100%" controls></video>
