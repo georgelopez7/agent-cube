@@ -7,6 +7,8 @@ services:
       args:
         - VITE_WEBSOCKET_URL
         - VITE_SITE_URL
+        - VITE_GITHUB_URL
+        - VITE_X_URL
     environment:
       - API_BASE_URL=http://agent-cube-api:8080
     depends_on:

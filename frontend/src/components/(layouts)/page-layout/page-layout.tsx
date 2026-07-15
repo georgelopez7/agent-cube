@@ -10,7 +10,14 @@ export const PageLayout = ({ children, navbar = true }: IPageLayoutProps) => {
   return (
     <div className="relative flex flex-col min-h-screen p-8 mx-auto">
       <Spacer size="sm" />
-      <div className="relative z-10">{navbar && <Navbar />}</div>
+      <div className="relative z-10">
+        {navbar && (
+          <Navbar
+            githubLink={import.meta.env.VITE_GITHUB_URL}
+            xLink={import.meta.env.VITE_X_URL}
+          />
+        )}
+      </div>
       <Spacer size="xs" />
       {/* Top Left Corner - Green */}
       <div className="absolute top-4 left-4 w-8 h-8 pointer-events-none">
