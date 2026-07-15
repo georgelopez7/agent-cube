@@ -1,15 +1,18 @@
 services:
-  # agent-cube-app:
-  #   container_name: app
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   depends_on:
-  #     - agent-cube-api
-  #   ports:
-  #     - "3001:3000"
-  #   environment:
-  #     - VITE_WEBSOCKET_URL=${VITE_WEBSOCKET_URL:-ws://localhost:8080/api/v1/ws}
+  agent-cube-app:
+    container_name: app
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_WEBSOCKET_URL
+        - VITE_SITE_URL
+    environment:
+      - API_BASE_URL=http://agent-cube-api:8080
+    depends_on:
+      - agent-cube-api
+    ports:
+      - "3001:3000"
 
   agent-cube-api:
     container_name: api
@@ -25,10 +28,10 @@ services:
       - MONGODB_DB=agent-cube-db
       - WEBSOCKET_ALLOWED_ORIGINS=http://agent-cube-app:3000,http://localhost:3000,http://localhost:3001,http://localhost:3002
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:?OPENROUTER_API_KEY must be set in .env}
-      - OPENROUTER_BASE_URL=${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
-      - OPENROUTER_HTTP_REFERRER=${OPENROUTER_HTTP_REFERRER:-http://localhost:3001}
-      - OPENROUTER_X_TITLE=${OPENROUTER_X_TITLE:-Agent Cube}
-      - LANGFUSE_HOST=${LANGFUSE_HOST:-http://langfuse-web:3000}
+      - OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+      - OPENROUTER_HTTP_REFERRER=http://localhost:3001
+      - OPENROUTER_X_TITLE=Agent Cube
+      - LANGFUSE_HOST=http://langfuse-web:3000
       - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
       - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
     depends_on:
