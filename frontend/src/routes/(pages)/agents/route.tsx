@@ -98,7 +98,7 @@ function RouteComponent() {
 
   return (
     <PageLayout>
-      <Websocket debug />
+      <Websocket />
       <div className="flex flex-col">
         <CreateAgentModal llms={llms ?? []} onSubmit={handleCreateCube} />
         <Spacer size="xs" />
