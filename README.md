@@ -27,7 +27,9 @@ cp .env.sample .env
 | `LANGFUSE_INIT_PROJECT_PUBLIC_KEY` | Copy the same value as `LANGFUSE_PUBLIC_KEY`. |
 | `LANGFUSE_INIT_PROJECT_SECRET_KEY` | Copy the same value as `LANGFUSE_SECRET_KEY`. |
 
-`LANGFUSE_INIT_USER_NAME` and `LANGFUSE_INIT_USER_PASSWORD` determine the Langfuse login credentials and are already set in `.env.sample`. Use the defaults (`admin` / `123123123`) to log in.
+`LANGFUSE_INIT_USER_NAME` and `LANGFUSE_INIT_USER_PASSWORD` determine the Langfuse login credentials and are already set in `.env.sample`. 
+
+Use the defaults (`admin` / `123123123`) to log in.
 
 **3. Spin up the services:**
 
