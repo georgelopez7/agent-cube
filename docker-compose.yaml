@@ -42,21 +42,6 @@ services:
       langfuse-web:
         condition: service_started
 
-  seed-db:
-    container_name: seed-db
-    profiles:
-      - seed
-    build:
-      context: .
-      dockerfile: ./cmd/agentcube-seed-db/Dockerfile
-    environment:
-      - MONGODB_URI=mongodb://user:password@mongo-db:27017/agent-cube-db?authSource=admin
-      - MONGODB_DB=agent-cube-db
-      - SEED_COUNT=10
-    depends_on:
-      mongo-db:
-        condition: service_healthy
-
   mongo-db:
     container_name: mongo-db
     image: mongo:8.0
