@@ -8,7 +8,7 @@ services:
     environment:
       ENVIRONMENT: dev
       PORT: 8080
-      MONGODB_URI: mongodb://user:password@mongo-db:27017/agentcube-db?authSource=admin
+      MONGODB_URI: mongodb://user:password@mongo:27017/agentcube-db?authSource=admin
       MONGODB_DB: agentcube-db
       WEBSOCKET_ALLOWED_ORIGINS: http://agent-cube-app:3000,http://localhost:3000,http://localhost:3001,http://localhost:3002
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?OPENROUTER_API_KEY must be set in .env}

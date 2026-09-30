@@ -18,6 +18,7 @@ cmd/agentcube-app
 
 # Documentation and local tooling
 docs
+scripts
 tools
 
 # Build / test artifacts
