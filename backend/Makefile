@@ -14,7 +14,7 @@ gen-openapi: # [ make gen-openapi ]
 
 .PHONY: seed-db
 seed-db: # [ make seed-db ]
-	docker compose -f ../docker-compose.yaml --profile seed up --build seed-db
+	podman compose -f ../docker-compose.yaml --profile seed up --build seed-db
 
 .PHONY: run-hurl
 run-hurl: # [ make run-hurl ]

@@ -16,4 +16,4 @@ run-storybook: # [ make run-storybook ]
 	cd frontend && bun storybook
 
 run-backend: # [ make run-backend ]
-	docker compose --profile backend up -d
+	podman compose --profile backend up -d
