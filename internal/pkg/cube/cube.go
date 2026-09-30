@@ -14,7 +14,6 @@ func (c *Cube) AddCubeRotation(rotation Rotation, fromScramble bool) CubeRotatio
 }
 
 // Rotate - applies the given rotation to the cube and records it.
-// Returns ErrInvalidRotation if the rotation is not a valid cube rotation.
 func (c *Cube) Rotate(rotation Rotation, fromScramble bool) (*CubeRotation, error) {
 	if !IsValidRotation(rotation) {
 		return nil, ErrInvalidRotation

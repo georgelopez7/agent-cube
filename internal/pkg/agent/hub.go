@@ -42,7 +42,6 @@ func (a *AgentHub) Stop(id string) error {
 }
 
 // Deregister - removes an agent from the hub without cancelling its context.
-// Safe to call multiple times.
 func (a *AgentHub) Deregister(id string) {
 	a.mu.Lock()
 	delete(a.registry, id)

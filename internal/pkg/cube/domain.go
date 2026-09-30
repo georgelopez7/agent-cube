@@ -2,8 +2,11 @@ package cube
 
 import (
 	"errors"
+	"slices"
 	"time"
 )
+
+var ErrInvalidRotation = errors.New("INVALID_ROTATION")
 
 type Cube struct {
 	Centers   map[Face]Cubie   `json:"centers" bson:"centers"`
@@ -12,7 +15,6 @@ type Cube struct {
 	Rotations []CubeRotation   `json:"rotations" bson:"rotations"`
 }
 
-// NewCube - creates a new cube. If cube is nil, the cube starts solved.
 func NewCube() Cube {
 	c, _ := SolvedCube.clone()
 	return *c
@@ -72,9 +74,6 @@ const (
 	RotationR_ Rotation = "R'"
 )
 
-// ErrInvalidRotation - returned when an invalid rotation is provided.
-var ErrInvalidRotation = errors.New("invalid rotation")
-
 var PossibleRotations = []Rotation{
 	RotationF,
 	RotationF_,
@@ -92,13 +91,7 @@ var PossibleRotations = []Rotation{
 
 // IsValidRotation - returns true if the rotation is a valid cube rotation.
 func IsValidRotation(rotation Rotation) bool {
-	for _, r := range PossibleRotations {
-		if r == rotation {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(PossibleRotations, rotation)
 }
 
 type CubeRotation struct {
