@@ -2,18 +2,18 @@ package main
 
 import (
 	"context"
-	"os"
-	"strings"
+	"log"
+	"time"
 
 	"agent-cube/api/http"
 	"agent-cube/internal/pkg/agent"
 	"agent-cube/internal/pkg/event"
-	"agent-cube/internal/pkg/langfuse"
 	"agent-cube/internal/pkg/mongo"
 	"agent-cube/internal/pkg/openrouter"
 	"agent-cube/internal/pkg/websocket"
 	"agent-cube/internal/repository"
-	rubikscube "agent-cube/internal/service/rubiks-cube"
+	"agent-cube/internal/service/rubikscube"
+	"agent-cube/pkg/telemetry"
 )
 
 func main() {
@@ -21,45 +21,49 @@ func main() {
 	ctx := context.Background()
 
 	// CONFIG
-	var (
-		name    = "Agent Cube API"
-		version = "v1"
-	)
+	config := NewConfig()
+
+	// TELEMETRY
+	telemetryProviders, err := telemetry.New(ctx, config.Name)
+	if err != nil {
+		log.Fatalf("failed to setup telemetry: %v", err)
+	}
+
+	defer func() {
+		shutdownCTX, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		if err := telemetryProviders.Shutdown(shutdownCTX); err != nil {
+			log.Printf("telemetry shutdown failed: %v", err)
+		}
+	}()
 
 	// AGENT HUB
 	agentHub := agent.NewAgentHub()
 
-	// LANGFUSE
-	langfuse := langfuse.NewLangfuse(ctx, name, os.Getenv("LANGFUSE_HOST"), os.Getenv("LANGFUSE_PUBLIC_KEY"), os.Getenv("LANGFUSE_SECRET_KEY"))
-	defer langfuse.Shutdown(ctx)
-
 	// OPENROUTER
-	openrouter := openrouter.NewOpenRouter(os.Getenv("OPENROUTER_BASE_URL"), os.Getenv("OPENROUTER_API_KEY"), os.Getenv("OPENROUTER_HTTP_REFERRER"), os.Getenv("OPENROUTER_X_TITLE"))
+	openrouter := openrouter.NewOpenRouter(config.OpenRouterBaseURL, config.OpenRouterAPIKey, config.OpenRouterHTTPReferrer, config.OpenRouterTitle)
 
 	// MONGO
-	uri := os.Getenv("MONGODB_URI")
-	db := os.Getenv("MONGODB_DB")
-	mongoDB := mongo.NewMongoDB(uri, db)
+	mongoDB := mongo.NewMongoDB(config.MongoDBURI, config.MongoDBName)
 
 	// REPOSITORY
 	repo := repository.NewRepository(mongoDB)
 
 	// WEBSOCKET
-	origins := strings.Split(os.Getenv("WEBSOCKET_ALLOWED_ORIGINS"), ",")
-	ws := websocket.NewWebSocketManager(origins)
+	ws := websocket.NewWebSocketManager(config.WebsocketAllowedOrigins)
 
 	// EVENT BUS
 	bus := event.NewEventBus()
 
 	// SERVICE
-	svc := rubikscube.NewRubiksCubeService(repo, bus, langfuse, openrouter, agentHub)
+	svc := rubikscube.NewRubiksCubeService(repo, bus, openrouter, agentHub)
 
 	// CONSUMER
 	consumer := NewConsumer(ws, bus, svc)
 	consumer.Start()
 
 	// SERVER
-	port := os.Getenv("PORT")
-	server := http.NewServer(name, version, port, svc, ws)
+	server := http.NewServer(config.Name, config.Version, config.Port, svc, ws)
 	server.Start()
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	xhttp "agent-cube/api/http"
-	rubikscube "agent-cube/internal/service/rubiks-cube"
+	rubikscube "agent-cube/internal/service/rubikscube"
 
 	"github.com/danielgtaylor/huma/v2/humacli"
 	"github.com/spf13/cobra"
@@ -21,7 +21,7 @@ func main() {
 		Use:   "openapi",
 		Short: "Print the OpenAPI spec",
 		Run: func(cmd *cobra.Command, args []string) {
-			svc := rubikscube.NewRubiksCubeService(nil, nil, nil, nil, nil)
+			svc := rubikscube.NewRubiksCubeService(nil, nil, nil, nil)
 
 			server := xhttp.NewServer("Agent Cube API", "v1", "8080", svc, nil)
 			server.AddRoutes(server.API)

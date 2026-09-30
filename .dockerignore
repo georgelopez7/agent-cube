@@ -15,7 +15,6 @@
 
 # Non-Go applications and local services
 cmd/agentcube-app
-langfuse
 
 # Documentation and local tooling
 docs
