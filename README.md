@@ -34,7 +34,7 @@ Use the defaults (`admin` / `123123123`) to log in.
 **3. Spin up the services:**
 
 ```bash
-docker compose up --build -d
+podman compose up --build -d
 ```
 
 This following services will be available:
@@ -48,7 +48,7 @@ Go to [http://localhost:3001](http://localhost:3001) - create a **Rubik's Cube**
 
 **4. (Optional) Extend the suite of large language models:**
 
-The list of supported LLMs is defined in [`backend/internal/domain/ai.go`](./backend/internal/domain/ai.go).
+The list of supported LLMs is defined in [`internal/domain/ai.go`](./internal/domain/ai.go).
 
 Add a new entry to the `LLMs` slice to include another model:
 
@@ -66,5 +66,5 @@ var LLMs = []LLM{
 Then run the **build** command again:
 
 ```bash
-docker compose up --build -d
+podman compose up --build -d
 ```

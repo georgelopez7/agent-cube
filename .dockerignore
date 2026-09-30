@@ -13,11 +13,13 @@
 .env.*
 *.local
 
-# Documentation
+# Non-Go applications and local services
+cmd/agentcube-app
+langfuse
+
+# Documentation and local tooling
 docs
-_hurl
-scripts
-!scripts/seed-db
+tools
 
 # Build / test artifacts
 bin
@@ -43,5 +45,5 @@ coverage.html
 vendor
 .cache
 
-# Tooling config
+# Build tooling
 Makefile

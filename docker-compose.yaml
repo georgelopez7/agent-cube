@@ -2,7 +2,7 @@ services:
   agent-cube-app:
     container_name: app
     build:
-      context: ./frontend
+      context: ./cmd/agentcube-app
       dockerfile: Dockerfile
       args:
         - VITE_WEBSOCKET_URL
@@ -19,8 +19,8 @@ services:
   agent-cube-api:
     container_name: api
     build:
-      context: ./backend
-      dockerfile: ./cmd/Dockerfile
+      context: .
+      dockerfile: ./cmd/agentcube-api/Dockerfile
     ports:
       - "8080:8080"
     environment:
@@ -47,8 +47,8 @@ services:
     profiles:
       - seed
     build:
-      context: ./backend
-      dockerfile: ./scripts/seed-db/Dockerfile
+      context: .
+      dockerfile: ./cmd/agentcube-seed-db/Dockerfile
     environment:
       - MONGODB_URI=mongodb://user:password@mongo-db:27017/agent-cube-db?authSource=admin
       - MONGODB_DB=agent-cube-db
