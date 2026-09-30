@@ -27,7 +27,7 @@ cp .env.sample .env
 **3. Spin up the services:**
 
 ```bash
-podman compose up --build -d
+podman compose -f dev.docker-compose.yaml up --build -d
 ```
 
 This following services will be available:
@@ -59,5 +59,5 @@ var LLMs = []LLM{
 Then run the **build** command again:
 
 ```bash
-podman compose up --build -d
+podman compose -f dev.docker-compose.yaml up --build -d
 ```

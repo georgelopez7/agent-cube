@@ -1,23 +1,22 @@
 services:
   agentcube-api:
-    container_name: api
     build:
       context: .
       dockerfile: ./cmd/agentcube-api/Dockerfile
     ports:
       - "8080:8080"
     environment:
-      - ENVIRONMENT=development
-      - PORT=8080
-      - MONGODB_URI=mongodb://user:password@mongo-db:27017/agent-cube-db?authSource=admin
-      - MONGODB_DB=agent-cube-db
-      - WEBSOCKET_ALLOWED_ORIGINS=http://agent-cube-app:3000,http://localhost:3000,http://localhost:3001,http://localhost:3002
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:?OPENROUTER_API_KEY must be set in .env}
-      - OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
-      - OPENROUTER_HTTP_REFERRER=http://localhost:3001
-      - OPENROUTER_X_TITLE=Agent Cube
-      - OTEL_SERVICE_NAME=agent-cube-api
-      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://phoenix:6006/v1/traces
+      ENVIRONMENT: dev
+      PORT: 8080
+      MONGODB_URI: mongodb://user:password@mongo-db:27017/agentcube-db?authSource=admin
+      MONGODB_DB: agentcube-db
+      WEBSOCKET_ALLOWED_ORIGINS: http://agent-cube-app:3000,http://localhost:3000,http://localhost:3001,http://localhost:3002
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?OPENROUTER_API_KEY must be set in .env}
+      OPENROUTER_BASE_URL: https://openrouter.ai/api/v1
+      OPENROUTER_HTTP_REFERRER: http://localhost:3001
+      OPENROUTER_X_TITLE: Agent Cube
+      OTEL_SERVICE_NAME: agentcube-api
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://phoenix:6006/v1/traces
     depends_on:
       mongo:
         condition: service_healthy
@@ -25,7 +24,6 @@ services:
         condition: service_started
 
   mongo:
-    container_name: mongo-db
     image: mongo:8.0
     environment:
       - MONGO_INITDB_ROOT_USERNAME=user
@@ -52,14 +50,13 @@ services:
       start_period: 10s
 
   phoenix:
-    image: arizephoenix/phoenix:${ARIZE_PHOENIX_VERSION:-latest}
+    image: arizephoenix/phoenix:version-20.17.0
     restart: always
     depends_on:
       phoenix-db:
         condition: service_healthy
     ports:
       - "6006:6006"
-      - "4317:4317"
     environment:
       PHOENIX_SQL_DATABASE_URL: postgresql://phoenix:phoenix@phoenix-db:5432/phoenix
 
