@@ -8,6 +8,7 @@
 .env
 .env*
 !.env.sample
+!cmd/agentcube-app/.env.development
 
 # --- Python (agent) ---
 __pycache__/

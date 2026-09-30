@@ -1,22 +1,5 @@
 services:
-  agent-cube-app:
-    container_name: app
-    build:
-      context: ./cmd/agentcube-app
-      dockerfile: Dockerfile
-      args:
-        - VITE_WEBSOCKET_URL
-        - VITE_SITE_URL
-        - VITE_GITHUB_URL
-        - VITE_X_URL
-    environment:
-      - API_BASE_URL=http://agent-cube-api:8080
-    depends_on:
-      - agent-cube-api
-    ports:
-      - "3001:3000"
-
-  agent-cube-api:
+  agentcube-api:
     container_name: api
     build:
       context: .
@@ -37,12 +20,12 @@ services:
       - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
       - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
     depends_on:
-      mongo-db:
+      mongo:
         condition: service_healthy
       langfuse-web:
         condition: service_started
 
-  mongo-db:
+  mongo:
     container_name: mongo-db
     image: mongo:8.0
     environment:
