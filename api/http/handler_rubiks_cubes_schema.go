@@ -110,7 +110,8 @@ type InvokeRubiksCubeAgentInput struct {
 
 type InvokeRubiksCubeAgentResponse struct {
 	Body struct {
-		Message string `json:"message"`
+		Message string             `json:"message"`
+		Cube    *domain.RubiksCube `json:"cube,omitempty"`
 	}
 }
 

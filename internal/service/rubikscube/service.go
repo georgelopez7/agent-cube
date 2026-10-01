@@ -171,7 +171,9 @@ func (s RubiksCubeService) IsRubiksCubeSolved(ctx context.Context, cubeID primit
 }
 
 // RunAgent - runs the agent for the given cube ID using the cube's LLM model and max duration.
-func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID) (string, error) {
+// invokedAt is supplied by the caller (/invoke handler) and persisted here - this
+// is the sole writer of invoked_at on the cube record.
+func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID, invokedAt time.Time) (string, error) {
 	cube, err := s.repository.GetRubiksCubeByID(ctx, id)
 	if err != nil {
 		return "", err
@@ -181,13 +183,15 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID) 
 		return "", domain.RubiksCubeNotFoundError
 	}
 
+	if err := s.repository.MarkRubiksCubeInvoked(ctx, id, invokedAt); err != nil {
+		return "", err
+	}
+	cube.InvokedAt = &invokedAt
+	cube.Status = domain.RubiksCubeStatusInProgress
+
 	if domain.IsDecisionsModel(cube.LLM.Model) {
 		// Route to the Decisions Agent Runner and return output - no need to run the ADK harness.
 		return s.RunDecisionsAgent(ctx, id)
-	}
-
-	if err := s.repository.UpdateRubiksCubeStatus(ctx, id, domain.RubiksCubeStatusInProgress); err != nil {
-		return "", err
 	}
 
 	name := fmt.Sprintf("agent-cube-%s-%s", id.Hex(), cube.LLM.Model)

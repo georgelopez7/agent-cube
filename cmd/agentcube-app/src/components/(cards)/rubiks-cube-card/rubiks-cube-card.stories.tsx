@@ -94,6 +94,7 @@ export const InProgress: Story = {
     cube: {
       ...withRotations(baseCube.cube.rotations.slice(0, 2)),
       status: RubiksCubeStatus.InProgress,
+      invoked_at: new Date(Date.now() - 65_000).toISOString(),
     },
   },
 };

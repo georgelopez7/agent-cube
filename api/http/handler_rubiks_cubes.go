@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"time"
 
 	"agent-cube/internal/domain"
 
@@ -178,16 +179,33 @@ func (s *Server) GetSolvedCubeHandler(ctx context.Context, input *GetSolvedCubeI
 }
 
 // InvokeRubiksCubeAgentHandler - invokes the Rubik's Cube agent for the given cube ID asynchronously.
+// The handler stamps invokedAt, hands it to RunAgent (the sole writer of
+// invoked_at on the cube record), pulls the cube from the DB immediately and
+// returns it with that invoked_at. On page refresh the frontend reads invoked_at
+// from the cube record via the GET endpoints.
 func (s *Server) InvokeRubiksCubeAgentHandler(ctx context.Context, input *InvokeRubiksCubeAgentInput) (*InvokeRubiksCubeAgentResponse, error) {
 	id, err := primitive.ObjectIDFromHex(input.ID)
 	if err != nil {
 		return nil, huma.Error400BadRequest("invalid rubiks cube id")
 	}
 
-	go s.svc.RunAgent(context.WithoutCancel(ctx), id)
+	invokedAt := time.Now().UTC()
+
+	go s.svc.RunAgent(context.WithoutCancel(ctx), id, invokedAt)
+
+	cube, err := s.svc.GetRubiksCubeByID(ctx, id)
+	if err != nil {
+		if err == domain.RubiksCubeNotFoundError {
+			return nil, huma.Error404NotFound("rubiks cube not found")
+		}
+		return nil, err
+	}
+
+	cube.InvokedAt = &invokedAt
 
 	resp := &InvokeRubiksCubeAgentResponse{}
 	resp.Body.Message = "agent invocation started"
+	resp.Body.Cube = cube
 	return resp, nil
 }
 

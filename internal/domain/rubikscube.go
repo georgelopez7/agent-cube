@@ -45,6 +45,7 @@ type RubiksCube struct {
 	MaxDurationMS int                `json:"max_duration_ms" bson:"max_duration_ms"`
 	Usage         TokenUsage         `json:"usage" bson:"usage"`
 	TotalCost     float64            `json:"total_cost" bson:"total_cost"`
+	InvokedAt     *time.Time         `json:"invoked_at,omitempty" bson:"invoked_at,omitempty"`
 	CreatedAt     time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt     time.Time          `json:"updated_at" bson:"updated_at"`
 }

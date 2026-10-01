@@ -14,6 +14,7 @@ import (
 	openrouter "agent-cube/internal/pkg/openrouter"
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	completions "github.com/achetronic/adk-utils-go/genai/openai/completions"
 	primitive "go.mongodb.org/mongo-driver/bson/primitive"
@@ -176,6 +177,20 @@ func (m *MockRepository) GetRubiksCubeByID(ctx context.Context, id primitive.Obj
 func (mr *MockRepositoryMockRecorder) GetRubiksCubeByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRubiksCubeByID", reflect.TypeOf((*MockRepository)(nil).GetRubiksCubeByID), ctx, id)
+}
+
+// MarkRubiksCubeInvoked mocks base method.
+func (m *MockRepository) MarkRubiksCubeInvoked(ctx context.Context, id primitive.ObjectID, invokedAt time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MarkRubiksCubeInvoked", ctx, id, invokedAt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MarkRubiksCubeInvoked indicates an expected call of MarkRubiksCubeInvoked.
+func (mr *MockRepositoryMockRecorder) MarkRubiksCubeInvoked(ctx, id, invokedAt any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkRubiksCubeInvoked", reflect.TypeOf((*MockRepository)(nil).MarkRubiksCubeInvoked), ctx, id, invokedAt)
 }
 
 // UpdateRubiksCube mocks base method.

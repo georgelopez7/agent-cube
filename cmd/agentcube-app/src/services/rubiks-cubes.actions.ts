@@ -117,6 +117,7 @@ export const DeleteRubiksCubeFn = createServerFn({ method: "POST" })
 
 export type InvokeRubiksCubeAgentResult = {
   message: string;
+  cube: RubiksCube | null;
   error: XError;
 };
 
@@ -139,17 +140,20 @@ export const InvokeRubiksCubeAgentFn = createServerFn({ method: "POST" })
     if (!response.ok) {
       return {
         message: "",
+        cube: null,
         error: `Failed to invoke rubiks cube agent: ${response.status} ${response.statusText}`,
       };
     }
 
     type InvokeRubiksCubeAgentResponseBody = {
       message: string;
+      cube?: RubiksCube | null;
     };
 
     const body: InvokeRubiksCubeAgentResponseBody = await response.json();
     return {
       message: body.message,
+      cube: body.cube ?? null,
       error: null,
     };
   });

@@ -1,4 +1,3 @@
-> Add Jev
-> Add cost + tokens
-> Update domain types and openrouter package
+> Look into costs
 > Create make run command with new docker-compose
+> Look at phoenix to match token + cost

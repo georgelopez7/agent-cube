@@ -368,7 +368,7 @@ func TestService_RunAgent(t *testing.T) {
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, nil)
 
-		_, err := svc.RunAgent(ctx, id)
+		_, err := svc.RunAgent(ctx, id, time.Now().UTC())
 		require.ErrorIs(t, err, domain.RubiksCubeNotFoundError)
 	})
 
@@ -377,7 +377,7 @@ func TestService_RunAgent(t *testing.T) {
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, errors.New("boom"))
 
-		_, err := svc.RunAgent(ctx, id)
+		_, err := svc.RunAgent(ctx, id, time.Now().UTC())
 		require.Error(t, err)
 	})
 
@@ -392,7 +392,7 @@ func TestService_RunAgent(t *testing.T) {
 			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
 			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
 		)
-		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(nil)
+		deps.Repository.EXPECT().MarkRubiksCubeInvoked(gomock.Any(), id, gomock.Any()).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCube(gomock.Any(), gomock.Any()).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCubeUsage(gomock.Any(), id, gomock.Any(), gomock.Any()).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusCompleted).Return(nil)
@@ -403,7 +403,7 @@ func TestService_RunAgent(t *testing.T) {
 		deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(decisionsSuccessResponse("F'"), nil)
 		deps.EventBus.EXPECT().Publish(gomock.Any(), gomock.Any()).AnyTimes()
 
-		msg, err := svc.RunAgent(ctx, id)
+		msg, err := svc.RunAgent(ctx, id, time.Now().UTC())
 		require.NoError(t, err)
 		require.Contains(t, msg, "solved cube")
 	})
@@ -419,7 +419,7 @@ func TestService_RunAgent(t *testing.T) {
 			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(&record, nil),
 			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(&record, nil),
 		)
-		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(nil)
+		deps.Repository.EXPECT().MarkRubiksCubeInvoked(gomock.Any(), id, gomock.Any()).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCube(gomock.Any(), gomock.Any()).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCubeUsage(gomock.Any(), id, gomock.Any(), gomock.Any()).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusCompleted).Return(nil)
@@ -430,7 +430,7 @@ func TestService_RunAgent(t *testing.T) {
 		deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(decisionsSuccessResponse("F'"), nil)
 		deps.EventBus.EXPECT().Publish(gomock.Any(), gomock.Any()).AnyTimes()
 
-		msg, err := svc.RunAgent(ctx, id)
+		msg, err := svc.RunAgent(ctx, id, time.Now().UTC())
 		require.NoError(t, err)
 		require.Contains(t, msg, "solved cube")
 	})
@@ -443,21 +443,25 @@ func TestService_RunAgent(t *testing.T) {
 			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
 			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
 		)
-		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(errors.New("boom"))
+		deps.Repository.EXPECT().MarkRubiksCubeInvoked(gomock.Any(), id, gomock.Any()).Return(nil)
+		deps.AgentHub.EXPECT().Register(id.Hex(), gomock.Any())
+		deps.AgentHub.EXPECT().Deregister(id.Hex())
+		deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("decide boom")).Times(3)
 
-		_, err := svc.RunAgent(ctx, id)
+		_, err := svc.RunAgent(ctx, id, time.Now().UTC())
 		require.Error(t, err)
+		require.Contains(t, err.Error(), "aborted after 3 consecutive errors")
 	})
 
-	t.Run("should propagate status error for non-decisions model without running ADK", func(t *testing.T) {
+	t.Run("should propagate invoked error for non-decisions model without running ADK", func(t *testing.T) {
 		id := primitive.NewObjectID()
 		record := domain.NewRubiksCube(domain.NewLLM("openai", "openai/gpt-5.4-mini"), 60000)
 		record.ID = id
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(&record, nil)
-		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(errors.New("boom"))
+		deps.Repository.EXPECT().MarkRubiksCubeInvoked(gomock.Any(), id, gomock.Any()).Return(errors.New("boom"))
 
-		_, err := svc.RunAgent(ctx, id)
+		_, err := svc.RunAgent(ctx, id, time.Now().UTC())
 		require.Error(t, err)
 	})
 }
@@ -510,7 +514,6 @@ func TestService_RunDecisionsAgent(t *testing.T) {
 			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
 		)
 
-		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCube(gomock.Any(), gomock.Any()).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCubeUsage(gomock.Any(), id, gomock.Any(), gomock.Any()).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusCompleted).Return(nil)
@@ -546,23 +549,11 @@ func TestService_RunDecisionsAgent(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	t.Run("should propagate status update error", func(t *testing.T) {
-		id := primitive.NewObjectID()
-		record := oneRotationAwayRecord(t, id)
-
-		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil)
-		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(errors.New("boom"))
-
-		_, err := svc.RunDecisionsAgent(ctx, id)
-		require.Error(t, err)
-	})
-
 	t.Run("should abort after consecutive decide errors", func(t *testing.T) {
 		id := primitive.NewObjectID()
 		record := oneRotationAwayRecord(t, id)
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil)
-		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(nil)
 		deps.AgentHub.EXPECT().Register(id.Hex(), gomock.Any())
 		deps.AgentHub.EXPECT().Deregister(id.Hex())
 		deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("decide boom")).Times(3)
@@ -580,7 +571,6 @@ func TestService_RunDecisionsAgent(t *testing.T) {
 			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
 			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
 		)
-		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCube(gomock.Any(), gomock.Any()).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCubeUsage(gomock.Any(), id, gomock.Any(), gomock.Any()).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusCompleted).Return(nil)
@@ -613,7 +603,6 @@ func TestService_RunDecisionsAgent(t *testing.T) {
 			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
 			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
 		)
-		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCube(gomock.Any(), gomock.Any()).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCubeUsage(gomock.Any(), id, gomock.Any(), gomock.Any()).Return(errors.New("usage boom"))
 		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusCompleted).Return(nil)

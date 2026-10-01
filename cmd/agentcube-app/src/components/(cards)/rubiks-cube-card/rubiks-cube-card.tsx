@@ -10,7 +10,7 @@ import {
   Square,
   Trash,
 } from "lucide-react";
-import { type ReactNode, useCallback, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { getAIProviderIcon } from "#/components/(icons)/helpers";
 import Spacer from "#/components/(layouts)/spacer/spacer";
 import RubiksCube from "#/components/(rubiks-cube)/rubiks-cube/rubiks-cube";
@@ -81,6 +81,19 @@ const formatMaxDuration = (ms: number): string => {
   return formatDistance(new Date(0), new Date(ms));
 };
 
+const formatElapsed = (ms: number): string => {
+  if (ms < 0) return "0s";
+  const totalSeconds = Math.floor(ms / 1000);
+  const seconds = totalSeconds % 60;
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const minutes = totalMinutes % 60;
+  const hours = Math.floor(totalMinutes / 60);
+
+  if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+  if (totalMinutes > 0) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
+};
+
 const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
   const ProviderIcon = getAIProviderIcon(cube.llm.provider);
 
@@ -101,6 +114,10 @@ const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
   );
 
   const usage = storeUsage ?? cube.usage;
+  const promptTokens = usage?.prompt_tokens ?? 0;
+  const completionTokens = usage?.completion_tokens ?? 0;
+  const reasoningTokens = usage?.reasoning_tokens ?? 0;
+  const cachedTokens = usage?.cached_tokens ?? 0;
   const totalTokens = usage?.total_tokens ?? 0;
 
   // Cumulative cost (OpenRouter credits) — persisted, not live-streamed.
@@ -112,6 +129,47 @@ const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
   );
 
   const totalCost = storeTotalCost ?? cube.total_cost ?? 0;
+
+  // Subscribe to invoked_at so time elapsed updates right after invoke,
+  // even before the list query refetches.
+  const storeInvokedAt = useRubiksCubeStore(
+    useCallback(
+      (state) => state.records.get(cube.id)?.cube.invoked_at,
+      [cube.id],
+    ),
+  );
+
+  const invokedAt = storeInvokedAt ?? cube.invoked_at ?? null;
+
+  const storeUpdatedAt = useRubiksCubeStore(
+    useCallback(
+      (state) => state.records.get(cube.id)?.cube.updated_at,
+      [cube.id],
+    ),
+  );
+
+  const updatedAt = storeUpdatedAt ?? cube.updated_at;
+
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!invokedAt || cubeStatus !== RubiksCubeStatus.InProgress) return;
+
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [invokedAt, cubeStatus]);
+
+  const timeElapsed = (() => {
+    if (!invokedAt) return "—";
+    const start = new Date(invokedAt).getTime();
+    if (Number.isNaN(start)) return "—";
+    const end =
+      cubeStatus === RubiksCubeStatus.InProgress
+        ? now
+        : new Date(updatedAt).getTime();
+    if (Number.isNaN(end)) return "—";
+    return formatElapsed(end - start);
+  })();
 
   const algorithm = generateAlgorithm(cube.cube.rotations ?? []);
   const date = format(new Date(cube.created_at), "yyyy-MM-dd");
@@ -224,47 +282,67 @@ const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
               {status.icon}
               {status.label}
             </span>
-            <span className="flex flex-col text-right text-xs text-muted-foreground tabular-nums">
+            <span className="flex flex-col text-right text-xs font-bold text-white tabular-nums">
               <span>{date}</span>
               <span>{time}</span>
             </span>
           </div>
-          <Spacer size="xxs" />
-          <div className="flex w-full items-start justify-between gap-3">
-            <span className="flex flex-col text-left tabular-nums">
-              <span className="text-xs text-muted-foreground">
-                Max Duration
-              </span>
-              <span
-                className={cn(
-                  "text-xs text-white",
-                  maxDuration === "1 minute" && "font-bold",
-                )}
-              >
-                {maxDuration}
+          <hr className="my-2 border-neutral-800" />
+          <div className="flex w-full flex-col gap-1">
+            <span className="flex items-baseline justify-between gap-3 text-xs tabular-nums">
+              <span className="text-muted-foreground">Prompt Tokens</span>
+              <span className="font-bold text-white">
+                {promptTokens.toLocaleString()}
               </span>
             </span>
-            <span className="flex flex-col text-right tabular-nums">
-              <span className="flex items-baseline justify-between gap-3 text-xs">
-                <span className="text-muted-foreground">Tokens: </span>
-                <span className="font-bold text-white">
-                  {totalTokens.toLocaleString()}
-                </span>
-              </span>
-              <span className="flex items-baseline justify-between gap-3 text-xs">
-                <span className="text-muted-foreground">Cost: </span>
-                <span className="font-bold text-white">
-                  ${totalCost.toFixed(5)}
-                </span>
+            <span className="flex items-baseline justify-between gap-3 text-xs tabular-nums">
+              <span className="text-muted-foreground">Completion Tokens</span>
+              <span className="font-bold text-white">
+                {completionTokens.toLocaleString()}
               </span>
             </span>
+            <span className="flex items-baseline justify-between gap-3 text-xs tabular-nums">
+              <span className="text-muted-foreground">Reasoning Tokens</span>
+              <span className="font-bold text-white">
+                {reasoningTokens.toLocaleString()}
+              </span>
+            </span>
+            <span className="flex items-baseline justify-between gap-3 text-xs tabular-nums">
+              <span className="text-muted-foreground">Cached Tokens</span>
+              <span className="font-bold text-white">
+                {cachedTokens.toLocaleString()}
+              </span>
+            </span>
+            <span className="flex items-baseline justify-between gap-3 text-xs tabular-nums">
+              <span className="text-muted-foreground">Total Tokens</span>
+              <span className="font-bold text-white">
+                {totalTokens.toLocaleString()}
+              </span>
+            </span>
+            <span className="flex items-baseline justify-between gap-3 text-xs tabular-nums">
+              <span className="text-muted-foreground">Cost</span>
+              <span className="font-bold text-white">
+                ${totalCost.toFixed(5)}
+              </span>
+            </span>
+            <hr className="my-2 border-neutral-800" />
+            <div className="flex flex-col gap-1">
+              <span className="flex items-baseline justify-between gap-3 text-xs tabular-nums">
+                <span className="text-muted-foreground">Max Duration</span>
+                <span className="font-bold text-white">{maxDuration}</span>
+              </span>
+              <span className="flex items-baseline justify-between gap-3 text-xs tabular-nums">
+                <span className="text-muted-foreground">Time Elapsed</span>
+                <span className="font-bold text-white">{timeElapsed}</span>
+              </span>
+            </div>
           </div>
         </div>
         <Spacer size="xxs" />
         {(cubeStatus === RubiksCubeStatus.Created ||
           cubeStatus === RubiksCubeStatus.InProgress) && (
           <>
-            <div className="flex w-full items-center gap-2">
+            <div className="flex w-full border border-neutral-700 bg-black p-3">
               <div className="flex min-w-0 flex-1 gap-2">
                 {cubeStatus === RubiksCubeStatus.Created && (
                   <Button

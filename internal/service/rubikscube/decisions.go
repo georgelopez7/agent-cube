@@ -39,6 +39,8 @@ type DecisionsRotationResponse struct {
 }
 
 // RunDecisionsAgent - runs the agent for the given cube ID using the cube's decisions model and max duration.
+// Note: invoked_at is stamped solely by RunAgent before delegating here, so this
+// method must not write invoked_at or transition to in_progress itself.
 func (s RubiksCubeService) RunDecisionsAgent(ctx context.Context, id primitive.ObjectID) (string, error) {
 	record, err := s.repository.GetRubiksCubeByID(ctx, id)
 	if err != nil {
@@ -47,10 +49,6 @@ func (s RubiksCubeService) RunDecisionsAgent(ctx context.Context, id primitive.O
 
 	if record == nil {
 		return "", domain.RubiksCubeNotFoundError
-	}
-
-	if err := s.repository.UpdateRubiksCubeStatus(ctx, id, domain.RubiksCubeStatusInProgress); err != nil {
-		return "", err
 	}
 
 	timeout := time.Duration(record.MaxDurationMS) * time.Millisecond

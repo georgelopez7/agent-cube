@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"time"
 
 	"agent-cube/internal/domain"
 	"agent-cube/internal/pkg/cube"
@@ -21,6 +22,6 @@ type RubiksCubeService interface {
 	GetAllRubiksCubes(ctx context.Context, limit int64) ([]domain.RubiksCube, error)
 	ApplyRubiksCubeRotation(ctx context.Context, cubeID primitive.ObjectID, rotation cube.Rotation) (*domain.RubiksCube, error)
 	IsRubiksCubeSolved(ctx context.Context, cubeID primitive.ObjectID) (bool, error)
-	RunAgent(ctx context.Context, id primitive.ObjectID) (string, error)
+	RunAgent(ctx context.Context, id primitive.ObjectID, invokedAt time.Time) (string, error)
 	StopAgent(ctx context.Context, id primitive.ObjectID) error
 }

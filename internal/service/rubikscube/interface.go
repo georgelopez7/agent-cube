@@ -2,6 +2,7 @@ package rubikscube
 
 import (
 	"context"
+	"time"
 
 	"agent-cube/internal/domain"
 	"agent-cube/internal/pkg/openrouter"
@@ -23,6 +24,7 @@ type Repository interface {
 	CreateRubiksCube(ctx context.Context, cube domain.RubiksCube) error
 	UpdateRubiksCube(ctx context.Context, cube *domain.RubiksCube) error
 	UpdateRubiksCubeStatus(ctx context.Context, id primitive.ObjectID, status domain.RubiksCubeStatus) error
+	MarkRubiksCubeInvoked(ctx context.Context, id primitive.ObjectID, invokedAt time.Time) error
 	UpdateRubiksCubeUsage(ctx context.Context, id primitive.ObjectID, usage domain.TokenUsage, totalCost float64) error
 	DeleteRubiksCubeByID(ctx context.Context, id primitive.ObjectID) error
 	GetRubiksCubeByID(ctx context.Context, id primitive.ObjectID) (*domain.RubiksCube, error)

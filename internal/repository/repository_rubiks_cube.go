@@ -72,6 +72,33 @@ func (r *Repository) UpdateRubiksCubeStatus(ctx context.Context, id primitive.Ob
 	return nil
 }
 
+// MarkRubiksCubeInvoked - records the invocation time of a rubiks cube and
+// transitions it to in_progress. This is the sole writer of invoked_at and is
+// called only from RubiksCubeService.RunAgent.
+func (r *Repository) MarkRubiksCubeInvoked(ctx context.Context, id primitive.ObjectID, invokedAt time.Time) error {
+	collection := r.mongo.GetCollection(xmongo.RubiksCubes)
+
+	filter := bson.M{"_id": id}
+	update := bson.M{
+		"$set": bson.M{
+			"invoked_at": invokedAt,
+			"status":     domain.RubiksCubeStatusInProgress,
+			"updated_at": time.Now().UTC(),
+		},
+	}
+
+	result, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to mark rubiks cube invoked: %w", err)
+	}
+
+	if result.MatchedCount == 0 {
+		return errors.New("rubiks cube not found")
+	}
+
+	return nil
+}
+
 // UpdateRubiksCubeUsage - updates only the cumulative token usage (and total cost) of a rubiks cube by ID.
 func (r *Repository) UpdateRubiksCubeUsage(ctx context.Context, id primitive.ObjectID, usage domain.TokenUsage, totalCost float64) error {
 	collection := r.mongo.GetCollection(xmongo.RubiksCubes)

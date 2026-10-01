@@ -16,6 +16,7 @@ export type RubiksCube = {
   max_duration_ms: number;
   usage: TokenUsage;
   total_cost: number;
+  invoked_at?: string | null;
   created_at: string;
   updated_at: string;
 };

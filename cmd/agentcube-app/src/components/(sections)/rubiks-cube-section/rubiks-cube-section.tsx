@@ -27,9 +27,16 @@ const RubiksCubeSection = ({
   const handleInvoke = async (id: string) => {
     useRubiksCubeStore.getState().ClearReasoning(id);
 
-    const { error } = await InvokeRubiksCubeAgentFn({ data: { id } });
+    // invoked_at is written solely by RunAgent on the backend and returned on
+    // the /invoke response; use only that value for time elapsed (on refresh
+    // the card reads invoked_at from the cube record via the list query).
+    const { cube, error } = await InvokeRubiksCubeAgentFn({ data: { id } });
     if (error) {
       toast.error(error);
+    }
+
+    if (cube?.invoked_at) {
+      useRubiksCubeStore.getState().SetInvokedAt(id, cube.invoked_at);
     }
 
     _query.invalidateQueries({ queryKey: rubiksCubeKeys.lists() });
