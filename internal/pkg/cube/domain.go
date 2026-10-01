@@ -12,7 +12,7 @@ type Cube struct {
 	Centers   map[Face]Cubie   `json:"centers" bson:"centers"`
 	Edges     map[string]Cubie `json:"edges" bson:"edges"`
 	Corners   map[string]Cubie `json:"corners" bson:"corners"`
-	Rotations []CubeRotation   `json:"rotations" bson:"rotations"`
+	Rotations CubeRotations    `json:"rotations" bson:"rotations"`
 }
 
 func NewCube() Cube {
@@ -74,7 +74,9 @@ const (
 	RotationR_ Rotation = "R'"
 )
 
-var PossibleRotations = []Rotation{
+type Rotations []Rotation
+
+var PossibleRotations = Rotations{
 	RotationF,
 	RotationF_,
 	RotationB,
@@ -87,6 +89,14 @@ var PossibleRotations = []Rotation{
 	RotationL_,
 	RotationR,
 	RotationR_,
+}
+
+func (r Rotations) ToString() []string {
+	out := make([]string, 0, len(r))
+	for _, rot := range r {
+		out = append(out, string(rot))
+	}
+	return out
 }
 
 // IsValidRotation - returns true if the rotation is a valid cube rotation.
@@ -108,6 +118,26 @@ func NewCubeRotation(index int, rotation Rotation, fromScramble bool) CubeRotati
 		FromScramble: fromScramble,
 		CreatedAt:    time.Now().UTC(),
 	}
+}
+
+type CubeRotations []CubeRotation
+
+func (r CubeRotations) ToString() []string {
+	out := make([]string, 0, len(r))
+	for _, rot := range r {
+		out = append(out, string(rot.Rotation))
+	}
+	return out
+}
+
+func (r CubeRotations) FilterScrambles() CubeRotations {
+	out := make(CubeRotations, 0, len(r))
+	for _, rot := range r {
+		if !rot.FromScramble {
+			out = append(out, rot)
+		}
+	}
+	return out
 }
 
 // Stickers - maps a face to the color shown on that face of the cubie.

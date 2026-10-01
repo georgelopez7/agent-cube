@@ -37,23 +37,6 @@ func IsValidRubiksCubeStatus(status RubiksCubeStatus) bool {
 	}
 }
 
-type TokenUsage struct {
-	PromptTokens     int `json:"prompt_tokens" bson:"prompt_tokens"`
-	CompletionTokens int `json:"completion_tokens" bson:"completion_tokens"`
-	TotalTokens      int `json:"total_tokens" bson:"total_tokens"`
-	ReasoningTokens  int `json:"reasoning_tokens,omitempty" bson:"reasoning_tokens,omitempty"`
-	CachedTokens     int `json:"cached_tokens,omitempty" bson:"cached_tokens,omitempty"`
-}
-
-// Add - accumulates another TokenUsage into this one.
-func (u *TokenUsage) Add(other TokenUsage) {
-	u.PromptTokens += other.PromptTokens
-	u.CompletionTokens += other.CompletionTokens
-	u.TotalTokens += other.TotalTokens
-	u.ReasoningTokens += other.ReasoningTokens
-	u.CachedTokens += other.CachedTokens
-}
-
 type RubiksCube struct {
 	ID            primitive.ObjectID `json:"id" bson:"_id"`
 	LLM           LLM                `json:"llm" bson:"llm"`
@@ -76,4 +59,20 @@ func NewRubiksCube(llm LLM, maxDuration int) RubiksCube {
 		CreatedAt:     time.Now().UTC(),
 		UpdatedAt:     time.Now().UTC(),
 	}
+}
+
+type TokenUsage struct {
+	PromptTokens     int `json:"prompt_tokens" bson:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens" bson:"completion_tokens"`
+	TotalTokens      int `json:"total_tokens" bson:"total_tokens"`
+	ReasoningTokens  int `json:"reasoning_tokens,omitempty" bson:"reasoning_tokens,omitempty"`
+	CachedTokens     int `json:"cached_tokens,omitempty" bson:"cached_tokens,omitempty"`
+}
+
+func (u *TokenUsage) Add(other TokenUsage) {
+	u.PromptTokens += other.PromptTokens
+	u.CompletionTokens += other.CompletionTokens
+	u.TotalTokens += other.TotalTokens
+	u.ReasoningTokens += other.ReasoningTokens
+	u.CachedTokens += other.CachedTokens
 }

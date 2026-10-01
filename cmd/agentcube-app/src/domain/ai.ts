@@ -13,6 +13,7 @@ export enum AIProvider {
   Kimi = "kimi",
   Acree = "acree",
   Moonshot = "moonshot",
+  Typesafe = "typesafe",
 }
 
 export type LLM = {

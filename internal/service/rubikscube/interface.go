@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"agent-cube/internal/domain"
+	"agent-cube/internal/pkg/openrouter"
 
+	"github.com/achetronic/adk-utils-go/genai/openai/completions"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -29,4 +31,9 @@ type Repository interface {
 
 type EventBus interface {
 	Publish(ctx context.Context, event domain.Event)
+}
+
+type OpenRouter interface {
+	Decide(ctx context.Context, model string, state any, questions map[string]any) (*openrouter.DecisionsResponse, error)
+	NewModel(model string) *completions.Model
 }

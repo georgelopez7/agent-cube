@@ -8,7 +8,6 @@ import (
 
 	"agent-cube/internal/domain"
 	"agent-cube/internal/pkg/cube"
-	"agent-cube/internal/pkg/openrouter"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"google.golang.org/adk/v2/agent"
@@ -22,17 +21,19 @@ import (
 type RubiksCubeService struct {
 	repository Repository
 	bus        EventBus
-	openrouter *openrouter.OpenRouter
+	openrouter OpenRouter
 	agentHub   AgentHub
 }
 
-func NewRubiksCubeService(repository Repository, bus EventBus, openrouter *openrouter.OpenRouter, agentHub AgentHub) *RubiksCubeService {
-	return &RubiksCubeService{
+func NewRubiksCubeService(repository Repository, bus EventBus, openrouter OpenRouter, agentHub AgentHub) *RubiksCubeService {
+	svc := &RubiksCubeService{
 		repository: repository,
 		bus:        bus,
 		openrouter: openrouter,
 		agentHub:   agentHub,
 	}
+
+	return svc
 }
 
 // CreateRubiksCube - creates a new rubiks cube with the given LLM configuration.
@@ -180,6 +181,11 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID) 
 		return "", domain.RubiksCubeNotFoundError
 	}
 
+	if domain.IsDecisionsModel(cube.LLM.Model) {
+		// Route to the Decisions Agent Runner and return output - no need to run the ADK harness.
+		return s.RunDecisionsAgent(ctx, id)
+	}
+
 	if err := s.repository.UpdateRubiksCubeStatus(ctx, id, domain.RubiksCubeStatusInProgress); err != nil {
 		return "", err
 	}
@@ -252,6 +258,7 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID) 
 			if agentCTX.Err() == context.DeadlineExceeded {
 				break
 			}
+
 			return "", fmt.Errorf("failed to run agent: %w", err)
 		}
 

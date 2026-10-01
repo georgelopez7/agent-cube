@@ -1,11 +1,14 @@
 package test
 
 import (
+	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"agent-cube/internal/domain"
 	"agent-cube/internal/pkg/cube"
+	"agent-cube/internal/pkg/openrouter"
 
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -356,6 +359,109 @@ func TestService_UpdateRubiksCubeStatus(t *testing.T) {
 	})
 }
 
+func TestService_RunAgent(t *testing.T) {
+	ctx := t.Context()
+	svc, deps := newMockService(t)
+
+	t.Run("should return not found when cube is missing", func(t *testing.T) {
+		id := primitive.NewObjectID()
+
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, nil)
+
+		_, err := svc.RunAgent(ctx, id)
+		require.ErrorIs(t, err, domain.RubiksCubeNotFoundError)
+	})
+
+	t.Run("should propagate get error", func(t *testing.T) {
+		id := primitive.NewObjectID()
+
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, errors.New("boom"))
+
+		_, err := svc.RunAgent(ctx, id)
+		require.Error(t, err)
+	})
+
+	t.Run("should route decisions model to decisions agent", func(t *testing.T) {
+		id := primitive.NewObjectID()
+		record := oneRotationAwayRecord(t, id)
+
+		// RunAgent performs an initial Get to inspect the model, then
+		// RunDecisionsAgent performs its own Get + apply-path Get.
+		gomock.InOrder(
+			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
+			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
+			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
+		)
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(nil)
+		deps.Repository.EXPECT().UpdateRubiksCube(gomock.Any(), gomock.Any()).Return(nil)
+		deps.Repository.EXPECT().UpdateRubiksCubeUsage(gomock.Any(), id, gomock.Any(), gomock.Any()).Return(nil)
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusCompleted).Return(nil)
+
+		deps.AgentHub.EXPECT().Register(id.Hex(), gomock.Any())
+		deps.AgentHub.EXPECT().Deregister(id.Hex())
+
+		deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(decisionsSuccessResponse("F'"), nil)
+		deps.EventBus.EXPECT().Publish(gomock.Any(), gomock.Any()).AnyTimes()
+
+		msg, err := svc.RunAgent(ctx, id)
+		require.NoError(t, err)
+		require.Contains(t, msg, "solved cube")
+	})
+
+	t.Run("should route jev-latest alias to decisions agent", func(t *testing.T) {
+		id := primitive.NewObjectID()
+		record := domain.NewRubiksCube(domain.NewLLM("typesafe", "~typesafe/jev-latest"), 60000)
+		record.ID = id
+		_, _ = record.Cube.Rotate("F", false)
+
+		gomock.InOrder(
+			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(&record, nil),
+			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(&record, nil),
+			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(&record, nil),
+		)
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(nil)
+		deps.Repository.EXPECT().UpdateRubiksCube(gomock.Any(), gomock.Any()).Return(nil)
+		deps.Repository.EXPECT().UpdateRubiksCubeUsage(gomock.Any(), id, gomock.Any(), gomock.Any()).Return(nil)
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusCompleted).Return(nil)
+
+		deps.AgentHub.EXPECT().Register(id.Hex(), gomock.Any())
+		deps.AgentHub.EXPECT().Deregister(id.Hex())
+
+		deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(decisionsSuccessResponse("F'"), nil)
+		deps.EventBus.EXPECT().Publish(gomock.Any(), gomock.Any()).AnyTimes()
+
+		msg, err := svc.RunAgent(ctx, id)
+		require.NoError(t, err)
+		require.Contains(t, msg, "solved cube")
+	})
+
+	t.Run("should propagate decisions agent errors through RunAgent", func(t *testing.T) {
+		id := primitive.NewObjectID()
+		record := oneRotationAwayRecord(t, id)
+
+		gomock.InOrder(
+			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
+			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
+		)
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(errors.New("boom"))
+
+		_, err := svc.RunAgent(ctx, id)
+		require.Error(t, err)
+	})
+
+	t.Run("should propagate status error for non-decisions model without running ADK", func(t *testing.T) {
+		id := primitive.NewObjectID()
+		record := domain.NewRubiksCube(domain.NewLLM("openai", "openai/gpt-5.4-mini"), 60000)
+		record.ID = id
+
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(&record, nil)
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(errors.New("boom"))
+
+		_, err := svc.RunAgent(ctx, id)
+		require.Error(t, err)
+	})
+}
+
 func TestService_StopAgent(t *testing.T) {
 	ctx := t.Context()
 	svc, deps := newMockService(t)
@@ -389,4 +495,191 @@ func TestService_StopAgent(t *testing.T) {
 		err := svc.StopAgent(ctx, id)
 		require.Error(t, err)
 	})
+}
+
+func TestService_RunDecisionsAgent(t *testing.T) {
+	ctx := t.Context()
+	svc, deps := newMockService(t)
+
+	t.Run("should solve a cube one move away", func(t *testing.T) {
+		id := primitive.NewObjectID()
+		record := oneRotationAwayRecord(t, id)
+
+		gomock.InOrder(
+			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
+			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
+		)
+
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(nil)
+		deps.Repository.EXPECT().UpdateRubiksCube(gomock.Any(), gomock.Any()).Return(nil)
+		deps.Repository.EXPECT().UpdateRubiksCubeUsage(gomock.Any(), id, gomock.Any(), gomock.Any()).Return(nil)
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusCompleted).Return(nil)
+
+		deps.AgentHub.EXPECT().Register(id.Hex(), gomock.Any())
+		deps.AgentHub.EXPECT().Deregister(id.Hex())
+
+		deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(decisionsSuccessResponse("F'"), nil)
+		deps.EventBus.EXPECT().Publish(gomock.Any(), gomock.Any()).AnyTimes()
+
+		msg, err := svc.RunDecisionsAgent(ctx, id)
+		require.NoError(t, err)
+		require.Contains(t, msg, "solved cube")
+		require.Contains(t, msg, "1 moves")
+		require.True(t, record.Cube.Solved())
+	})
+
+	t.Run("should return not found when cube is missing", func(t *testing.T) {
+		id := primitive.NewObjectID()
+
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, nil)
+
+		_, err := svc.RunDecisionsAgent(ctx, id)
+		require.ErrorIs(t, err, domain.RubiksCubeNotFoundError)
+	})
+
+	t.Run("should propagate get error", func(t *testing.T) {
+		id := primitive.NewObjectID()
+
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, errors.New("boom"))
+
+		_, err := svc.RunDecisionsAgent(ctx, id)
+		require.Error(t, err)
+	})
+
+	t.Run("should propagate status update error", func(t *testing.T) {
+		id := primitive.NewObjectID()
+		record := oneRotationAwayRecord(t, id)
+
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil)
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(errors.New("boom"))
+
+		_, err := svc.RunDecisionsAgent(ctx, id)
+		require.Error(t, err)
+	})
+
+	t.Run("should abort after consecutive decide errors", func(t *testing.T) {
+		id := primitive.NewObjectID()
+		record := oneRotationAwayRecord(t, id)
+
+		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil)
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(nil)
+		deps.AgentHub.EXPECT().Register(id.Hex(), gomock.Any())
+		deps.AgentHub.EXPECT().Deregister(id.Hex())
+		deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("decide boom")).Times(3)
+
+		_, err := svc.RunDecisionsAgent(ctx, id)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "aborted after 3 consecutive errors")
+	})
+
+	t.Run("should skip invalid rotation and solve on next move", func(t *testing.T) {
+		id := primitive.NewObjectID()
+		record := oneRotationAwayRecord(t, id)
+
+		gomock.InOrder(
+			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
+			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
+		)
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(nil)
+		deps.Repository.EXPECT().UpdateRubiksCube(gomock.Any(), gomock.Any()).Return(nil)
+		deps.Repository.EXPECT().UpdateRubiksCubeUsage(gomock.Any(), id, gomock.Any(), gomock.Any()).Return(nil)
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusCompleted).Return(nil)
+
+		deps.AgentHub.EXPECT().Register(id.Hex(), gomock.Any())
+		deps.AgentHub.EXPECT().Deregister(id.Hex())
+
+		invalid := &openrouter.DecisionsResponse{
+			Answers: map[string]openrouter.DecisionAnswer{
+				"next_rotation": {Choice: "X"},
+			},
+		}
+		gomock.InOrder(
+			deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(invalid, nil),
+			deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(decisionsSuccessResponse("F'"), nil),
+		)
+		deps.EventBus.EXPECT().Publish(gomock.Any(), gomock.Any()).AnyTimes()
+
+		msg, err := svc.RunDecisionsAgent(ctx, id)
+		require.NoError(t, err)
+		require.Contains(t, msg, "solved cube")
+		require.True(t, record.Cube.Solved())
+	})
+
+	t.Run("should track usage even when persisting usage fails", func(t *testing.T) {
+		id := primitive.NewObjectID()
+		record := oneRotationAwayRecord(t, id)
+
+		gomock.InOrder(
+			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
+			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
+		)
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusInProgress).Return(nil)
+		deps.Repository.EXPECT().UpdateRubiksCube(gomock.Any(), gomock.Any()).Return(nil)
+		deps.Repository.EXPECT().UpdateRubiksCubeUsage(gomock.Any(), id, gomock.Any(), gomock.Any()).Return(errors.New("usage boom"))
+		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusCompleted).Return(nil)
+
+		deps.AgentHub.EXPECT().Register(id.Hex(), gomock.Any())
+		deps.AgentHub.EXPECT().Deregister(id.Hex())
+
+		deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(decisionsSuccessResponse("F'"), nil)
+		deps.EventBus.EXPECT().Publish(gomock.Any(), gomock.Any()).AnyTimes()
+
+		msg, err := svc.RunDecisionsAgent(ctx, id)
+		require.NoError(t, err)
+		require.Contains(t, msg, "solved cube")
+	})
+}
+
+func TestService_StopDecisionsAgent(t *testing.T) {
+	ctx := t.Context()
+	svc, deps := newMockService(t)
+
+	t.Run("should map deadline exceeded to timeout", func(t *testing.T) {
+		id := primitive.NewObjectID()
+
+		agentCTX, cancel := context.WithTimeout(ctx, time.Nanosecond)
+		defer cancel()
+		<-agentCTX.Done()
+		require.ErrorIs(t, agentCTX.Err(), context.DeadlineExceeded)
+
+		deps.EventBus.EXPECT().Publish(gomock.Any(), gomock.Any())
+
+		err := svc.StopDecisionsAgent(agentCTX, ctx, id, time.Second, 3)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "timed out")
+		require.ErrorIs(t, err, context.DeadlineExceeded)
+	})
+
+	t.Run("should map cancellation to stopped", func(t *testing.T) {
+		id := primitive.NewObjectID()
+
+		agentCTX, cancel := context.WithCancel(ctx)
+		cancel()
+		require.ErrorIs(t, agentCTX.Err(), context.Canceled)
+
+		err := svc.StopDecisionsAgent(agentCTX, ctx, id, time.Second, 2)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "stopped after 2 moves")
+		require.ErrorIs(t, err, context.Canceled)
+	})
+}
+
+// oneRotationAwayRecord - returns a cube record that is exactly one F' away from solved.
+func oneRotationAwayRecord(t *testing.T, id primitive.ObjectID) *domain.RubiksCube {
+	t.Helper()
+	record := domain.NewRubiksCube(domain.NewLLM("typesafe", domain.JevModel), 60000)
+	record.ID = id
+	_, _ = record.Cube.Rotate("F", false)
+	require.False(t, record.Cube.Solved(), "setup: cube should be scrambled")
+	return &record
+}
+
+// decisionsSuccessResponse - returns a successful decisions response for the given choice.
+func decisionsSuccessResponse(choice string) *openrouter.DecisionsResponse {
+	return &openrouter.DecisionsResponse{
+		Answers: map[string]openrouter.DecisionAnswer{
+			"next_rotation": {Type: "choice", Choice: choice, Confidence: 0.9},
+		},
+		Usage: openrouter.DecisionsUsage{InputTokens: 10, OutputTokens: 5, Cost: 0.001},
+	}
 }

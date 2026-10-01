@@ -11,6 +11,7 @@ import MoonshotIcon from "./moonshot-icon";
 import OpenAIIcon from "./openai-icon";
 import OpenRouterIcon from "./openrouter-icon";
 import QwenIcon from "./qwen-icon";
+import TypesafeIcon from "./typesafe-icon";
 import XAIIcon from "./xai-icon";
 import ZAIIcon from "./zai-icon";
 
@@ -78,4 +79,8 @@ export const Acree: Story = {
 
 export const Moonshot: Story = {
   render: () => <MoonshotIcon className="w-16 h-16" />,
+};
+
+export const Typesafe: Story = {
+  render: () => <TypesafeIcon className="w-16 h-16" />,
 };

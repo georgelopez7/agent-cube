@@ -11,6 +11,7 @@ import MoonshotIcon from "./moonshot-icon";
 import OpenAIIcon from "./openai-icon";
 import OpenRouterIcon from "./openrouter-icon";
 import QwenIcon from "./qwen-icon";
+import TypesafeIcon from "./typesafe-icon";
 import XAIIcon from "./xai-icon";
 import ZAIIcon from "./zai-icon";
 
@@ -31,6 +32,7 @@ const providerIcons: Record<AIProvider, IconComponent> = {
   [AIProvider.Kimi]: KimiIcon,
   [AIProvider.Acree]: AcreeIcon,
   [AIProvider.Moonshot]: MoonshotIcon,
+  [AIProvider.Typesafe]: TypesafeIcon,
 };
 
 export function getAIProviderIcon(provider: AIProvider): IconComponent {

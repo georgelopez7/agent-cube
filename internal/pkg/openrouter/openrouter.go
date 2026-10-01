@@ -7,10 +7,11 @@ import (
 )
 
 type OpenRouter struct {
-	BaseURL     string
-	APIKey      string
-	HTTPReferer string
-	XTitle      string
+	BaseURL      string
+	APIKey       string
+	HTTPReferer  string
+	XTitle       string
+	DecisionsURL string
 }
 
 func NewOpenRouter(baseURL string, apiKey string, httpReferrer string, xTitle string) *OpenRouter {

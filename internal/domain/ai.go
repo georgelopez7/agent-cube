@@ -19,4 +19,11 @@ var LLMs = []LLM{
 	NewLLM("moonshot", "moonshotai/kimi-k2.7-code"),
 	NewLLM("x-ai", "x-ai/grok-4.3"),
 	NewLLM("deepseek", "deepseek/deepseek-v4-pro"),
+	NewLLM("typesafe", "typesafe/jev-1.13"),
+}
+
+const JevModel = "typesafe/jev-1.13"
+
+func IsDecisionsModel(model string) bool {
+	return model == JevModel || model == "~typesafe/jev-latest"
 }
