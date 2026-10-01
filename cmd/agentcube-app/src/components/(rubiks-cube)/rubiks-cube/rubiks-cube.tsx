@@ -216,6 +216,9 @@ const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
       apiRef.current.resetCamera();
     }, []);
 
+    // rotationCount - live rotation total for the header count label
+    const rotationCount = (xrotations ?? cube?.cube.rotations ?? []).length;
+
     return (
       <div className="flex flex-col items-center">
         <div
@@ -225,16 +228,26 @@ const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
           )}
         >
           {showResetCameraButton && (
-            <button
-              type="button"
-              onClick={handleResetCamera}
-              className="absolute top-2 left-2 z-10 flex size-7 items-center justify-center border border-transparent bg-black/70 text-white hover:border-neutral-400 hover:bg-[#101010] hover:text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
-              disabled={loading}
-              aria-label="Reset camera"
-              title="Reset camera"
-            >
-              <Video className="size-4" />
-            </button>
+            <div className="absolute top-2 right-2 left-2 z-10 flex items-center justify-between">
+              <div className="group relative">
+                <button
+                  type="button"
+                  onClick={handleResetCamera}
+                  className="flex size-7 items-center justify-center border border-transparent bg-black/70 text-white hover:border-neutral-400 hover:bg-[#101010] hover:text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                  disabled={loading}
+                  aria-label="Reset camera"
+                  title="Reset camera"
+                >
+                  <Video className="size-4" />
+                </button>
+                <span className="pointer-events-none absolute top-full left-0 mt-1 hidden border border-neutral-700 bg-[#101010] px-2 py-1 font-mono text-xs whitespace-nowrap text-white group-hover:block">
+                  Reset camera
+                </span>
+              </div>
+              <span className="border border-transparent bg-black/70 px-2 py-1 font-mono text-xs text-white tabular-nums">
+                {rotationCount} Rotation{rotationCount === 1 ? "" : "s"}
+              </span>
+            </div>
           )}
           {!loading ? (
             createElement("twisty-player", {
