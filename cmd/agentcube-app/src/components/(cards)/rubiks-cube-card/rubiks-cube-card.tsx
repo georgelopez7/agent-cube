@@ -8,7 +8,7 @@ import {
   LoaderCircle,
   MousePointerClick,
   Square,
-  Trash2,
+  Trash,
 } from "lucide-react";
 import { type ReactNode, useCallback, useState } from "react";
 import { getAIProviderIcon } from "#/components/(icons)/helpers";
@@ -95,6 +95,24 @@ const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
     useCallback((state) => state.reasoning.get(cube.id) ?? "", [cube.id]),
   );
 
+  // Subscribe to live token usage updates (e.g. websocket cube.usage events).
+  const storeUsage = useRubiksCubeStore(
+    useCallback((state) => state.records.get(cube.id)?.cube.usage, [cube.id]),
+  );
+
+  const usage = storeUsage ?? cube.usage;
+  const totalTokens = usage?.total_tokens ?? 0;
+
+  // Cumulative cost (OpenRouter credits) — persisted, not live-streamed.
+  const storeTotalCost = useRubiksCubeStore(
+    useCallback(
+      (state) => state.records.get(cube.id)?.cube.total_cost,
+      [cube.id],
+    ),
+  );
+
+  const totalCost = storeTotalCost ?? cube.total_cost ?? 0;
+
   const algorithm = generateAlgorithm(cube.cube.rotations ?? []);
   const date = format(new Date(cube.created_at), "yyyy-MM-dd");
   const time = format(new Date(cube.created_at), "HH:mm:ss");
@@ -143,77 +161,10 @@ const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
   return (
     <div className="flex h-full flex-col bg-[#101010] p-1">
       <div className="flex h-full w-full flex-col p-2">
-        <div className="flex w-full items-center justify-center gap-3 border border-neutral-700 bg-black px-3 py-1 font-mono text-sm font-bold text-white">
-          <ProviderIcon className="size-3.5 text-neutral-400" />
-          <span>{cube.llm.model}</span>
-        </div>
-        <Spacer size="xs" />
-        <div className="flex w-full flex-col border border-neutral-700 bg-black p-3">
-          <div className="flex w-full items-center justify-between gap-3">
-            <span
-              className={cn(
-                "inline-flex items-center gap-1.5 px-2.5 py-1 font-mono text-xs font-bold uppercase tracking-wide",
-                status.styles,
-              )}
-            >
-              {status.icon}
-              {status.label}
-            </span>
-            <span className="flex flex-col text-right text-xs text-white tabular-nums">
-              <span>{date}</span>
-              <span>{time}</span>
-            </span>
-          </div>
-          <Spacer size="xxs" />
-          <div className="flex w-full justify-start">
-            <span className="text-left text-xs text-muted-foreground tabular-nums">
-              Max duration:{" "}
-              <span
-                className={cn(
-                  "text-white",
-                  maxDuration === "1 minute" && "font-bold",
-                )}
-              >
-                {maxDuration}
-              </span>
-            </span>
-          </div>
-        </div>
-        <Spacer size="xs" />
-        <div className="flex w-full items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-1 gap-2">
-            {cubeStatus === RubiksCubeStatus.Created && (
-              <Button
-                size="xs"
-                onClick={() => handleInvoke(cube.id)}
-                disabled={invoking}
-                className="flex-1 gap-2"
-                variant="outline"
-              >
-                {invoking ? (
-                  <LoaderCircle className="size-4 animate-spin" />
-                ) : (
-                  <MousePointerClick className="size-3 -scale-x-100" />
-                )}
-                Invoke Agent
-              </Button>
-            )}
-            {cubeStatus === RubiksCubeStatus.InProgress && (
-              <Button
-                size="xs"
-                onClick={() => handleStop(cube.id)}
-                disabled={stopping}
-                className="flex-1 gap-2"
-                variant="destructive"
-              >
-                {stopping ? (
-                  <LoaderCircle className="size-3 animate-spin" />
-                ) : (
-                  <Square className="size-3 fill-current" />
-                )}
-                Stop Agent
-              </Button>
-            )}
+        <div className="flex w-full items-stretch gap-2">
+          <div className="flex min-h-9 min-w-0 flex-1 items-center justify-center gap-2 border border-neutral-700 bg-black px-3 py-1 font-mono text-sm font-bold text-white">
+            <ProviderIcon className="size-4 shrink-0 text-neutral-400" />
+            <span className="truncate">{cube.llm.model}</span>
           </div>
           <AlertDialog
             open={deleteDialogOpen}
@@ -223,13 +174,14 @@ const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
               disabled={cubeStatus === RubiksCubeStatus.InProgress}
               render={
                 <Button
-                  size="xs"
-                  variant="ghost"
+                  size="icon-xs"
+                  variant="outline"
                   disabled={cubeStatus === RubiksCubeStatus.InProgress}
-                  className="gap-2 border border-neutral-700 text-white hover:border-red-600 hover:bg-transparent hover:text-red-600"
+                  aria-label="Delete cube"
+                  title="Delete cube"
+                  className="h-auto min-h-9 w-9 shrink-0 self-stretch text-white hover:border-red-600 hover:bg-transparent hover:text-red-600"
                 >
-                  <Trash2 className="size-3" />
-                  Delete
+                  <Trash className="size-4" />
                 </Button>
               }
             />
@@ -260,7 +212,97 @@ const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
             </AlertDialogContent>
           </AlertDialog>
         </div>
-        <Spacer size="xs" />
+        <Spacer size="xxs" />
+        <div className="flex w-full flex-col border border-neutral-700 bg-black p-3">
+          <div className="flex w-full items-center justify-between gap-3">
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 px-2.5 py-1 font-mono text-xs font-bold uppercase tracking-wide",
+                status.styles,
+              )}
+            >
+              {status.icon}
+              {status.label}
+            </span>
+            <span className="flex flex-col text-right text-xs text-muted-foreground tabular-nums">
+              <span>{date}</span>
+              <span>{time}</span>
+            </span>
+          </div>
+          <Spacer size="xxs" />
+          <div className="flex w-full items-start justify-between gap-3">
+            <span className="flex flex-col text-left tabular-nums">
+              <span className="text-xs text-muted-foreground">
+                Max Duration
+              </span>
+              <span
+                className={cn(
+                  "text-xs text-white",
+                  maxDuration === "1 minute" && "font-bold",
+                )}
+              >
+                {maxDuration}
+              </span>
+            </span>
+            <span className="flex flex-col text-right tabular-nums">
+              <span className="flex items-baseline justify-between gap-3 text-xs">
+                <span className="text-muted-foreground">Tokens: </span>
+                <span className="font-bold text-white">
+                  {totalTokens.toLocaleString()}
+                </span>
+              </span>
+              <span className="flex items-baseline justify-between gap-3 text-xs">
+                <span className="text-muted-foreground">Cost: </span>
+                <span className="font-bold text-white">
+                  ${totalCost.toFixed(5)}
+                </span>
+              </span>
+            </span>
+          </div>
+        </div>
+        <Spacer size="xxs" />
+        {(cubeStatus === RubiksCubeStatus.Created ||
+          cubeStatus === RubiksCubeStatus.InProgress) && (
+          <>
+            <div className="flex w-full items-center gap-2">
+              <div className="flex min-w-0 flex-1 gap-2">
+                {cubeStatus === RubiksCubeStatus.Created && (
+                  <Button
+                    size="sm"
+                    onClick={() => handleInvoke(cube.id)}
+                    disabled={invoking}
+                    className="flex-1 gap-2 border-neutral-700 bg-white text-black shadow-[inset_0_0_16px_rgba(0,0,0,0.25)] hover:border-neutral-700 hover:bg-neutral-200 hover:text-black"
+                    variant="outline"
+                  >
+                    {invoking ? (
+                      <LoaderCircle className="size-4 animate-spin" />
+                    ) : (
+                      <MousePointerClick className="size-3 -scale-x-100" />
+                    )}
+                    Invoke Agent
+                  </Button>
+                )}
+                {cubeStatus === RubiksCubeStatus.InProgress && (
+                  <Button
+                    size="xs"
+                    onClick={() => handleStop(cube.id)}
+                    disabled={stopping}
+                    className="flex-1 gap-2"
+                    variant="destructive"
+                  >
+                    {stopping ? (
+                      <LoaderCircle className="size-3 animate-spin" />
+                    ) : (
+                      <Square className="size-3 fill-current" />
+                    )}
+                    Stop Agent
+                  </Button>
+                )}
+              </div>
+            </div>
+            <Spacer size="xxs" />
+          </>
+        )}
         <div className="flex w-full justify-center border border-neutral-700 bg-black p-2">
           <RubiksCube
             cube={cube}
@@ -270,8 +312,9 @@ const RubiksCubeCard = ({ cube, onInvoke, onStop, onDelete }: IProps) => {
             showBorder={false}
           />
         </div>
+        <Spacer size="xxs" />
         <Terminal
-          className="mt-3 w-full"
+          className="w-full"
           logs={reasoning ? [reasoning] : []}
           title="agent.reasoning"
         />

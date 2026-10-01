@@ -204,6 +204,20 @@ func (mr *MockRepositoryMockRecorder) UpdateRubiksCubeStatus(ctx, id, status any
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRubiksCubeStatus", reflect.TypeOf((*MockRepository)(nil).UpdateRubiksCubeStatus), ctx, id, status)
 }
 
+// UpdateRubiksCubeUsage mocks base method.
+func (m *MockRepository) UpdateRubiksCubeUsage(ctx context.Context, id primitive.ObjectID, usage domain.TokenUsage, totalCost float64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateRubiksCubeUsage", ctx, id, usage, totalCost)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateRubiksCubeUsage indicates an expected call of UpdateRubiksCubeUsage.
+func (mr *MockRepositoryMockRecorder) UpdateRubiksCubeUsage(ctx, id, usage, totalCost any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRubiksCubeUsage", reflect.TypeOf((*MockRepository)(nil).UpdateRubiksCubeUsage), ctx, id, usage, totalCost)
+}
+
 // MockEventBus is a mock of EventBus interface.
 type MockEventBus struct {
 	ctrl     *gomock.Controller

@@ -83,4 +83,14 @@ func (c *Consumer) Start() {
 
 		c.ws.Broadcast(_bytes)
 	})
+
+	c.bus.Subscribe(domain.EventCubeUsage, func(e domain.Event) {
+		_bytes, err := e.Raw()
+		if err != nil {
+			slog.Error("Failed to marshal event", "event_type", e.Type, "event_payload", e.Payload, "error", err)
+			return
+		}
+
+		c.ws.Broadcast(_bytes)
+	})
 }

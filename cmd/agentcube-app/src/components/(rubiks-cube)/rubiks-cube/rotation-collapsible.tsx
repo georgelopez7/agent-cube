@@ -26,7 +26,7 @@ export const RotationCollapsible = ({
           type="button"
           disabled={disabled}
           onClick={() => setOpen((prev) => !prev)}
-          className="inline-flex items-center gap-1 p-0 font-mono text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="inline-flex items-center gap-1 px-3 py-1 font-mono text-sm text-white hover:text-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           <p>{open ? "Hide rotations" : "Show rotations"}</p>
           <ChevronDown
@@ -39,8 +39,8 @@ export const RotationCollapsible = ({
       </div>
       <CollapsibleContent>
         <Spacer size="xs" />
-        <ScrollArea className="h-31 w-48">
-          <div className="grid grid-cols-5 gap-2">
+        <ScrollArea className="h-31 w-48 [&_[data-slot=scroll-area-scrollbar]]:w-1 [&_[data-slot=scroll-area-scrollbar]]:border-l-0 [&_[data-slot=scroll-area-scrollbar]]:p-0">
+          <div className="grid grid-cols-5 gap-2 pr-3">
             {rotations.map((rotation) => {
               return (
                 <div

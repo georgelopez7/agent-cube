@@ -84,9 +84,10 @@ function Home() {
 
   return (
     <PageLayout>
-      <div className="flex flex-1 items-center justify-center pt-0 pb-6 sm:pt-0 sm:pb-10">
-        <div className="flex min-h-[26rem] w-full items-center bg-[#101010] p-3 sm:min-h-[30rem]">
-          <div className="flex min-h-[24rem] w-full flex-col items-center justify-center gap-5 border border-neutral-700 px-8 py-6 sm:min-h-[28rem] sm:px-14 sm:py-8 md:flex-row md:gap-8">
+      <Spacer size="xs" />
+      <div className="flex items-center justify-center pt-0 pb-6 sm:pt-0 sm:pb-10">
+        <div className="flex min-h-104 w-full items-center bg-[#101010] p-3 sm:min-h-120">
+          <div className="flex min-h-96 w-full flex-col items-center justify-center gap-5 border border-neutral-700 px-8 py-6 sm:min-h-112 sm:px-14 sm:py-8 md:flex-row md:gap-8">
             <div className="flex min-w-0 flex-1 flex-col justify-center">
               <h1 className="font-heading text-5xl font-extrabold tracking-tight sm:text-7xl lg:text-8xl">
                 Agent Cube

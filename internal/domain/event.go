@@ -27,6 +27,7 @@ const (
 	EventCubeAgentReasoning EventType = "cube.agent.reasoning"
 	EventCubeAgentTimeout   EventType = "cube.agent.timeout"
 	EventCubeCompleted      EventType = "cube.completed"
+	EventCubeUsage          EventType = "cube.usage"
 )
 
 // cube.rotated
@@ -76,5 +77,18 @@ func NewCubeCompletedEvent(cubeID string) Event {
 	return Event{
 		Type:    EventCubeCompleted,
 		Payload: CubeCompletedPayload{CubeID: cubeID},
+	}
+}
+
+// cube.usage
+type CubeUsagePayload struct {
+	CubeID string     `json:"cube_id"`
+	Usage  TokenUsage `json:"usage"`
+}
+
+func NewCubeUsageEvent(cubeID string, usage TokenUsage) Event {
+	return Event{
+		Type:    EventCubeUsage,
+		Payload: CubeUsagePayload{CubeID: cubeID, Usage: usage},
 	}
 }

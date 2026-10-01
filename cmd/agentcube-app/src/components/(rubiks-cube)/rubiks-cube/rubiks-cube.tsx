@@ -228,7 +228,7 @@ const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
             <button
               type="button"
               onClick={handleResetCamera}
-              className="absolute top-2 left-2 z-10 flex size-7 items-center justify-center border border-transparent bg-black/70 text-muted-foreground hover:border-neutral-400 hover:text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+              className="absolute top-2 left-2 z-10 flex size-7 items-center justify-center border border-transparent bg-black/70 text-white hover:border-neutral-400 hover:bg-[#101010] hover:text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
               disabled={loading}
               aria-label="Reset camera"
               title="Reset camera"
@@ -255,7 +255,7 @@ const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
               className="flex items-center justify-center"
               style={{ width: size, height: size }}
             >
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+              <Loader2 className="w-8 h-8 animate-spin text-white" />
             </div>
           )}
         </div>

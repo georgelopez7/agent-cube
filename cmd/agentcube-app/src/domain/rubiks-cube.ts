@@ -1,11 +1,21 @@
 import type { LLM } from "./ai";
 
+export type TokenUsage = {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  reasoning_tokens?: number;
+  cached_tokens?: number;
+};
+
 export type RubiksCube = {
   id: string;
   llm: LLM;
   status: RubiksCubeStatus;
   cube: Cube;
   max_duration_ms: number;
+  usage: TokenUsage;
+  total_cost: number;
   created_at: string;
   updated_at: string;
 };

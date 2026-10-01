@@ -38,7 +38,7 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "flex h-10 w-full min-w-0 items-center justify-between gap-1.5 rounded-none border border-neutral-700 bg-[#101010] px-3 py-2 font-mono text-xs whitespace-nowrap transition-colors outline-none hover:bg-neutral-900 focus-visible:border-neutral-400 disabled:cursor-not-allowed disabled:opacity-40 aria-invalid:border-red-600 data-placeholder:text-neutral-500 data-[size=sm]:h-9 *:data-[slot=select-value]:min-w-0 *:data-[slot=select-value]:flex-1 *:data-[slot=select-value]:truncate *:data-[slot=select-value]:text-left [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
+        "group/select-trigger flex h-10 w-full min-w-0 items-center justify-between gap-1.5 rounded-none border border-neutral-700 bg-[#101010] px-3 py-2 font-mono text-xs whitespace-nowrap transition-colors outline-none hover:bg-neutral-900 focus-visible:border-neutral-400 disabled:cursor-not-allowed disabled:opacity-40 aria-invalid:border-red-600 data-placeholder:text-neutral-500 data-[size=sm]:h-9 *:data-[slot=select-value]:min-w-0 *:data-[slot=select-value]:flex-1 *:data-[slot=select-value]:truncate *:data-[slot=select-value]:text-left [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
         className,
       )}
       {...props}
@@ -46,7 +46,7 @@ function SelectTrigger({
       {children}
       <SelectPrimitive.Icon
         render={
-          <span className="flex size-7 shrink-0 items-center justify-center bg-black text-neutral-400">
+          <span className="-mr-1 flex size-6 shrink-0 items-center justify-center bg-transparent text-neutral-400 transition-colors group-hover/select-trigger:text-white">
             <ChevronDownIcon className="pointer-events-none size-3.5" />
           </span>
         }

@@ -72,6 +72,31 @@ func (r *Repository) UpdateRubiksCubeStatus(ctx context.Context, id primitive.Ob
 	return nil
 }
 
+// UpdateRubiksCubeUsage - updates only the cumulative token usage (and total cost) of a rubiks cube by ID.
+func (r *Repository) UpdateRubiksCubeUsage(ctx context.Context, id primitive.ObjectID, usage domain.TokenUsage, totalCost float64) error {
+	collection := r.mongo.GetCollection(xmongo.RubiksCubes)
+
+	filter := bson.M{"_id": id}
+	update := bson.M{
+		"$set": bson.M{
+			"usage":      usage,
+			"total_cost": totalCost,
+			"updated_at": time.Now().UTC(),
+		},
+	}
+
+	result, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to update rubiks cube usage: %w", err)
+	}
+
+	if result.MatchedCount == 0 {
+		return errors.New("rubiks cube not found")
+	}
+
+	return nil
+}
+
 // GetRubiksCubeByID - retrieves a rubiks cube by its ID.
 func (r *Repository) GetRubiksCubeByID(ctx context.Context, id primitive.ObjectID) (*domain.RubiksCube, error) {
 	collection := r.mongo.GetCollection(xmongo.RubiksCubes)

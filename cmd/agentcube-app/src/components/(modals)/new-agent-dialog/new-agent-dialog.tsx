@@ -141,8 +141,19 @@ const NewAgentDialog = ({ llms, onSubmit }: IProps) => {
                   <Input
                     id="scramble"
                     type="number"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.valueAsNumber)}
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={
+                      Number.isNaN(field.state.value) ? "" : field.state.value
+                    }
+                    onChange={(e) =>
+                      field.handleChange(
+                        e.target.value === ""
+                          ? Number.NaN
+                          : e.target.valueAsNumber,
+                      )
+                    }
                   />
                   {field.state.meta.errors.length > 0 && (
                     <p className="font-mono text-xs text-red-500">
@@ -211,13 +222,14 @@ const NewAgentDialog = ({ llms, onSubmit }: IProps) => {
           <DialogFooter>
             <DialogClose
               render={
-                <Button type="button" variant="outline">
+                <Button type="button" variant="outline" size="xs">
                   Cancel
                 </Button>
               }
             />
             <Button
               type="submit"
+              size="xs"
               className="border-neutral-700 bg-white text-black hover:bg-neutral-200"
               disabled={!form.state.canSubmit}
             >

@@ -49,6 +49,7 @@ function ComboboxClear({ className, ...props }: ComboboxPrimitive.Clear.Props) {
 
 function ComboboxInput({
   className,
+  inputClassName,
   children,
   disabled = false,
   showTrigger = true,
@@ -57,11 +58,14 @@ function ComboboxInput({
 }: ComboboxPrimitive.Input.Props & {
   showTrigger?: boolean;
   showClear?: boolean;
+  inputClassName?: string;
 }) {
   return (
     <InputGroup className={cn("w-full min-w-0", className)}>
       <ComboboxPrimitive.Input
-        render={<InputGroupInput disabled={disabled} />}
+        render={
+          <InputGroupInput disabled={disabled} className={inputClassName} />
+        }
         {...props}
       />
       <InputGroupAddon align="inline-end" className="h-full py-0">
@@ -71,7 +75,7 @@ function ComboboxInput({
             variant="ghost"
             render={<ComboboxTrigger />}
             data-slot="input-group-button"
-            className="group-has-data-[slot=combobox-clear]/input-group:hidden h-full w-7 shrink-0 rounded-none border-0 bg-black p-0 hover:bg-neutral-900 data-pressed:bg-neutral-900"
+            className="group-has-data-[slot=combobox-clear]/input-group:hidden h-full w-7 shrink-0 rounded-none border-0 bg-transparent p-0 hover:bg-neutral-800 data-pressed:bg-neutral-800"
             disabled={disabled}
           />
         )}
@@ -124,7 +128,7 @@ function ComboboxList({ className, ...props }: ComboboxPrimitive.List.Props) {
     <ComboboxPrimitive.List
       data-slot="combobox-list"
       className={cn(
-        "no-scrollbar max-h-[min(calc(--spacing(72)---spacing(9)),calc(var(--available-height)---spacing(9)))] scroll-py-1.5 overflow-y-auto overscroll-contain p-1.5 data-empty:p-0",
+        "no-scrollbar max-h-[min(18rem,calc(var(--available-height)-0.5rem))] scroll-py-1.5 overflow-y-auto overscroll-contain p-1.5 data-empty:p-0",
         className,
       )}
       {...props}
@@ -195,7 +199,7 @@ function ComboboxEmpty({ className, ...props }: ComboboxPrimitive.Empty.Props) {
     <ComboboxPrimitive.Empty
       data-slot="combobox-empty"
       className={cn(
-        "hidden w-full justify-center py-2 text-center font-mono text-xs text-neutral-400 group-data-empty/combobox-content:flex",
+        "flex w-full items-center justify-center px-3 py-4 text-center font-mono text-xs text-neutral-400 empty:hidden",
         className,
       )}
       {...props}

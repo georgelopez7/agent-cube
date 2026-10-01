@@ -6,6 +6,7 @@ import {
   CubeAgentTimeoutEventHandler,
   CubeCompletedEventHandler,
   CubeRotatedEventHandler,
+  CubeUsageEventHandler,
   type IEvent,
   WebSocketEventType,
 } from "./websocket-events";
@@ -45,6 +46,9 @@ const Websocket = ({ debug = false }: WebsocketProps) => {
           break;
         case WebSocketEventType.CubeCompleted:
           await CubeCompletedEventHandler(ev);
+          break;
+        case WebSocketEventType.CubeUsage:
+          await CubeUsageEventHandler(ev);
           break;
         default:
           break;

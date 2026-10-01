@@ -4,6 +4,7 @@ import type {
   CubeRotation,
   RubiksCube,
   RubiksCubeStatus,
+  TokenUsage,
 } from "#/domain/rubiks-cube";
 
 export type _RubiksCube = {
@@ -19,6 +20,7 @@ export type RubikCubeStore = {
   AppendReasoning: (id: string, text: string) => void;
   ClearReasoning: (id: string) => void;
   SetStatus: (id: string, status: RubiksCubeStatus) => void;
+  SetUsage: (id: string, usage: TokenUsage) => void;
   AddRotation: (id: string, rotation: CubeRotation) => void;
 };
 
@@ -62,6 +64,19 @@ export const useRubiksCubeStore = create<RubikCubeStore>((set, get) => ({
       next.set(id, {
         ...record,
         cube: { ...record.cube, status },
+      });
+      return { records: next };
+    });
+  },
+  SetUsage: (id, usage) => {
+    const record = get().records.get(id);
+    if (!record) return;
+
+    set((state) => {
+      const next = new Map(state.records);
+      next.set(id, {
+        ...record,
+        cube: { ...record.cube, usage },
       });
       return { records: next };
     });

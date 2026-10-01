@@ -242,6 +242,8 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID) 
 	msg := genai.NewContentFromText(prompt, genai.RoleUser)
 
 	var finalMsg string
+	usage := cube.Usage
+	totalCost := cube.TotalCost
 
 	for event, err := range runner.Run(agentCTX, "default", session.Session.ID(), msg, agent.RunConfig{
 		StreamingMode: agent.StreamingModeSSE,
@@ -251,6 +253,24 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID) 
 				break
 			}
 			return "", fmt.Errorf("failed to run agent: %w", err)
+		}
+
+		if event.UsageMetadata != nil {
+			delta := tokenUsageFromMetadata(event.UsageMetadata)
+			usage.Add(delta)
+			totalCost += customCostFromMetadata(event.CustomMetadata)
+
+			slog.Info("[ USAGE ]",
+				"cube_id", id.Hex(),
+				"prompt_tokens", usage.PromptTokens,
+				"completion_tokens", usage.CompletionTokens,
+				"total_tokens", usage.TotalTokens,
+				"total_cost", totalCost,
+			)
+			s.bus.Publish(ctx, domain.NewCubeUsageEvent(id.Hex(), usage))
+			if err := s.repository.UpdateRubiksCubeUsage(ctx, id, usage, totalCost); err != nil {
+				slog.Error("failed to persist rubiks cube usage", "cube_id", id.Hex(), "error", err)
+			}
 		}
 
 		if event.Content == nil {
@@ -302,4 +322,48 @@ func (s RubiksCubeService) StopAgent(ctx context.Context, id primitive.ObjectID)
 	}
 
 	return s.repository.UpdateRubiksCubeStatus(ctx, id, domain.RubiksCubeStatusStopped)
+}
+
+// tokenUsageFromMetadata - converts genai usage metadata into a domain TokenUsage delta.
+func tokenUsageFromMetadata(m *genai.GenerateContentResponseUsageMetadata) domain.TokenUsage {
+	if m == nil {
+		return domain.TokenUsage{}
+	}
+
+	return domain.TokenUsage{
+		PromptTokens:     int(m.PromptTokenCount),
+		CompletionTokens: int(m.CandidatesTokenCount),
+		TotalTokens:      int(m.TotalTokenCount),
+		ReasoningTokens:  int(m.ThoughtsTokenCount),
+		CachedTokens:     int(m.CachedContentTokenCount),
+	}
+}
+
+// customCostFromMetadata - extracts an OpenRouter-style cost from LLM custom metadata when present.
+// Returns 0 when the adapter does not surface cost (live costs ignored for now;
+// cumulative cost accumulates whenever the value is available).
+func customCostFromMetadata(m map[string]any) float64 {
+	if len(m) == 0 {
+		return 0
+	}
+
+	for _, key := range []string{"openrouter.cost", "cost", "total_cost"} {
+		v, ok := m[key]
+		if !ok {
+			continue
+		}
+
+		switch c := v.(type) {
+		case float64:
+			return c
+		case float32:
+			return float64(c)
+		case int:
+			return float64(c)
+		case int64:
+			return float64(c)
+		}
+	}
+
+	return 0
 }

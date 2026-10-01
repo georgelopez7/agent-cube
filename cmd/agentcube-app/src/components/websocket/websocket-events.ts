@@ -1,4 +1,8 @@
-import { type CubeRotation, RubiksCubeStatus } from "#/domain/rubiks-cube";
+import {
+  type CubeRotation,
+  RubiksCubeStatus,
+  type TokenUsage,
+} from "#/domain/rubiks-cube";
 import { useRubiksCubeStore } from "#/stores/rubiks-cube-store";
 
 export enum WebSocketEventType {
@@ -6,6 +10,7 @@ export enum WebSocketEventType {
   CubeAgentReasoning = "cube.agent.reasoning",
   CubeAgentTimeout = "cube.agent.timeout",
   CubeCompleted = "cube.completed",
+  CubeUsage = "cube.usage",
 }
 
 export type CubeRotatedEvent = {
@@ -77,8 +82,24 @@ export const CubeCompletedEventHandler = async (event: CubeCompletedEvent) => {
   SetStatus(event.payload.cube_id, RubiksCubeStatus.Completed);
 };
 
+export type CubeUsageEvent = {
+  type: WebSocketEventType.CubeUsage;
+  payload: {
+    cube_id: string;
+    usage: TokenUsage;
+  };
+};
+
+// cube.usage
+export const CubeUsageEventHandler = async (event: CubeUsageEvent) => {
+  const { SetUsage } = useRubiksCubeStore.getState();
+
+  SetUsage(event.payload.cube_id, event.payload.usage);
+};
+
 export type IEvent =
   | CubeRotatedEvent
   | CubeAgentReasoningEvent
   | CubeAgentTimeoutEvent
-  | CubeCompletedEvent;
+  | CubeCompletedEvent
+  | CubeUsageEvent;

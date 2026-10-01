@@ -23,7 +23,7 @@ const Navbar = ({
         <div className="flex items-center justify-between border border-neutral-700 px-4 py-3 font-mono">
           <Link
             to="/"
-            className="group flex items-center gap-2 font-sans text-lg font-bold uppercase tracking-tight text-white hover:underline hover:underline-offset-4"
+            className="group flex items-center gap-2 font-sans text-lg font-bold uppercase tracking-tight text-white hover:underline hover:decoration-[3px] hover:underline-offset-4"
           >
             <CubeLogo
               size={24}

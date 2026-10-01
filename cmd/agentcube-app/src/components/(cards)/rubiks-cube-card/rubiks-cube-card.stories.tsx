@@ -25,6 +25,12 @@ const baseCube = {
   },
   status: RubiksCubeStatus.Created,
   max_duration_ms: 60_000,
+  usage: {
+    prompt_tokens: 194,
+    completion_tokens: 2,
+    total_tokens: 196,
+  },
+  total_cost: 0.95,
   cube: {
     centers: {},
     corners: {},

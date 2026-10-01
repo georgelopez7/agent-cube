@@ -17,7 +17,7 @@ interface IProps {
 }
 
 export const LLMSelect = ({ llms, value, onChange }: IProps) => {
-  const selectedValue = value?.model ? value : undefined;
+  const selectedValue = value?.model ? value : null;
   const SelectedIcon = selectedValue
     ? getAIProviderIcon(selectedValue.provider)
     : null;
@@ -27,20 +27,24 @@ export const LLMSelect = ({ llms, value, onChange }: IProps) => {
       items={llms}
       value={selectedValue}
       itemToStringLabel={(llm: LLM) => llm.model}
-      onValueChange={(value) => onChange(value as LLM)}
+      onValueChange={(value) => {
+        if (value) {
+          onChange(value as LLM);
+        }
+      }}
     >
       <ComboboxInput
         id="model"
-        className="w-full py-0"
+        inputClassName="py-0 text-xs"
         placeholder="Select model"
       >
         {SelectedIcon && (
-          <InputGroupAddon align="inline-start">
+          <InputGroupAddon align="inline-start" className="h-full py-0 pl-3">
             <SelectedIcon className="size-4 shrink-0" />
           </InputGroupAddon>
         )}
       </ComboboxInput>
-      <ComboboxContent>
+      <ComboboxContent align="start" sideOffset={4}>
         <ComboboxEmpty>No models found.</ComboboxEmpty>
         <ComboboxList>
           {(item) => {
@@ -48,7 +52,7 @@ export const LLMSelect = ({ llms, value, onChange }: IProps) => {
             return (
               <ComboboxItem key={item.model} value={item}>
                 {Icon && <Icon className="size-4 shrink-0" />}
-                {item.model}
+                <span className="truncate">{item.model}</span>
               </ComboboxItem>
             );
           }}
