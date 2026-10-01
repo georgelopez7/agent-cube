@@ -51,7 +51,7 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-6 rounded-none bg-popover p-6 text-sm text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-3 rounded-none border border-neutral-700 bg-[#101010] p-3 font-mono text-sm text-white ring-0 duration-100 outline-none sm:max-w-md data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
           className,
         )}
         {...props}
@@ -63,7 +63,7 @@ function DialogContent({
             render={
               <Button
                 variant="ghost"
-                className="absolute top-5 right-5 bg-secondary"
+                className="absolute top-3 right-3"
                 size="icon-sm"
               />
             }
@@ -119,7 +119,7 @@ function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn(
-        "font-heading text-lg leading-none font-semibold tracking-wider uppercase",
+        "font-mono text-sm font-bold leading-none tracking-wide uppercase",
         className,
       )}
       {...props}
@@ -135,7 +135,7 @@ function DialogDescription({
     <DialogPrimitive.Description
       data-slot="dialog-description"
       className={cn(
-        "mt-0.5 text-sm leading-relaxed text-muted-foreground *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-foreground",
+        "mt-0.5 font-mono text-xs leading-relaxed text-neutral-400 *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-white",
         className,
       )}
       {...props}

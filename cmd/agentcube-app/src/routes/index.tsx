@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowUpRight } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 import { PageLayout } from "#/components/(layouts)/page-layout/page-layout";
 import Spacer from "#/components/(layouts)/spacer/spacer";
-import CubePulse from "#/components/(rubiks-cube)/cube-pulse/cube-pulse";
+import RubiksCube, {
+  type RubiksCubeRef,
+} from "#/components/(rubiks-cube)/rubiks-cube/rubiks-cube";
 import { buttonVariants } from "#/components/ui/button";
 import { getOGImage, getSiteUrl } from "#/utils/seo";
 
@@ -63,27 +66,60 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const cubeRef = useRef<RubiksCubeRef>(null);
+
+  useEffect(() => {
+    const moves = ["R", "U", "R'", "U'", "F", "R", "U", "F'"];
+    let moveIndex = 0;
+
+    const interval = window.setInterval(() => {
+      if (!cubeRef.current?.getCube()) return;
+
+      void cubeRef.current.rotate(moves[moveIndex % moves.length]);
+      moveIndex += 1;
+    }, 1200);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
   return (
     <PageLayout>
-      <div className="flex flex-1 items-center justify-center -translate-y-12">
-        <div className="flex items-center gap-24">
-          <div>
-            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold font-heading tracking-tight text-foreground">
-              Agent Cube
-            </h1>
-            <Spacer size="xs" />
-            <p className="text-lg md:text-xl text-muted-foreground max-w-lg leading-relaxed">
-              Benchmarking LLM reasoning and problem-solving through the Rubik's
-              Cube challenge
-            </p>
-            <Spacer size="xs" />
-            <Link to="/agents" className={buttonVariants()}>
-              View Agents
-              <ArrowUpRight />
-            </Link>
-          </div>
-          <div className="hidden md:flex items-center justify-center">
-            <CubePulse randomize />
+      <div className="flex flex-1 items-center justify-center pt-0 pb-6 sm:pt-0 sm:pb-10">
+        <div className="flex min-h-[26rem] w-full items-center bg-[#101010] p-3 sm:min-h-[30rem]">
+          <div className="flex min-h-[24rem] w-full flex-col items-center justify-center gap-5 border border-neutral-700 px-8 py-6 sm:min-h-[28rem] sm:px-14 sm:py-8 md:flex-row md:gap-8">
+            <div className="flex min-w-0 flex-1 flex-col justify-center">
+              <h1 className="font-heading text-5xl font-extrabold tracking-tight sm:text-7xl lg:text-8xl">
+                Agent Cube
+              </h1>
+              <Spacer size="xs" />
+              <p className="max-w-lg font-mono text-sm leading-relaxed text-neutral-400 sm:text-base">
+                Benchmarking LLM reasoning and problem-solving through the
+                Rubik's Cube challenge
+              </p>
+              <Spacer size="xs" />
+              <Link
+                to="/agents"
+                className={buttonVariants({
+                  size: "sm",
+                  className: "self-start",
+                })}
+              >
+                View Agents
+                <ArrowUpRight className="ml-2" />
+              </Link>
+            </div>
+            <div className="hidden shrink-0 items-center justify-center border border-neutral-700 bg-black p-2 md:flex">
+              <RubiksCube
+                ref={cubeRef}
+                algorithm="R U R' U' F R U R' U' F'"
+                size={250}
+                showRotationsCollapsible={false}
+                showRotationButtons={false}
+                showResetAlgoButton={false}
+                showResetCameraButton={false}
+                showBorder={false}
+              />
+            </div>
           </div>
         </div>
       </div>

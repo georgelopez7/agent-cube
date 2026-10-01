@@ -16,35 +16,35 @@ export function Terminal({
   title = "terminal.log",
   showCursor = true,
 }: IProps) {
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    viewport.scrollTop = viewport.scrollHeight;
   }, [logs]);
 
   return (
     <div
       className={cn(
-        "border border-border rounded-lg font-mono text-sm bg-black overflow-hidden",
+        "overflow-hidden border border-neutral-700 bg-black font-mono text-xs",
         className,
       )}
     >
-      <div className="flex items-center gap-2 px-4 py-2 bg-zinc-900 border-b border-zinc-800">
-        <TerminalIcon className="size-4 text-zinc-400" />
-        <span className="text-xs text-zinc-400">{title}</span>
+      <div className="flex items-center gap-2 border-b border-neutral-800 bg-[#101010] px-4 py-2">
+        <TerminalIcon className="size-4 text-neutral-400" />
+        <span className="text-xs text-neutral-400">{title}</span>
       </div>
-      <ScrollArea className="h-48 p-4">
-        <div className="text-white space-y-1">
+      <ScrollArea className="h-48 p-4" viewportRef={viewportRef}>
+        <div className="space-y-1 text-neutral-400">
           {logs.map((log, index) => (
-            <div className="whitespace-pre" key={index}>
+            <div className="whitespace-pre-wrap break-words" key={index}>
               <p>{log}</p>
             </div>
           ))}
         </div>
         {showCursor && <div className="terminal-cursor" />}
-        <div ref={bottomRef} />
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
     </div>

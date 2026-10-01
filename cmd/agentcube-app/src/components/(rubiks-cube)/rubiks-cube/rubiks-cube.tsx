@@ -40,7 +40,8 @@ export interface RubiksCubeHTMLElement extends HTMLElement {
   experimentalSetAlg?: (alg: string) => Promise<void>;
 }
 
-interface RubiksCubeHTMLElementProps extends HTMLAttributes<RubiksCubeHTMLElement> {
+interface RubiksCubeHTMLElementProps
+  extends HTMLAttributes<RubiksCubeHTMLElement> {
   alg?: string;
   visualization?: string;
   background?: string;
@@ -64,6 +65,7 @@ interface IProps {
   showResetAlgoButton?: boolean;
   showResetCameraButton?: boolean;
   showBorder?: boolean;
+  size?: number;
 }
 
 const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
@@ -76,6 +78,7 @@ const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
       showResetAlgoButton = true,
       showResetCameraButton = true,
       showBorder = true,
+      size = 315,
     },
     ref,
   ) => {
@@ -217,10 +220,22 @@ const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
       <div className="flex flex-col items-center">
         <div
           className={cn(
-            "relative bg-transparent border-2 rounded-sm shadow-sm",
+            "relative border border-neutral-700 bg-transparent",
             !showBorder && "border-transparent",
           )}
         >
+          {showResetCameraButton && (
+            <button
+              type="button"
+              onClick={handleResetCamera}
+              className="absolute top-2 left-2 z-10 flex size-7 items-center justify-center border border-transparent bg-black/70 text-muted-foreground hover:border-neutral-400 hover:text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+              disabled={loading}
+              aria-label="Reset camera"
+              title="Reset camera"
+            >
+              <Video className="size-4" />
+            </button>
+          )}
           {!loading ? (
             createElement("twisty-player", {
               ref: cubeRef,
@@ -231,12 +246,15 @@ const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
               "control-panel": "none",
               "hint-facelets": "none",
               style: {
-                width: "315px",
-                height: "315px",
+                width: `${size}px`,
+                height: `${size}px`,
               },
             } as RubiksCubeHTMLElementProps)
           ) : (
-            <div className="flex items-center justify-center w-78.75 h-78.75">
+            <div
+              className="flex items-center justify-center"
+              style={{ width: size, height: size }}
+            >
               <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
             </div>
           )}
@@ -258,7 +276,7 @@ const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
               />
             </>
           )}
-          {(showResetAlgoButton || showResetCameraButton) && (
+          {showResetAlgoButton && (
             <>
               <Spacer size="xs" />
               <div className="flex justify-center gap-2">
@@ -266,21 +284,10 @@ const RubiksCube = forwardRef<RubiksCubeRef, IProps>(
                   <button
                     type="button"
                     onClick={handleReset}
-                    className="px-4 py-1 text-sm border-2 rounded hover:bg-accent cursor-pointer"
+                    className="border border-transparent px-4 py-1 font-mono text-xs hover:border-neutral-400 hover:bg-neutral-900 cursor-pointer disabled:opacity-40"
                     disabled={loading}
                   >
                     Reset
-                  </button>
-                )}
-                {showResetCameraButton && (
-                  <button
-                    type="button"
-                    onClick={handleResetCamera}
-                    className="flex items-center gap-2 px-4 py-1 text-sm border-2 rounded hover:bg-accent cursor-pointer"
-                    disabled={loading}
-                  >
-                    <Video className="size-4" />
-                    Reset Camera
                   </button>
                 )}
               </div>

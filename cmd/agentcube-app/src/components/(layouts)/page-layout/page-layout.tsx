@@ -8,9 +8,8 @@ interface IPageLayoutProps {
 
 export const PageLayout = ({ children, navbar = true }: IPageLayoutProps) => {
   return (
-    <div className="relative flex flex-col min-h-screen p-8 mx-auto">
-      <Spacer size="sm" />
-      <div className="relative z-10">
+    <div className="blueprint-grid relative flex min-h-screen flex-col overflow-hidden bg-black p-4 text-white sm:p-6">
+      <div className="relative z-10 mx-auto w-full max-w-6xl">
         {navbar && (
           <Navbar
             githubLink={import.meta.env.VITE_GITHUB_URL}
@@ -18,7 +17,6 @@ export const PageLayout = ({ children, navbar = true }: IPageLayoutProps) => {
           />
         )}
       </div>
-      <Spacer size="xs" />
       {/* Top Left Corner - Green */}
       <div className="absolute top-4 left-4 w-8 h-8 pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-0.5 bg-rubiks-green" />
@@ -49,7 +47,7 @@ export const PageLayout = ({ children, navbar = true }: IPageLayoutProps) => {
       {/* Bottom Center - Orange */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-rubiks-orange pointer-events-none" />
 
-      <main className="flex flex-1 flex-col w-full max-w-6xl mx-auto">
+      <main className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col">
         {children}
       </main>
     </div>

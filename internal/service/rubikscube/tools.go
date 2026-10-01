@@ -6,8 +6,9 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
-	"google.golang.org/adk/tool"
-	xtool "google.golang.org/adk/tool/functiontool"
+	"google.golang.org/adk/v2/agent"
+	"google.golang.org/adk/v2/tool"
+	xtool "google.golang.org/adk/v2/tool/functiontool"
 )
 
 // GetCubeTool - returns a tool that can be used to get the current state of a Rubik's cube.
@@ -21,7 +22,7 @@ func (s *RubiksCubeService) GetCubeTool() tool.Tool {
 		ID string `json:"id"`
 	}
 
-	_func := func(ctx tool.Context, in input) (*cube.CubeState, error) {
+	_func := func(ctx agent.Context, in input) (*cube.CubeState, error) {
 		cubeID, err := primitive.ObjectIDFromHex(in.ID)
 		if err != nil {
 			return nil, err
@@ -58,7 +59,7 @@ func (s *RubiksCubeService) RotateCubeTool() tool.Tool {
 		Rotation string `json:"rotation"`
 	}
 
-	_func := func(ctx tool.Context, in input) (string, error) {
+	_func := func(ctx agent.Context, in input) (string, error) {
 		cubeID, err := primitive.ObjectIDFromHex(in.ID)
 		if err != nil {
 			return "", err
@@ -93,7 +94,7 @@ func (s *RubiksCubeService) IsCubeSolvedTool() tool.Tool {
 		ID string `json:"id"`
 	}
 
-	_func := func(ctx tool.Context, in input) (bool, error) {
+	_func := func(ctx agent.Context, in input) (bool, error) {
 		cubeID, err := primitive.ObjectIDFromHex(in.ID)
 		if err != nil {
 			return false, err
@@ -116,7 +117,7 @@ func (s *RubiksCubeService) GetSolvedExampleTool() tool.Tool {
 
 	type input struct{}
 
-	_func := func(ctx tool.Context, in input) (*cube.CubeState, error) {
+	_func := func(ctx agent.Context, in input) (*cube.CubeState, error) {
 		state := cube.SolvedCube.RawState()
 		return &state, nil
 	}
@@ -137,7 +138,7 @@ func (s *RubiksCubeService) SetCubeAsCompletedTool() tool.Tool {
 		ID string `json:"id"`
 	}
 
-	_func := func(ctx tool.Context, in input) (string, error) {
+	_func := func(ctx agent.Context, in input) (string, error) {
 		cubeID, err := primitive.ObjectIDFromHex(in.ID)
 		if err != nil {
 			return "", err

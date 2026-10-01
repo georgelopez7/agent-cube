@@ -21,7 +21,7 @@ export const RotationButtons = ({
           key={rotation.value}
           onClick={() => onRotation(rotation.value)}
           disabled={disabled}
-          className="px-3 py-1 text-sm border-2 rounded hover:bg-accent cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="border border-neutral-700 px-3 py-1 font-mono text-xs hover:bg-neutral-900 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {rotation.label}
         </button>

@@ -11,11 +11,11 @@ import (
 	"agent-cube/internal/pkg/openrouter"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"google.golang.org/adk/agent"
-	"google.golang.org/adk/agent/llmagent"
-	"google.golang.org/adk/runner"
-	"google.golang.org/adk/session"
-	"google.golang.org/adk/tool"
+	"google.golang.org/adk/v2/agent"
+	"google.golang.org/adk/v2/agent/llmagent"
+	"google.golang.org/adk/v2/runner"
+	"google.golang.org/adk/v2/session"
+	"google.golang.org/adk/v2/tool"
 	"google.golang.org/genai"
 )
 
@@ -199,6 +199,12 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID) 
 		Description: "Agent specialized in solving Rubik's cubes.",
 		Instruction: systemPrompt,
 		Model:       model,
+		GenerateContentConfig: &genai.GenerateContentConfig{
+			ThinkingConfig: &genai.ThinkingConfig{
+				ThinkingLevel:   genai.ThinkingLevelHigh,
+				IncludeThoughts: true,
+			},
+		},
 		Tools: []tool.Tool{
 			s.GetCubeTool(),
 			s.RotateCubeTool(),
@@ -237,7 +243,9 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID) 
 
 	var finalMsg string
 
-	for event, err := range runner.Run(agentCTX, "default", session.Session.ID(), msg, agent.RunConfig{}) {
+	for event, err := range runner.Run(agentCTX, "default", session.Session.ID(), msg, agent.RunConfig{
+		StreamingMode: agent.StreamingModeSSE,
+	}) {
 		if err != nil {
 			if agentCTX.Err() == context.DeadlineExceeded {
 				break
@@ -250,6 +258,12 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID) 
 		}
 
 		for _, part := range event.Content.Parts {
+			if event.Partial && part.Thought && part.Text != "" {
+				slog.Info("[ AGENT REASONING ]", "text", part.Text)
+				s.bus.Publish(ctx, domain.NewCubeAgentReasoningEvent(id.Hex(), part.Text))
+				continue
+			}
+
 			if part.FunctionCall != nil {
 				slog.Info("[ TOOL ]", "name", part.FunctionCall.Name)
 			}

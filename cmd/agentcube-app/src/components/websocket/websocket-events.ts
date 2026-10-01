@@ -1,8 +1,9 @@
-import { RubiksCubeStatus, type CubeRotation } from "#/domain/rubiks-cube";
+import { type CubeRotation, RubiksCubeStatus } from "#/domain/rubiks-cube";
 import { useRubiksCubeStore } from "#/stores/rubiks-cube-store";
 
 export enum WebSocketEventType {
   CubeRotated = "cube.rotated",
+  CubeAgentReasoning = "cube.agent.reasoning",
   CubeAgentTimeout = "cube.agent.timeout",
   CubeCompleted = "cube.completed",
 }
@@ -36,6 +37,23 @@ export type CubeAgentTimeoutEvent = {
   };
 };
 
+export type CubeAgentReasoningEvent = {
+  type: WebSocketEventType.CubeAgentReasoning;
+  payload: {
+    cube_id: string;
+    text: string;
+  };
+};
+
+// cube.agent.reasoning
+export const CubeAgentReasoningEventHandler = async (
+  event: CubeAgentReasoningEvent,
+) => {
+  const { AppendReasoning } = useRubiksCubeStore.getState();
+
+  AppendReasoning(event.payload.cube_id, event.payload.text);
+};
+
 // cube.agent.timeout
 export const CubeAgentTimeoutEventHandler = async (
   event: CubeAgentTimeoutEvent,
@@ -61,5 +79,6 @@ export const CubeCompletedEventHandler = async (event: CubeCompletedEvent) => {
 
 export type IEvent =
   | CubeRotatedEvent
+  | CubeAgentReasoningEvent
   | CubeAgentTimeoutEvent
   | CubeCompletedEvent;

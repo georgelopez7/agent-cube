@@ -17,19 +17,26 @@ interface IProps {
 }
 
 export const LLMSelect = ({ llms, value, onChange }: IProps) => {
-  const SelectedIcon = value ? getAIProviderIcon(value.provider) : null;
+  const selectedValue = value?.model ? value : undefined;
+  const SelectedIcon = selectedValue
+    ? getAIProviderIcon(selectedValue.provider)
+    : null;
 
   return (
     <Combobox
       items={llms}
-      value={value}
+      value={selectedValue}
       itemToStringLabel={(llm: LLM) => llm.model}
       onValueChange={(value) => onChange(value as LLM)}
     >
-      <ComboboxInput className="py-0" placeholder="Select model...">
+      <ComboboxInput
+        id="model"
+        className="w-full py-0"
+        placeholder="Select model"
+      >
         {SelectedIcon && (
           <InputGroupAddon align="inline-start">
-            <SelectedIcon className="w-4 h-4" />
+            <SelectedIcon className="size-4 shrink-0" />
           </InputGroupAddon>
         )}
       </ComboboxInput>
@@ -40,7 +47,7 @@ export const LLMSelect = ({ llms, value, onChange }: IProps) => {
             const Icon = getAIProviderIcon(item.provider);
             return (
               <ComboboxItem key={item.model} value={item}>
-                {Icon && <Icon className="w-4 h-4" />}
+                {Icon && <Icon className="size-4 shrink-0" />}
                 {item.model}
               </ComboboxItem>
             );

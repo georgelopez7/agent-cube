@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import RubiksCubeCard from "#/components/(cards)/rubiks-cube-card/rubiks-cube-card";
 import { Skeleton } from "#/components/ui/skeleton";
 import type { RubiksCube } from "#/domain/rubiks-cube";
@@ -8,7 +9,7 @@ import {
   StopRubiksCubeAgentFn,
 } from "#/services/rubiks-cubes.actions";
 import { rubiksCubeKeys } from "#/services/rubiks-cubes.queries";
-import { toast } from "sonner";
+import { useRubiksCubeStore } from "#/stores/rubiks-cube-store";
 
 interface RubiksCubeSectionProps {
   cubes?: RubiksCube[];
@@ -24,6 +25,8 @@ const RubiksCubeSection = ({
   const _query = useQueryClient();
 
   const handleInvoke = async (id: string) => {
+    useRubiksCubeStore.getState().ClearReasoning(id);
+
     const { error } = await InvokeRubiksCubeAgentFn({ data: { id } });
     if (error) {
       toast.error(error);
@@ -55,10 +58,7 @@ const RubiksCubeSection = ({
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Array.from({ length: limit }).map((_, index) => (
-          <Skeleton
-            key={`skeleton-cube-${index}`}
-            className="h-96 w-full rounded-lg"
-          />
+          <Skeleton key={`skeleton-cube-${index}`} className="h-96 w-full" />
         ))}
       </div>
     );

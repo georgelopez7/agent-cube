@@ -2,7 +2,6 @@ import { useForm } from "@tanstack/react-form";
 import { AlertTriangle, Plus } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
-import Spacer from "#/components/(layouts)/spacer/spacer";
 import { LLMSelect } from "@/components/(selects)/llm-select/llm-select";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,22 +46,22 @@ const schema = z.object({
   maxDuration: z.number({ message: "Max duration must be a number" }),
 });
 
-export type CreateAgentFormData = z.infer<typeof schema>;
+export type NewAgentFormData = z.infer<typeof schema>;
 
 interface IProps {
   llms: LLM[];
-  onSubmit: (data: CreateAgentFormData) => void | Promise<void>;
+  onSubmit: (data: NewAgentFormData) => void | Promise<void>;
 }
 
-const CreateAgentModal = ({ llms, onSubmit }: IProps) => {
+const NewAgentDialog = ({ llms, onSubmit }: IProps) => {
   const [open, setOpen] = useState(false);
 
   const form = useForm({
     defaultValues: {
-      model: llms[0] ?? { provider: AIProvider.OpenAI, model: "" },
+      model: { provider: AIProvider.OpenAI, model: "" },
       scramble: 10,
       maxDuration: 60000,
-    } as CreateAgentFormData,
+    } as NewAgentFormData,
     validators: {
       onChange: schema,
     },
@@ -74,15 +73,20 @@ const CreateAgentModal = ({ llms, onSubmit }: IProps) => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          <Button className="w-fit cursor-pointer" variant="outline">
-            <Plus />
-            Create Agent
-          </Button>
-        }
-      />
-      <DialogContent className="border rounded-sm">
+      <div className="w-fit bg-[#101010] p-2">
+        <DialogTrigger
+          render={
+            <Button className="w-fit cursor-pointer" variant="outline">
+              <Plus />
+              New Agent
+            </Button>
+          }
+        />
+      </div>
+      <DialogContent
+        className="bg-[#101010] p-3 ring-0 sm:max-w-md"
+        showCloseButton={false}
+      >
         <form
           className="grid gap-6"
           onSubmit={(e) => {
@@ -91,19 +95,19 @@ const CreateAgentModal = ({ llms, onSubmit }: IProps) => {
             form.handleSubmit();
           }}
         >
-          <DialogHeader>
-            <DialogTitle>Create Agent</DialogTitle>
+          <DialogHeader className="border border-neutral-700 bg-black px-4 py-3">
+            <DialogTitle>New Agent</DialogTitle>
             <DialogDescription>
               Select the model you want to use to create your agent.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid">
+          <div className="grid gap-4">
             <form.Field name="model">
               {(field) => (
                 <div className="grid gap-1.5">
                   <label
                     htmlFor="model"
-                    className="text-sm font-medium leading-none text-muted-foreground"
+                    className="font-mono text-xs uppercase tracking-wide text-neutral-400"
                   >
                     Model
                   </label>
@@ -113,7 +117,7 @@ const CreateAgentModal = ({ llms, onSubmit }: IProps) => {
                     onChange={(llm) => field.handleChange(llm)}
                   />
                   {field.state.meta.errors.length > 0 && (
-                    <p className="text-sm text-destructive">
+                    <p className="font-mono text-xs text-red-500">
                       {field.state.meta.errors
                         .map((error) =>
                           typeof error === "string" ? error : error?.message,
@@ -125,14 +129,12 @@ const CreateAgentModal = ({ llms, onSubmit }: IProps) => {
                 </div>
               )}
             </form.Field>
-            <Spacer size="xs" />
-            <Spacer size="xs" />
             <form.Field name="scramble">
               {(field) => (
                 <div className="grid gap-1.5">
                   <label
                     htmlFor="scramble"
-                    className="text-sm font-medium leading-none text-muted-foreground"
+                    className="font-mono text-xs uppercase tracking-wide text-neutral-400"
                   >
                     Scramble
                   </label>
@@ -143,7 +145,7 @@ const CreateAgentModal = ({ llms, onSubmit }: IProps) => {
                     onChange={(e) => field.handleChange(e.target.valueAsNumber)}
                   />
                   {field.state.meta.errors.length > 0 && (
-                    <p className="text-sm text-destructive">
+                    <p className="font-mono text-xs text-red-500">
                       {field.state.meta.errors
                         .map((error) =>
                           typeof error === "string" ? error : error?.message,
@@ -155,14 +157,12 @@ const CreateAgentModal = ({ llms, onSubmit }: IProps) => {
                 </div>
               )}
             </form.Field>
-            <Spacer size="xs" />
-            <Spacer size="xs" />
             <form.Field name="maxDuration">
               {(field) => (
                 <div className="grid gap-1.5">
                   <label
                     htmlFor="maxDuration"
-                    className="text-sm font-medium leading-none text-muted-foreground"
+                    className="font-mono text-xs uppercase tracking-wide text-neutral-400"
                   >
                     Max Duration
                   </label>
@@ -189,13 +189,13 @@ const CreateAgentModal = ({ llms, onSubmit }: IProps) => {
                     </SelectContent>
                   </Select>
                   {field.state.value === 86400000 && (
-                    <p className="inline-flex items-center gap-1.5 text-sm text-yellow-600">
+                    <p className="inline-flex items-center gap-1.5 font-mono text-xs text-yellow-500">
                       <AlertTriangle className="size-4" />
                       Infinity means this agent could continue forever.
                     </p>
                   )}
                   {field.state.meta.errors.length > 0 && (
-                    <p className="text-sm text-destructive">
+                    <p className="font-mono text-xs text-red-500">
                       {field.state.meta.errors
                         .map((error) =>
                           typeof error === "string" ? error : error?.message,
@@ -216,7 +216,11 @@ const CreateAgentModal = ({ llms, onSubmit }: IProps) => {
                 </Button>
               }
             />
-            <Button type="submit" disabled={!form.state.canSubmit}>
+            <Button
+              type="submit"
+              className="border-neutral-700 bg-white text-black hover:bg-neutral-200"
+              disabled={!form.state.canSubmit}
+            >
               Create
             </Button>
           </DialogFooter>
@@ -226,4 +230,4 @@ const CreateAgentModal = ({ llms, onSubmit }: IProps) => {
   );
 };
 
-export default CreateAgentModal;
+export default NewAgentDialog;

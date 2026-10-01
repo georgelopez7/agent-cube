@@ -18,38 +18,39 @@ const Navbar = ({
   xLink = "https://x.com",
 }: IProps) => {
   return (
-    <nav className={cn("w-full", className)}>
-      <div
-        className={cn(
-          "flex items-center justify-between max-w-6xl mx-auto px-6 py-2.5 border border-border bg-secondary/80 rounded-md",
-        )}
-      >
-        <Link
-          to="/"
-          className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground hover:underline transition-colors"
-        >
-          <CubeLogo size={28} />
-          Agent Cube
-        </Link>
-        <div className="flex items-center gap-4">
-          <a
-            href={githubLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-white hover:text-white/80 transition-colors"
-            aria-label="GitHub"
+    <nav className={cn("mt-4 mb-2 w-full sm:mt-6 sm:mb-4", className)}>
+      <div className="bg-[#101010] p-3">
+        <div className="flex items-center justify-between border border-neutral-700 px-4 py-3 font-mono">
+          <Link
+            to="/"
+            className="group flex items-center gap-2 font-sans text-lg font-bold uppercase tracking-tight text-white hover:underline hover:underline-offset-4"
           >
-            <GitHubIcon size={20} />
-          </a>
-          <a
-            href={xLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-white hover:text-white/80 transition-colors"
-            aria-label="X"
-          >
-            <XLogo size={18} />
-          </a>
+            <CubeLogo
+              size={24}
+              className="group-hover:animate-[spin_0.25s_linear_8]"
+            />
+            Agent Cube
+          </Link>
+          <div className="flex items-center gap-2">
+            <a
+              href={githubLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex size-9 cursor-pointer items-center justify-center border border-transparent text-white transition-colors hover:border-neutral-700 hover:bg-neutral-900 hover:text-white"
+              aria-label="GitHub"
+            >
+              <GitHubIcon size={20} />
+            </a>
+            <a
+              href={xLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex size-9 cursor-pointer items-center justify-center border border-transparent text-white transition-colors hover:border-neutral-700 hover:bg-neutral-900 hover:text-white"
+              aria-label="X"
+            >
+              <XLogo size={18} />
+            </a>
+          </div>
         </div>
       </div>
     </nav>

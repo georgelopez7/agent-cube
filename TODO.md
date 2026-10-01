@@ -1,5 +1,4 @@
-> Styling
 > Add Jev
-> Add reasoning stream + cost + tokens
+> Add cost + tokens
 > Update domain types and openrouter package
 > Create make run command with new docker-compose

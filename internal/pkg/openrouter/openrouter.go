@@ -3,7 +3,7 @@ package openrouter
 import (
 	"net/http"
 
-	"github.com/achetronic/adk-utils-go/genai/openai"
+	"github.com/achetronic/adk-utils-go/genai/openai/completions"
 )
 
 type OpenRouter struct {
@@ -22,12 +22,13 @@ func NewOpenRouter(baseURL string, apiKey string, httpReferrer string, xTitle st
 	}
 }
 
-func (o *OpenRouter) NewModel(model string) *openai.Model {
-	return openai.New(openai.Config{
+func (o *OpenRouter) NewModel(model string) *completions.Model {
+	return completions.New(completions.Config{
 		APIKey:    o.APIKey,
 		BaseURL:   o.BaseURL,
 		ModelName: model,
-		HTTPOptions: openai.HTTPOptions{
+		Dialect:   completions.OpenRouter,
+		HTTPOptions: completions.HTTPOptions{
 			Headers: http.Header{
 				"HTTP-Referer": []string{o.HTTPReferer},
 				"X-Title":      []string{o.XTitle},

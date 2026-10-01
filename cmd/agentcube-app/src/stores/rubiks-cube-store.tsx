@@ -13,14 +13,18 @@ export type _RubiksCube = {
 
 export type RubikCubeStore = {
   records: Map<string, _RubiksCube>;
+  reasoning: Map<string, string>;
   AddRecord: (record: _RubiksCube) => void;
   RemoveRecord: (id: string) => void;
+  AppendReasoning: (id: string, text: string) => void;
+  ClearReasoning: (id: string) => void;
   SetStatus: (id: string, status: RubiksCubeStatus) => void;
   AddRotation: (id: string, rotation: CubeRotation) => void;
 };
 
 export const useRubiksCubeStore = create<RubikCubeStore>((set, get) => ({
   records: new Map(),
+  reasoning: new Map(),
   AddRecord: (record) =>
     set((state) => {
       const next = new Map(state.records);
@@ -34,6 +38,20 @@ export const useRubiksCubeStore = create<RubikCubeStore>((set, get) => ({
       const next = new Map(state.records);
       next.delete(id);
       return { records: next };
+    }),
+  AppendReasoning: (id, text) =>
+    set((state) => {
+      const next = new Map(state.reasoning);
+      next.set(id, `${next.get(id) ?? ""}${text}`);
+      return { reasoning: next };
+    }),
+  ClearReasoning: (id) =>
+    set((state) => {
+      if (!state.reasoning.has(id)) return state;
+
+      const next = new Map(state.reasoning);
+      next.delete(id);
+      return { reasoning: next };
     }),
   SetStatus: (id, status) => {
     const record = get().records.get(id);

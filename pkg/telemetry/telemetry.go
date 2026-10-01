@@ -6,7 +6,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.36.0"
-	adktelemetry "google.golang.org/adk/telemetry"
+	adktelemetry "google.golang.org/adk/v2/telemetry"
 )
 
 // New initializes ADK OpenTelemetry providers and registers them globally.

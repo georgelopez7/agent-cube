@@ -2,6 +2,7 @@ import { cn } from "cnfast";
 import { Wifi, WifiOff } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
+  CubeAgentReasoningEventHandler,
   CubeAgentTimeoutEventHandler,
   CubeCompletedEventHandler,
   CubeRotatedEventHandler,
@@ -35,6 +36,9 @@ const Websocket = ({ debug = false }: WebsocketProps) => {
       switch (ev.type) {
         case WebSocketEventType.CubeRotated:
           await CubeRotatedEventHandler(ev);
+          break;
+        case WebSocketEventType.CubeAgentReasoning:
+          await CubeAgentReasoningEventHandler(ev);
           break;
         case WebSocketEventType.CubeAgentTimeout:
           await CubeAgentTimeoutEventHandler(ev);

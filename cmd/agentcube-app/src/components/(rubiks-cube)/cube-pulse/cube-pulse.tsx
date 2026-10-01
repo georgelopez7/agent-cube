@@ -96,21 +96,15 @@ export const CubePulse = ({
         className,
       )}
     >
-      <div className="absolute inset-0 bg-linear-to-br from-slate-500/20 to-transparent rounded-lg blur-3xl" />
+      <div className="absolute inset-0 bg-neutral-700/10 blur-3xl" />
       <div
         className={cn(
-          "relative w-full h-full grid grid-cols-3 grid-rows-3 gap-2 p-2 bg-slate-900/80 rounded-lg border border-slate-500/30 shadow-[0_0_10px_rgba(100,116,139,0.2)]",
+          "relative grid h-full w-full grid-cols-3 grid-rows-3 gap-2 border border-neutral-700 bg-[#101010] p-2",
           ANIMATION_CLASSES[animationSpeed],
         )}
       >
         {tiles.map(({ id, color }) => (
-          <div
-            key={id}
-            className={cn(
-              color,
-              "rounded-sm shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]",
-            )}
-          />
+          <div key={id} className={cn(color, "border border-black/40")} />
         ))}
       </div>
     </div>

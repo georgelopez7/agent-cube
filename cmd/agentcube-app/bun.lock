@@ -7,6 +7,7 @@
       "dependencies": {
         "@base-ui/react": "^1.6.0",
         "@fontsource-variable/geist": "^5.2.9",
+        "@fontsource-variable/geist-mono": "^5.2.9",
         "@fontsource-variable/noto-sans": "^5.2.10",
         "@fontsource-variable/playfair-display": "^5.2.8",
         "@tailwindcss/vite": "^4.1.18",
@@ -249,6 +250,8 @@
     "@floating-ui/utils": ["@floating-ui/utils@0.2.11", "", {}, "sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg=="],
 
     "@fontsource-variable/geist": ["@fontsource-variable/geist@5.2.9", "", {}, "sha512-TP+QSBG3wxKGPE33CbMy/L0Nu3qvJ6Fy81Yc4LnQ95xH+i+cfEp8fyU8/kfV14YwszxIFPhnoMTbjL71waVpyQ=="],
+
+    "@fontsource-variable/geist-mono": ["@fontsource-variable/geist-mono@5.3.0", "", {}, "sha512-vBbuwDEo9AkrqADMXOrlAR3DFcJi4/JxeuU43FoiQERnNwsfXNnvxvReZG02cQKmyk4DZkZdBZX3oTDvy2zBAw=="],
 
     "@fontsource-variable/noto-sans": ["@fontsource-variable/noto-sans@5.2.10", "", {}, "sha512-wyFgKkFu7jki5kEL8qv7avjQ8rxHX0J/nhLWvbR9T0hOH1HRKZEvb9EW9lMjZfWHHfEzKkYf5J+NadwgCS7TXA=="],
 

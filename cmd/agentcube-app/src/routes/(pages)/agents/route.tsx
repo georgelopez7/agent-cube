@@ -3,9 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { PageLayout } from "#/components/(layouts)/page-layout/page-layout";
 import Spacer from "#/components/(layouts)/spacer/spacer";
-import CreateAgentModal, {
-  type CreateAgentFormData,
-} from "#/components/(modals)/create-agent-modal/create-agent-modal";
+import NewAgentDialog, {
+  type NewAgentFormData,
+} from "#/components/(modals)/new-agent-dialog/new-agent-dialog";
 import RubiksCubeSection from "#/components/(sections)/rubiks-cube-section/rubiks-cube-section";
 import Websocket from "#/components/websocket/websocket";
 import { GetAIModels } from "#/services/ai.queries";
@@ -79,7 +79,7 @@ function RouteComponent() {
   const { data: cubes, isLoading } = useQuery(GetRubiksCubes(CubesLimit));
   const { data: llms } = useQuery(GetAIModels());
 
-  const handleCreateCube = async (data: CreateAgentFormData) => {
+  const handleCreateCube = async (data: NewAgentFormData) => {
     const { error } = await CreateRubiksCubeFn({
       data: {
         llm: data.model,
@@ -100,7 +100,7 @@ function RouteComponent() {
     <PageLayout>
       <Websocket />
       <div className="flex flex-col">
-        <CreateAgentModal llms={llms ?? []} onSubmit={handleCreateCube} />
+        <NewAgentDialog llms={llms ?? []} onSubmit={handleCreateCube} />
         <Spacer size="xs" />
         <RubiksCubeSection
           cubes={cubes}
