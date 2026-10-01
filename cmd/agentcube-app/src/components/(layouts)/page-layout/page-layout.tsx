@@ -1,14 +1,27 @@
+import cn from "cnfast";
 import Navbar from "#/components/(layouts)/navbar/navbar";
-import Spacer from "../spacer/spacer";
 
 interface IPageLayoutProps {
   children: React.ReactNode;
   navbar?: boolean;
+  showGrid?: boolean;
+  background?: React.ReactNode;
 }
 
-export const PageLayout = ({ children, navbar = true }: IPageLayoutProps) => {
+export const PageLayout = ({
+  children,
+  navbar = true,
+  showGrid = true,
+  background,
+}: IPageLayoutProps) => {
   return (
-    <div className="blueprint-grid relative flex min-h-screen flex-col overflow-hidden bg-black p-4 text-white sm:p-6">
+    <div
+      className={cn(
+        "relative flex min-h-screen flex-col overflow-hidden bg-black p-4 text-white sm:p-6",
+        showGrid && "blueprint-grid",
+      )}
+    >
+      {background}
       <div className="relative z-10 mx-auto w-full max-w-6xl">
         {navbar && (
           <Navbar

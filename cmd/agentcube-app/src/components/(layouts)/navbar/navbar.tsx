@@ -20,10 +20,10 @@ const Navbar = ({
   return (
     <nav className={cn("mt-4 mb-2 w-full sm:mt-6 sm:mb-4", className)}>
       <div className="bg-[#101010] p-3">
-        <div className="flex items-center justify-between border border-neutral-700 px-4 py-3 font-mono">
+        <div className="flex items-center justify-between border border-neutral-700 bg-black px-4 py-3 font-mono">
           <Link
             to="/"
-            className="group flex items-center gap-2 font-sans text-lg font-bold uppercase tracking-tight text-white hover:underline hover:decoration-[3px] hover:underline-offset-4"
+            className="group flex items-center gap-2 font-heading text-xl font-extrabold uppercase tracking-tight text-white hover:underline hover:decoration-[3px] hover:underline-offset-4"
           >
             <CubeLogo
               size={24}
