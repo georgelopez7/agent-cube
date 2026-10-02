@@ -447,10 +447,12 @@ func TestService_RunAgent(t *testing.T) {
 		deps.AgentHub.EXPECT().Register(id, gomock.Any())
 		deps.AgentHub.EXPECT().Deregister(id)
 		deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("decide boom")).Times(3)
+		deps.EventBus.EXPECT().Publish(gomock.Any(), gomock.Any()).AnyTimes()
 
 		_, err := svc.RunAgent(ctx, id, time.Now().UTC())
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "aborted after 3 consecutive errors")
+		require.Contains(t, err.Error(), "decisions agent aborted")
 	})
 
 	t.Run("should propagate invoked error for non-decisions model without running ADK", func(t *testing.T) {
@@ -478,6 +480,7 @@ func TestService_StopAgent(t *testing.T) {
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(existing, nil)
 		deps.AgentHub.EXPECT().Stop(id).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusStopped).Return(nil)
+		deps.EventBus.EXPECT().Publish(gomock.Any(), gomock.Any()).Times(1)
 
 		err := svc.StopAgent(ctx, id)
 		require.NoError(t, err)
@@ -526,7 +529,7 @@ func TestService_RunDecisionsAgent(t *testing.T) {
 
 		msg, err := svc.RunDecisionsAgent(ctx, id)
 		require.NoError(t, err)
-		require.Contains(t, msg, "solved cube")
+		require.Contains(t, msg, "decisions agent solved cube")
 		require.Contains(t, msg, "1 moves")
 		require.True(t, record.Cube.Solved())
 	})
@@ -557,10 +560,12 @@ func TestService_RunDecisionsAgent(t *testing.T) {
 		deps.AgentHub.EXPECT().Register(id, gomock.Any())
 		deps.AgentHub.EXPECT().Deregister(id)
 		deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("decide boom")).Times(3)
+		deps.EventBus.EXPECT().Publish(gomock.Any(), gomock.Any()).AnyTimes()
 
 		_, err := svc.RunDecisionsAgent(ctx, id)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "aborted after 3 consecutive errors")
+		require.Contains(t, err.Error(), "decisions agent aborted")
 	})
 
 	t.Run("should skip invalid rotation and solve on next move", func(t *testing.T) {
@@ -636,6 +641,7 @@ func TestService_StopDecisionsAgent(t *testing.T) {
 		err := svc.StopDecisionsAgent(agentCTX, ctx, id, time.Second, 3)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "timed out")
+		require.Contains(t, err.Error(), "decisions agent timed out")
 		require.ErrorIs(t, err, context.DeadlineExceeded)
 	})
 
@@ -646,9 +652,11 @@ func TestService_StopDecisionsAgent(t *testing.T) {
 		cancel()
 		require.ErrorIs(t, agentCTX.Err(), context.Canceled)
 
+		deps.EventBus.EXPECT().Publish(gomock.Any(), gomock.Any()).Times(1)
+
 		err := svc.StopDecisionsAgent(agentCTX, ctx, id, time.Second, 2)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "stopped after 2 moves")
+		require.Contains(t, err.Error(), "decisions agent stopped after 2 moves")
 		require.ErrorIs(t, err, context.Canceled)
 	})
 }
