@@ -1,6 +1,6 @@
 module agent-cube
 
-go 1.25.7
+go 1.27
 
 require (
 	github.com/achetronic/adk-utils-go v1.1.0
@@ -10,7 +10,6 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go/modules/mongodb v0.43.0
-	go.mongodb.org/mongo-driver v1.17.9
 	go.mongodb.org/mongo-driver/v2 v2.7.0
 	go.opentelemetry.io/otel v1.43.0
 	go.opentelemetry.io/otel/sdk v1.43.0

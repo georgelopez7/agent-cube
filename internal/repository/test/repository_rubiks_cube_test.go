@@ -7,7 +7,7 @@ import (
 	"agent-cube/internal/domain"
 
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"uuid"
 )
 
 func TestRepository_CreateRubiksCube(t *testing.T) {
@@ -79,7 +79,7 @@ func TestRepository_GetRubiksCubeByID(t *testing.T) {
 	})
 
 	t.Run("should return nil when not found", func(t *testing.T) {
-		actual, err := repo.GetRubiksCubeByID(ctx, primitive.NewObjectID())
+		actual, err := repo.GetRubiksCubeByID(ctx, uuid.NewV7().String())
 		require.NoError(t, err)
 		require.Nil(t, actual)
 	})
@@ -106,7 +106,7 @@ func TestRepository_DeleteRubiksCubeByID(t *testing.T) {
 	})
 
 	t.Run("should return not found error when cube does not exist", func(t *testing.T) {
-		err := repo.DeleteRubiksCubeByID(ctx, primitive.NewObjectID())
+		err := repo.DeleteRubiksCubeByID(ctx, uuid.NewV7().String())
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "rubiks cube not found")
 	})
@@ -168,7 +168,7 @@ func TestRepository_UpdateRubiksCubeStatus(t *testing.T) {
 	})
 
 	t.Run("should return not found error when cube does not exist", func(t *testing.T) {
-		err := repo.UpdateRubiksCubeStatus(ctx, primitive.NewObjectID(), domain.RubiksCubeStatusInProgress)
+		err := repo.UpdateRubiksCubeStatus(ctx, uuid.NewV7().String(), domain.RubiksCubeStatusInProgress)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "rubiks cube not found")
 	})

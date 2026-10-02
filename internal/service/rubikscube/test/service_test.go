@@ -11,8 +11,8 @@ import (
 	"agent-cube/internal/pkg/openrouter"
 
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/mock/gomock"
+	"uuid"
 )
 
 func TestService_CreateRubiksCube(t *testing.T) {
@@ -56,7 +56,7 @@ func TestService_UpdateRubiksCube(t *testing.T) {
 	svc, deps := newMockService(t)
 
 	cube := &domain.RubiksCube{
-		ID:     primitive.NewObjectID(),
+		ID:     uuid.NewV7().String(),
 		Status: domain.RubiksCubeStatusInProgress,
 	}
 
@@ -99,7 +99,7 @@ func TestService_GetRubiksCubeByID(t *testing.T) {
 	ctx := t.Context()
 	svc, deps := newMockService(t)
 
-	id := primitive.NewObjectID()
+	id := uuid.NewV7().String()
 
 	t.Run("should return cube when found", func(t *testing.T) {
 		expected := &domain.RubiksCube{ID: id}
@@ -131,7 +131,7 @@ func TestService_DeleteRubiksCubeByID(t *testing.T) {
 	ctx := t.Context()
 	svc, deps := newMockService(t)
 
-	id := primitive.NewObjectID()
+	id := uuid.NewV7().String()
 
 	t.Run("should delete existing cube", func(t *testing.T) {
 		existing := &domain.RubiksCube{ID: id}
@@ -174,8 +174,8 @@ func TestService_GetAllRubiksCubes(t *testing.T) {
 
 	t.Run("should return cubes", func(t *testing.T) {
 		expected := []domain.RubiksCube{
-			{ID: primitive.NewObjectID()},
-			{ID: primitive.NewObjectID()},
+			{ID: uuid.NewV7().String()},
+			{ID: uuid.NewV7().String()},
 		}
 
 		deps.Repository.EXPECT().GetAllRubiksCubes(gomock.Any(), int64(0)).Return(expected, nil)
@@ -207,7 +207,7 @@ func TestService_ApplyRubiksCubeRotation(t *testing.T) {
 	ctx := t.Context()
 	svc, deps := newMockService(t)
 
-	id := primitive.NewObjectID()
+	id := uuid.NewV7().String()
 
 	t.Run("should apply rotation and return updated cube", func(t *testing.T) {
 		existing := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"), 300)
@@ -261,7 +261,7 @@ func TestService_IsRubiksCubeSolved(t *testing.T) {
 	ctx := t.Context()
 	svc, deps := newMockService(t)
 
-	id := primitive.NewObjectID()
+	id := uuid.NewV7().String()
 
 	t.Run("should return true when cube is solved", func(t *testing.T) {
 		existing := domain.NewRubiksCube(domain.NewLLM("openai", "gpt-4.0"), 300)
@@ -307,7 +307,7 @@ func TestService_UpdateRubiksCubeStatus(t *testing.T) {
 	ctx := t.Context()
 	svc, deps := newMockService(t)
 
-	id := primitive.NewObjectID()
+	id := uuid.NewV7().String()
 
 	t.Run("should update status and return refreshed cube", func(t *testing.T) {
 		existing := &domain.RubiksCube{
@@ -364,7 +364,7 @@ func TestService_RunAgent(t *testing.T) {
 	svc, deps := newMockService(t)
 
 	t.Run("should return not found when cube is missing", func(t *testing.T) {
-		id := primitive.NewObjectID()
+		id := uuid.NewV7().String()
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, nil)
 
@@ -373,7 +373,7 @@ func TestService_RunAgent(t *testing.T) {
 	})
 
 	t.Run("should propagate get error", func(t *testing.T) {
-		id := primitive.NewObjectID()
+		id := uuid.NewV7().String()
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, errors.New("boom"))
 
@@ -382,7 +382,7 @@ func TestService_RunAgent(t *testing.T) {
 	})
 
 	t.Run("should route decisions model to decisions agent", func(t *testing.T) {
-		id := primitive.NewObjectID()
+		id := uuid.NewV7().String()
 		record := oneRotationAwayRecord(t, id)
 
 		// RunAgent performs an initial Get to inspect the model, then
@@ -397,8 +397,8 @@ func TestService_RunAgent(t *testing.T) {
 		deps.Repository.EXPECT().UpdateRubiksCubeUsage(gomock.Any(), id, gomock.Any(), gomock.Any()).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusCompleted).Return(nil)
 
-		deps.AgentHub.EXPECT().Register(id.Hex(), gomock.Any())
-		deps.AgentHub.EXPECT().Deregister(id.Hex())
+		deps.AgentHub.EXPECT().Register(id, gomock.Any())
+		deps.AgentHub.EXPECT().Deregister(id)
 
 		deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(decisionsSuccessResponse("F'"), nil)
 		deps.EventBus.EXPECT().Publish(gomock.Any(), gomock.Any()).AnyTimes()
@@ -409,7 +409,7 @@ func TestService_RunAgent(t *testing.T) {
 	})
 
 	t.Run("should route jev-latest alias to decisions agent", func(t *testing.T) {
-		id := primitive.NewObjectID()
+		id := uuid.NewV7().String()
 		record := domain.NewRubiksCube(domain.NewLLM("typesafe", "~typesafe/jev-latest"), 60000)
 		record.ID = id
 		_, _ = record.Cube.Rotate("F", false)
@@ -424,8 +424,8 @@ func TestService_RunAgent(t *testing.T) {
 		deps.Repository.EXPECT().UpdateRubiksCubeUsage(gomock.Any(), id, gomock.Any(), gomock.Any()).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusCompleted).Return(nil)
 
-		deps.AgentHub.EXPECT().Register(id.Hex(), gomock.Any())
-		deps.AgentHub.EXPECT().Deregister(id.Hex())
+		deps.AgentHub.EXPECT().Register(id, gomock.Any())
+		deps.AgentHub.EXPECT().Deregister(id)
 
 		deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(decisionsSuccessResponse("F'"), nil)
 		deps.EventBus.EXPECT().Publish(gomock.Any(), gomock.Any()).AnyTimes()
@@ -436,7 +436,7 @@ func TestService_RunAgent(t *testing.T) {
 	})
 
 	t.Run("should propagate decisions agent errors through RunAgent", func(t *testing.T) {
-		id := primitive.NewObjectID()
+		id := uuid.NewV7().String()
 		record := oneRotationAwayRecord(t, id)
 
 		gomock.InOrder(
@@ -444,8 +444,8 @@ func TestService_RunAgent(t *testing.T) {
 			deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil),
 		)
 		deps.Repository.EXPECT().MarkRubiksCubeInvoked(gomock.Any(), id, gomock.Any()).Return(nil)
-		deps.AgentHub.EXPECT().Register(id.Hex(), gomock.Any())
-		deps.AgentHub.EXPECT().Deregister(id.Hex())
+		deps.AgentHub.EXPECT().Register(id, gomock.Any())
+		deps.AgentHub.EXPECT().Deregister(id)
 		deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("decide boom")).Times(3)
 
 		_, err := svc.RunAgent(ctx, id, time.Now().UTC())
@@ -454,7 +454,7 @@ func TestService_RunAgent(t *testing.T) {
 	})
 
 	t.Run("should propagate invoked error for non-decisions model without running ADK", func(t *testing.T) {
-		id := primitive.NewObjectID()
+		id := uuid.NewV7().String()
 		record := domain.NewRubiksCube(domain.NewLLM("openai", "openai/gpt-5.4-mini"), 60000)
 		record.ID = id
 
@@ -470,13 +470,13 @@ func TestService_StopAgent(t *testing.T) {
 	ctx := t.Context()
 	svc, deps := newMockService(t)
 
-	id := primitive.NewObjectID()
+	id := uuid.NewV7().String()
 
 	t.Run("should stop a running agent and update status to stopped", func(t *testing.T) {
 		existing := &domain.RubiksCube{ID: id, Status: domain.RubiksCubeStatusInProgress}
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(existing, nil)
-		deps.AgentHub.EXPECT().Stop(id.Hex()).Return(nil)
+		deps.AgentHub.EXPECT().Stop(id).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusStopped).Return(nil)
 
 		err := svc.StopAgent(ctx, id)
@@ -494,7 +494,7 @@ func TestService_StopAgent(t *testing.T) {
 		existing := &domain.RubiksCube{ID: id, Status: domain.RubiksCubeStatusInProgress}
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(existing, nil)
-		deps.AgentHub.EXPECT().Stop(id.Hex()).Return(errors.New("agent not found"))
+		deps.AgentHub.EXPECT().Stop(id).Return(errors.New("agent not found"))
 
 		err := svc.StopAgent(ctx, id)
 		require.Error(t, err)
@@ -506,7 +506,7 @@ func TestService_RunDecisionsAgent(t *testing.T) {
 	svc, deps := newMockService(t)
 
 	t.Run("should solve a cube one move away", func(t *testing.T) {
-		id := primitive.NewObjectID()
+		id := uuid.NewV7().String()
 		record := oneRotationAwayRecord(t, id)
 
 		gomock.InOrder(
@@ -518,8 +518,8 @@ func TestService_RunDecisionsAgent(t *testing.T) {
 		deps.Repository.EXPECT().UpdateRubiksCubeUsage(gomock.Any(), id, gomock.Any(), gomock.Any()).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusCompleted).Return(nil)
 
-		deps.AgentHub.EXPECT().Register(id.Hex(), gomock.Any())
-		deps.AgentHub.EXPECT().Deregister(id.Hex())
+		deps.AgentHub.EXPECT().Register(id, gomock.Any())
+		deps.AgentHub.EXPECT().Deregister(id)
 
 		deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(decisionsSuccessResponse("F'"), nil)
 		deps.EventBus.EXPECT().Publish(gomock.Any(), gomock.Any()).AnyTimes()
@@ -532,7 +532,7 @@ func TestService_RunDecisionsAgent(t *testing.T) {
 	})
 
 	t.Run("should return not found when cube is missing", func(t *testing.T) {
-		id := primitive.NewObjectID()
+		id := uuid.NewV7().String()
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, nil)
 
@@ -541,7 +541,7 @@ func TestService_RunDecisionsAgent(t *testing.T) {
 	})
 
 	t.Run("should propagate get error", func(t *testing.T) {
-		id := primitive.NewObjectID()
+		id := uuid.NewV7().String()
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(nil, errors.New("boom"))
 
@@ -550,12 +550,12 @@ func TestService_RunDecisionsAgent(t *testing.T) {
 	})
 
 	t.Run("should abort after consecutive decide errors", func(t *testing.T) {
-		id := primitive.NewObjectID()
+		id := uuid.NewV7().String()
 		record := oneRotationAwayRecord(t, id)
 
 		deps.Repository.EXPECT().GetRubiksCubeByID(gomock.Any(), id).Return(record, nil)
-		deps.AgentHub.EXPECT().Register(id.Hex(), gomock.Any())
-		deps.AgentHub.EXPECT().Deregister(id.Hex())
+		deps.AgentHub.EXPECT().Register(id, gomock.Any())
+		deps.AgentHub.EXPECT().Deregister(id)
 		deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, errors.New("decide boom")).Times(3)
 
 		_, err := svc.RunDecisionsAgent(ctx, id)
@@ -564,7 +564,7 @@ func TestService_RunDecisionsAgent(t *testing.T) {
 	})
 
 	t.Run("should skip invalid rotation and solve on next move", func(t *testing.T) {
-		id := primitive.NewObjectID()
+		id := uuid.NewV7().String()
 		record := oneRotationAwayRecord(t, id)
 
 		gomock.InOrder(
@@ -575,8 +575,8 @@ func TestService_RunDecisionsAgent(t *testing.T) {
 		deps.Repository.EXPECT().UpdateRubiksCubeUsage(gomock.Any(), id, gomock.Any(), gomock.Any()).Return(nil)
 		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusCompleted).Return(nil)
 
-		deps.AgentHub.EXPECT().Register(id.Hex(), gomock.Any())
-		deps.AgentHub.EXPECT().Deregister(id.Hex())
+		deps.AgentHub.EXPECT().Register(id, gomock.Any())
+		deps.AgentHub.EXPECT().Deregister(id)
 
 		invalid := &openrouter.DecisionsResponse{
 			Answers: map[string]openrouter.DecisionAnswer{
@@ -596,7 +596,7 @@ func TestService_RunDecisionsAgent(t *testing.T) {
 	})
 
 	t.Run("should track usage even when persisting usage fails", func(t *testing.T) {
-		id := primitive.NewObjectID()
+		id := uuid.NewV7().String()
 		record := oneRotationAwayRecord(t, id)
 
 		gomock.InOrder(
@@ -607,8 +607,8 @@ func TestService_RunDecisionsAgent(t *testing.T) {
 		deps.Repository.EXPECT().UpdateRubiksCubeUsage(gomock.Any(), id, gomock.Any(), gomock.Any()).Return(errors.New("usage boom"))
 		deps.Repository.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), id, domain.RubiksCubeStatusCompleted).Return(nil)
 
-		deps.AgentHub.EXPECT().Register(id.Hex(), gomock.Any())
-		deps.AgentHub.EXPECT().Deregister(id.Hex())
+		deps.AgentHub.EXPECT().Register(id, gomock.Any())
+		deps.AgentHub.EXPECT().Deregister(id)
 
 		deps.OpenRouter.EXPECT().Decide(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(decisionsSuccessResponse("F'"), nil)
 		deps.EventBus.EXPECT().Publish(gomock.Any(), gomock.Any()).AnyTimes()
@@ -624,7 +624,7 @@ func TestService_StopDecisionsAgent(t *testing.T) {
 	svc, deps := newMockService(t)
 
 	t.Run("should map deadline exceeded to timeout", func(t *testing.T) {
-		id := primitive.NewObjectID()
+		id := uuid.NewV7().String()
 
 		agentCTX, cancel := context.WithTimeout(ctx, time.Nanosecond)
 		defer cancel()
@@ -640,7 +640,7 @@ func TestService_StopDecisionsAgent(t *testing.T) {
 	})
 
 	t.Run("should map cancellation to stopped", func(t *testing.T) {
-		id := primitive.NewObjectID()
+		id := uuid.NewV7().String()
 
 		agentCTX, cancel := context.WithCancel(ctx)
 		cancel()
@@ -654,7 +654,7 @@ func TestService_StopDecisionsAgent(t *testing.T) {
 }
 
 // oneRotationAwayRecord - returns a cube record that is exactly one F' away from solved.
-func oneRotationAwayRecord(t *testing.T, id primitive.ObjectID) *domain.RubiksCube {
+func oneRotationAwayRecord(t *testing.T, id string) *domain.RubiksCube {
 	t.Helper()
 	record := domain.NewRubiksCube(domain.NewLLM("typesafe", domain.JevModel), 60000)
 	record.ID = id

@@ -95,7 +95,7 @@ func TestServer_GetRubiksCubeByIDHandler(t *testing.T) {
 	llm := domain.NewLLM("openai", "gpt-4.0")
 	cube := domain.NewRubiksCube(llm, 300)
 
-	var endpoint = "/api/v1/rubiks-cubes/" + cube.ID.Hex()
+	var endpoint = "/api/v1/rubiks-cubes/" + cube.ID
 
 	t.Run("should successfully get rubiks cube by id", func(t *testing.T) {
 		deps.MockSvc.EXPECT().GetRubiksCubeByID(gomock.Any(), cube.ID).Return(&cube, nil)
@@ -103,7 +103,7 @@ func TestServer_GetRubiksCubeByIDHandler(t *testing.T) {
 		resp := api.Get(endpoint)
 
 		require.Equal(t, http.StatusOK, resp.Code)
-		require.Contains(t, resp.Body.String(), cube.ID.Hex())
+		require.Contains(t, resp.Body.String(), cube.ID)
 	})
 
 	t.Run("should return 404 when rubiks cube not found", func(t *testing.T) {
@@ -114,10 +114,12 @@ func TestServer_GetRubiksCubeByIDHandler(t *testing.T) {
 		require.Equal(t, http.StatusNotFound, resp.Code)
 	})
 
-	t.Run("should return 400 for invalid id", func(t *testing.T) {
+	t.Run("should return 404 for unknown id", func(t *testing.T) {
+		deps.MockSvc.EXPECT().GetRubiksCubeByID(gomock.Any(), "not-an-id").Return(nil, domain.RubiksCubeNotFoundError)
+
 		resp := api.Get("/api/v1/rubiks-cubes/not-an-id")
 
-		require.Equal(t, http.StatusBadRequest, resp.Code)
+		require.Equal(t, http.StatusNotFound, resp.Code)
 	})
 }
 
@@ -128,7 +130,7 @@ func TestServer_UpdateRubiksCubeHandler(t *testing.T) {
 	llm := domain.NewLLM("openai", "gpt-4.0")
 	existing := domain.NewRubiksCube(llm, 300)
 
-	var endpoint = "/api/v1/rubiks-cubes/" + existing.ID.Hex()
+	var endpoint = "/api/v1/rubiks-cubes/" + existing.ID
 
 	t.Run("should successfully update rubiks cube", func(t *testing.T) {
 		deps.MockSvc.EXPECT().UpdateRubiksCube(gomock.Any(), gomock.Any()).Return(nil)
@@ -160,7 +162,9 @@ func TestServer_UpdateRubiksCubeHandler(t *testing.T) {
 		require.Equal(t, http.StatusNotFound, resp.Code)
 	})
 
-	t.Run("should return 400 for invalid id", func(t *testing.T) {
+	t.Run("should return 404 for unknown id", func(t *testing.T) {
+		deps.MockSvc.EXPECT().UpdateRubiksCube(gomock.Any(), gomock.Any()).Return(domain.RubiksCubeNotFoundError)
+
 		resp := api.Put("/api/v1/rubiks-cubes/not-an-id", map[string]any{
 			"llm": map[string]any{
 				"provider": "openai",
@@ -170,7 +174,7 @@ func TestServer_UpdateRubiksCubeHandler(t *testing.T) {
 			"cube":   existing.Cube,
 		})
 
-		require.Equal(t, http.StatusBadRequest, resp.Code)
+		require.Equal(t, http.StatusNotFound, resp.Code)
 	})
 }
 
@@ -181,7 +185,7 @@ func TestServer_UpdateRubiksCubeStatusHandler(t *testing.T) {
 	llm := domain.NewLLM("openai", "gpt-4.0")
 	existing := domain.NewRubiksCube(llm, 300)
 
-	var endpoint = "/api/v1/rubiks-cubes/" + existing.ID.Hex() + "/status"
+	var endpoint = "/api/v1/rubiks-cubes/" + existing.ID + "/status"
 
 	t.Run("should successfully update rubiks cube status", func(t *testing.T) {
 		updated := existing
@@ -207,12 +211,14 @@ func TestServer_UpdateRubiksCubeStatusHandler(t *testing.T) {
 		require.Equal(t, http.StatusNotFound, resp.Code)
 	})
 
-	t.Run("should return 400 for invalid id", func(t *testing.T) {
+	t.Run("should return 404 for unknown id", func(t *testing.T) {
+		deps.MockSvc.EXPECT().UpdateRubiksCubeStatus(gomock.Any(), "not-an-id", domain.RubiksCubeStatusInProgress).Return(nil, domain.RubiksCubeNotFoundError)
+
 		resp := api.Patch("/api/v1/rubiks-cubes/not-an-id/status", map[string]any{
 			"status": string(domain.RubiksCubeStatusInProgress),
 		})
 
-		require.Equal(t, http.StatusBadRequest, resp.Code)
+		require.Equal(t, http.StatusNotFound, resp.Code)
 	})
 
 	t.Run("should return 400 for invalid status", func(t *testing.T) {
@@ -243,7 +249,7 @@ func TestServer_DeleteRubiksCubeHandler(t *testing.T) {
 	llm := domain.NewLLM("openai", "gpt-4.0")
 	existing := domain.NewRubiksCube(llm, 300)
 
-	var endpoint = "/api/v1/rubiks-cubes/" + existing.ID.Hex()
+	var endpoint = "/api/v1/rubiks-cubes/" + existing.ID
 
 	t.Run("should successfully delete rubiks cube", func(t *testing.T) {
 		deps.MockSvc.EXPECT().DeleteRubiksCubeByID(gomock.Any(), existing.ID).Return(nil)
@@ -262,10 +268,12 @@ func TestServer_DeleteRubiksCubeHandler(t *testing.T) {
 		require.Equal(t, http.StatusNotFound, resp.Code)
 	})
 
-	t.Run("should return 400 for invalid id", func(t *testing.T) {
+	t.Run("should return 404 for unknown id", func(t *testing.T) {
+		deps.MockSvc.EXPECT().DeleteRubiksCubeByID(gomock.Any(), "not-an-id").Return(domain.RubiksCubeNotFoundError)
+
 		resp := api.Delete("/api/v1/rubiks-cubes/not-an-id")
 
-		require.Equal(t, http.StatusBadRequest, resp.Code)
+		require.Equal(t, http.StatusNotFound, resp.Code)
 	})
 
 	t.Run("should return error when service fails", func(t *testing.T) {
@@ -312,7 +320,7 @@ func TestServer_ApplyRubiksCubeRotationHandler(t *testing.T) {
 	llm := domain.NewLLM("openai", "gpt-4.0")
 	existing := domain.NewRubiksCube(llm, 300)
 
-	var endpoint = "/api/v1/rubiks-cubes/" + existing.ID.Hex() + "/rotations"
+	var endpoint = "/api/v1/rubiks-cubes/" + existing.ID + "/rotations"
 
 	t.Run("should successfully apply rotation to rubiks cube", func(t *testing.T) {
 		updated := existing
@@ -339,12 +347,14 @@ func TestServer_ApplyRubiksCubeRotationHandler(t *testing.T) {
 		require.Equal(t, http.StatusNotFound, resp.Code)
 	})
 
-	t.Run("should return 400 for invalid id", func(t *testing.T) {
+	t.Run("should return 404 for unknown id", func(t *testing.T) {
+		deps.MockSvc.EXPECT().ApplyRubiksCubeRotation(gomock.Any(), "not-an-id", cube.RotationF).Return(nil, domain.RubiksCubeNotFoundError)
+
 		resp := api.Post("/api/v1/rubiks-cubes/not-an-id/rotations", map[string]any{
 			"rotation": string(cube.RotationF),
 		})
 
-		require.Equal(t, http.StatusBadRequest, resp.Code)
+		require.Equal(t, http.StatusNotFound, resp.Code)
 	})
 
 	t.Run("should return 400 for invalid rotation", func(t *testing.T) {
@@ -373,7 +383,7 @@ func TestServer_IsRubiksCubeSolvedHandler(t *testing.T) {
 	llm := domain.NewLLM("openai", "gpt-4.0")
 	existing := domain.NewRubiksCube(llm, 300)
 
-	var endpoint = "/api/v1/rubiks-cubes/" + existing.ID.Hex() + "/solved"
+	var endpoint = "/api/v1/rubiks-cubes/" + existing.ID + "/solved"
 
 	t.Run("should return solved true when cube is solved", func(t *testing.T) {
 		deps.MockSvc.EXPECT().IsRubiksCubeSolved(gomock.Any(), existing.ID).Return(true, nil)
@@ -401,10 +411,12 @@ func TestServer_IsRubiksCubeSolvedHandler(t *testing.T) {
 		require.Equal(t, http.StatusNotFound, resp.Code)
 	})
 
-	t.Run("should return 400 for invalid id", func(t *testing.T) {
+	t.Run("should return 404 for unknown id", func(t *testing.T) {
+		deps.MockSvc.EXPECT().IsRubiksCubeSolved(gomock.Any(), "not-an-id").Return(false, domain.RubiksCubeNotFoundError)
+
 		resp := api.Get("/api/v1/rubiks-cubes/not-an-id/solved")
 
-		require.Equal(t, http.StatusBadRequest, resp.Code)
+		require.Equal(t, http.StatusNotFound, resp.Code)
 	})
 
 	t.Run("should return error when service fails", func(t *testing.T) {
@@ -442,7 +454,7 @@ func TestServer_StopRubiksCubeAgentHandler(t *testing.T) {
 	llm := domain.NewLLM("openai", "gpt-4.0")
 	existing := domain.NewRubiksCube(llm, 300)
 
-	var endpoint = "/api/v1/rubiks-cubes/" + existing.ID.Hex() + "/agents/stop"
+	var endpoint = "/api/v1/rubiks-cubes/" + existing.ID + "/agents/stop"
 
 	t.Run("should successfully stop rubiks cube agent", func(t *testing.T) {
 		deps.MockSvc.EXPECT().StopAgent(gomock.Any(), existing.ID).Return(nil)
@@ -461,10 +473,12 @@ func TestServer_StopRubiksCubeAgentHandler(t *testing.T) {
 		require.Equal(t, http.StatusNotFound, resp.Code)
 	})
 
-	t.Run("should return 400 for invalid id", func(t *testing.T) {
+	t.Run("should return 404 for unknown id", func(t *testing.T) {
+		deps.MockSvc.EXPECT().StopAgent(gomock.Any(), "not-an-id").Return(domain.RubiksCubeNotFoundError)
+
 		resp := api.Post("/api/v1/rubiks-cubes/not-an-id/agents/stop", map[string]any{})
 
-		require.Equal(t, http.StatusBadRequest, resp.Code)
+		require.Equal(t, http.StatusNotFound, resp.Code)
 	})
 
 	t.Run("should return error when service fails", func(t *testing.T) {

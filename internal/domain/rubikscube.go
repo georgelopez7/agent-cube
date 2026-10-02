@@ -4,8 +4,7 @@ import (
 	"agent-cube/internal/pkg/cube"
 	"errors"
 	"time"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"uuid"
 )
 
 // RubiksCubeNotFoundError - returned when a rubiks cube cannot be found.
@@ -38,7 +37,7 @@ func IsValidRubiksCubeStatus(status RubiksCubeStatus) bool {
 }
 
 type RubiksCube struct {
-	ID            primitive.ObjectID `json:"id" bson:"_id"`
+	ID            string              `json:"id" bson:"_id"`
 	LLM           LLM                `json:"llm" bson:"llm"`
 	Status        RubiksCubeStatus   `json:"status" bson:"status"`
 	Cube          cube.Cube          `json:"cube" bson:"cube"`
@@ -52,7 +51,7 @@ type RubiksCube struct {
 
 func NewRubiksCube(llm LLM, maxDuration int) RubiksCube {
 	return RubiksCube{
-		ID:            primitive.NewObjectID(),
+		ID:            uuid.NewV7().String(),
 		LLM:           llm,
 		Status:        RubiksCubeStatusCreated,
 		Cube:          cube.NewCube(),

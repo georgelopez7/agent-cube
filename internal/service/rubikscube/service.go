@@ -9,7 +9,6 @@ import (
 	"agent-cube/internal/domain"
 	"agent-cube/internal/pkg/cube"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"google.golang.org/adk/v2/agent"
 	"google.golang.org/adk/v2/agent/llmagent"
 	"google.golang.org/adk/v2/runner"
@@ -66,7 +65,7 @@ func (s RubiksCubeService) UpdateRubiksCube(ctx context.Context, cube *domain.Ru
 }
 
 // UpdateRubiksCubeStatus - updates only the status of a rubiks cube by ID.
-func (s RubiksCubeService) UpdateRubiksCubeStatus(ctx context.Context, id primitive.ObjectID, status domain.RubiksCubeStatus) (*domain.RubiksCube, error) {
+func (s RubiksCubeService) UpdateRubiksCubeStatus(ctx context.Context, id string, status domain.RubiksCubeStatus) (*domain.RubiksCube, error) {
 	if !domain.IsValidRubiksCubeStatus(status) {
 		return nil, domain.ErrInvalidRubiksCubeStatus
 	}
@@ -90,7 +89,7 @@ func (s RubiksCubeService) UpdateRubiksCubeStatus(ctx context.Context, id primit
 }
 
 // DeleteRubiksCubeByID - deletes a rubiks cube by ID after verifying it exists.
-func (s RubiksCubeService) DeleteRubiksCubeByID(ctx context.Context, id primitive.ObjectID) error {
+func (s RubiksCubeService) DeleteRubiksCubeByID(ctx context.Context, id string) error {
 	existing, err := s.repository.GetRubiksCubeByID(ctx, id)
 	if err != nil {
 		return err
@@ -104,7 +103,7 @@ func (s RubiksCubeService) DeleteRubiksCubeByID(ctx context.Context, id primitiv
 }
 
 // GetRubiksCubeByID - retrieves a rubiks cube by ID.
-func (s RubiksCubeService) GetRubiksCubeByID(ctx context.Context, id primitive.ObjectID) (*domain.RubiksCube, error) {
+func (s RubiksCubeService) GetRubiksCubeByID(ctx context.Context, id string) (*domain.RubiksCube, error) {
 	cube, err := s.repository.GetRubiksCubeByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -132,7 +131,7 @@ func (s RubiksCubeService) GetAllRubiksCubes(ctx context.Context, limit int64) (
 }
 
 // ApplyRubiksCubeRotation - applies a rotation to a rubiks cube and persists it.
-func (s RubiksCubeService) ApplyRubiksCubeRotation(ctx context.Context, cubeID primitive.ObjectID, rotation cube.Rotation) (*domain.RubiksCube, error) {
+func (s RubiksCubeService) ApplyRubiksCubeRotation(ctx context.Context, cubeID string, rotation cube.Rotation) (*domain.RubiksCube, error) {
 	cube, err := s.repository.GetRubiksCubeByID(ctx, cubeID)
 	if err != nil {
 		return nil, err
@@ -151,13 +150,13 @@ func (s RubiksCubeService) ApplyRubiksCubeRotation(ctx context.Context, cubeID p
 		return nil, err
 	}
 
-	s.bus.Publish(ctx, domain.NewCubeRotatedEvent(cubeID.Hex(), *xrotation))
+	s.bus.Publish(ctx, domain.NewCubeRotatedEvent(cubeID, *xrotation))
 
 	return cube, nil
 }
 
 // IsRubiksCubeSolved - returns true if the cube with the given ID is solved.
-func (s RubiksCubeService) IsRubiksCubeSolved(ctx context.Context, cubeID primitive.ObjectID) (bool, error) {
+func (s RubiksCubeService) IsRubiksCubeSolved(ctx context.Context, cubeID string) (bool, error) {
 	cube, err := s.repository.GetRubiksCubeByID(ctx, cubeID)
 	if err != nil {
 		return false, err
@@ -173,7 +172,7 @@ func (s RubiksCubeService) IsRubiksCubeSolved(ctx context.Context, cubeID primit
 // RunAgent - runs the agent for the given cube ID using the cube's LLM model and max duration.
 // invokedAt is supplied by the caller (/invoke handler) and persisted here - this
 // is the sole writer of invoked_at on the cube record.
-func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID, invokedAt time.Time) (string, error) {
+func (s RubiksCubeService) RunAgent(ctx context.Context, id string, invokedAt time.Time) (string, error) {
 	cube, err := s.repository.GetRubiksCubeByID(ctx, id)
 	if err != nil {
 		return "", err
@@ -194,14 +193,14 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID, 
 		return s.RunDecisionsAgent(ctx, id)
 	}
 
-	name := fmt.Sprintf("agent-cube-%s-%s", id.Hex(), cube.LLM.Model)
+	name := fmt.Sprintf("agent-cube-%s-%s", id, cube.LLM.Model)
 	model := s.openrouter.NewModel(cube.LLM.Model)
 
 	timeout := time.Duration(cube.MaxDurationMS) * time.Millisecond
 	agentCTX, cancel := context.WithTimeout(context.WithoutCancel(ctx), timeout)
 
-	s.agentHub.Register(id.Hex(), cancel)
-	defer s.agentHub.Deregister(id.Hex())
+	s.agentHub.Register(id, cancel)
+	defer s.agentHub.Deregister(id)
 	defer cancel()
 
 	xagent, err := llmagent.New(llmagent.Config{
@@ -248,7 +247,7 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID, 
 		return "", fmt.Errorf("failed to create runner: %w", err)
 	}
 
-	prompt := NewStarterPrompt(id.Hex())
+	prompt := NewStarterPrompt(id)
 	msg := genai.NewContentFromText(prompt, genai.RoleUser)
 
 	var finalMsg string
@@ -272,15 +271,15 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID, 
 			totalCost += customCostFromMetadata(event.CustomMetadata)
 
 			slog.Info("[ USAGE ]",
-				"cube_id", id.Hex(),
+				"cube_id", id,
 				"prompt_tokens", usage.PromptTokens,
 				"completion_tokens", usage.CompletionTokens,
 				"total_tokens", usage.TotalTokens,
 				"total_cost", totalCost,
 			)
-			s.bus.Publish(ctx, domain.NewCubeUsageEvent(id.Hex(), usage))
+			s.bus.Publish(ctx, domain.NewCubeUsageEvent(id, usage))
 			if err := s.repository.UpdateRubiksCubeUsage(ctx, id, usage, totalCost); err != nil {
-				slog.Error("failed to persist rubiks cube usage", "cube_id", id.Hex(), "error", err)
+				slog.Error("failed to persist rubiks cube usage", "cube_id", id, "error", err)
 			}
 		}
 
@@ -291,7 +290,7 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID, 
 		for _, part := range event.Content.Parts {
 			if event.Partial && part.Thought && part.Text != "" {
 				slog.Info("[ AGENT REASONING ]", "text", part.Text)
-				s.bus.Publish(ctx, domain.NewCubeAgentReasoningEvent(id.Hex(), part.Text))
+				s.bus.Publish(ctx, domain.NewCubeAgentReasoningEvent(id, part.Text))
 				continue
 			}
 
@@ -307,9 +306,9 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID, 
 	}
 
 	if agentCTX.Err() == context.DeadlineExceeded {
-		slog.Info("agent timed out", "id", id.Hex(), "max_duration_ms", cube.MaxDurationMS)
+		slog.Info("agent timed out", "id", id, "max_duration_ms", cube.MaxDurationMS)
 
-		s.bus.Publish(ctx, domain.NewCubeAgentTimeoutEvent(id.Hex()))
+		s.bus.Publish(ctx, domain.NewCubeAgentTimeoutEvent(id))
 
 		return "", fmt.Errorf("agent timed out after %s: %w", timeout, agentCTX.Err())
 	}
@@ -318,7 +317,7 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id primitive.ObjectID, 
 }
 
 // StopAgent - stops a running agent for the given cube ID and updates its status to stopped.
-func (s RubiksCubeService) StopAgent(ctx context.Context, id primitive.ObjectID) error {
+func (s RubiksCubeService) StopAgent(ctx context.Context, id string) error {
 	existing, err := s.repository.GetRubiksCubeByID(ctx, id)
 	if err != nil {
 		return err
@@ -328,7 +327,7 @@ func (s RubiksCubeService) StopAgent(ctx context.Context, id primitive.ObjectID)
 		return domain.RubiksCubeNotFoundError
 	}
 
-	if err := s.agentHub.Stop(id.Hex()); err != nil {
+	if err := s.agentHub.Stop(id); err != nil {
 		return err
 	}
 

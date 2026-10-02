@@ -7,12 +7,10 @@ import (
 	"agent-cube/internal/domain"
 	"agent-cube/internal/pkg/event"
 	"agent-cube/internal/pkg/websocket"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type rubiksCubeService interface {
-	UpdateRubiksCubeStatus(ctx context.Context, id primitive.ObjectID, status domain.RubiksCubeStatus) (*domain.RubiksCube, error)
+	UpdateRubiksCubeStatus(ctx context.Context, id string, status domain.RubiksCubeStatus) (*domain.RubiksCube, error)
 }
 
 type Consumer struct {
@@ -54,13 +52,12 @@ func (c *Consumer) Start() {
 			return
 		}
 
-		id, err := primitive.ObjectIDFromHex(payload.CubeID)
-		if err != nil {
-			slog.Error("invalid cube id", "event_type", e.Type, "cube_id", payload.CubeID, "error", err)
+		if payload.CubeID == "" {
+			slog.Error("invalid cube id", "event_type", e.Type, "cube_id", payload.CubeID)
 			return
 		}
 
-		if _, err := c.svc.UpdateRubiksCubeStatus(context.Background(), id, domain.RubiksCubeStatusTimedOut); err != nil {
+		if _, err := c.svc.UpdateRubiksCubeStatus(context.Background(), payload.CubeID, domain.RubiksCubeStatusTimedOut); err != nil {
 			slog.Error("failed to update rubiks cube status to timed_out", "cube_id", payload.CubeID, "error", err)
 			return
 		}

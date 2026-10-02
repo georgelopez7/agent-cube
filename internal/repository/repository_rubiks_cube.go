@@ -10,7 +10,6 @@ import (
 
 	xmongo "agent-cube/internal/pkg/mongo"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -49,7 +48,7 @@ func (r *Repository) UpdateRubiksCube(ctx context.Context, cube *domain.RubiksCu
 }
 
 // UpdateRubiksCubeStatus - updates only the status (and updated_at) of a rubiks cube by ID.
-func (r *Repository) UpdateRubiksCubeStatus(ctx context.Context, id primitive.ObjectID, status domain.RubiksCubeStatus) error {
+func (r *Repository) UpdateRubiksCubeStatus(ctx context.Context, id string, status domain.RubiksCubeStatus) error {
 	collection := r.mongo.GetCollection(xmongo.RubiksCubes)
 
 	filter := bson.M{"_id": id}
@@ -75,7 +74,7 @@ func (r *Repository) UpdateRubiksCubeStatus(ctx context.Context, id primitive.Ob
 // MarkRubiksCubeInvoked - records the invocation time of a rubiks cube and
 // transitions it to in_progress. This is the sole writer of invoked_at and is
 // called only from RubiksCubeService.RunAgent.
-func (r *Repository) MarkRubiksCubeInvoked(ctx context.Context, id primitive.ObjectID, invokedAt time.Time) error {
+func (r *Repository) MarkRubiksCubeInvoked(ctx context.Context, id string, invokedAt time.Time) error {
 	collection := r.mongo.GetCollection(xmongo.RubiksCubes)
 
 	filter := bson.M{"_id": id}
@@ -100,7 +99,7 @@ func (r *Repository) MarkRubiksCubeInvoked(ctx context.Context, id primitive.Obj
 }
 
 // UpdateRubiksCubeUsage - updates only the cumulative token usage (and total cost) of a rubiks cube by ID.
-func (r *Repository) UpdateRubiksCubeUsage(ctx context.Context, id primitive.ObjectID, usage domain.TokenUsage, totalCost float64) error {
+func (r *Repository) UpdateRubiksCubeUsage(ctx context.Context, id string, usage domain.TokenUsage, totalCost float64) error {
 	collection := r.mongo.GetCollection(xmongo.RubiksCubes)
 
 	filter := bson.M{"_id": id}
@@ -125,7 +124,7 @@ func (r *Repository) UpdateRubiksCubeUsage(ctx context.Context, id primitive.Obj
 }
 
 // GetRubiksCubeByID - retrieves a rubiks cube by its ID.
-func (r *Repository) GetRubiksCubeByID(ctx context.Context, id primitive.ObjectID) (*domain.RubiksCube, error) {
+func (r *Repository) GetRubiksCubeByID(ctx context.Context, id string) (*domain.RubiksCube, error) {
 	collection := r.mongo.GetCollection(xmongo.RubiksCubes)
 
 	filter := bson.M{"_id": id}
@@ -143,7 +142,7 @@ func (r *Repository) GetRubiksCubeByID(ctx context.Context, id primitive.ObjectI
 }
 
 // DeleteRubiksCubeByID - deletes a rubiks cube by its ID.
-func (r *Repository) DeleteRubiksCubeByID(ctx context.Context, id primitive.ObjectID) error {
+func (r *Repository) DeleteRubiksCubeByID(ctx context.Context, id string) error {
 	collection := r.mongo.GetCollection(xmongo.RubiksCubes)
 
 	filter := bson.M{"_id": id}

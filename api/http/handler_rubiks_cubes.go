@@ -9,7 +9,6 @@ import (
 	xcube "agent-cube/internal/pkg/cube"
 
 	"github.com/danielgtaylor/huma/v2"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // CreateRubiksCubeHandler - creates a new rubiks cube.
@@ -24,14 +23,13 @@ func (s *Server) CreateRubiksCubeHandler(ctx context.Context, input *CreateRubik
 	return resp, nil
 }
 
-// GetRubiksCubeByIDHandler - retrieves a rubiks cube by its hex ID.
+// GetRubiksCubeByIDHandler - retrieves a rubiks cube by its ID.
 func (s *Server) GetRubiksCubeByIDHandler(ctx context.Context, input *GetRubiksCubeByIDInput) (*GetRubiksCubeByIDResponse, error) {
-	id, err := primitive.ObjectIDFromHex(input.ID)
-	if err != nil {
+	if input.ID == "" {
 		return nil, huma.Error400BadRequest("invalid rubiks cube id")
 	}
 
-	cube, err := s.svc.GetRubiksCubeByID(ctx, id)
+	cube, err := s.svc.GetRubiksCubeByID(ctx, input.ID)
 	switch err {
 	case nil:
 		resp := &GetRubiksCubeByIDResponse{}
@@ -46,13 +44,12 @@ func (s *Server) GetRubiksCubeByIDHandler(ctx context.Context, input *GetRubiksC
 
 // UpdateRubiksCubeHandler - updates an existing rubiks cube.
 func (s *Server) UpdateRubiksCubeHandler(ctx context.Context, input *UpdateRubiksCubeInput) (*UpdateRubiksCubeResponse, error) {
-	id, err := primitive.ObjectIDFromHex(input.ID)
-	if err != nil {
+	if input.ID == "" {
 		return nil, huma.Error400BadRequest("invalid rubiks cube id")
 	}
 
 	cube := &domain.RubiksCube{
-		ID:     id,
+		ID:     input.ID,
 		LLM:    input.Body.LLM,
 		Status: input.Body.Status,
 		Cube:   input.Body.Cube,
@@ -74,12 +71,11 @@ func (s *Server) UpdateRubiksCubeHandler(ctx context.Context, input *UpdateRubik
 
 // UpdateRubiksCubeStatusHandler - updates only the status of a rubiks cube by ID.
 func (s *Server) UpdateRubiksCubeStatusHandler(ctx context.Context, input *UpdateRubiksCubeStatusInput) (*UpdateRubiksCubeStatusResponse, error) {
-	id, err := primitive.ObjectIDFromHex(input.ID)
-	if err != nil {
+	if input.ID == "" {
 		return nil, huma.Error400BadRequest("invalid rubiks cube id")
 	}
 
-	cube, err := s.svc.UpdateRubiksCubeStatus(ctx, id, input.Body.Status)
+	cube, err := s.svc.UpdateRubiksCubeStatus(ctx, input.ID, input.Body.Status)
 	switch err {
 	case nil:
 		resp := &UpdateRubiksCubeStatusResponse{}
@@ -94,14 +90,13 @@ func (s *Server) UpdateRubiksCubeStatusHandler(ctx context.Context, input *Updat
 	}
 }
 
-// DeleteRubiksCubeHandler - deletes a rubiks cube by its hex ID.
+// DeleteRubiksCubeHandler - deletes a rubiks cube by its ID.
 func (s *Server) DeleteRubiksCubeHandler(ctx context.Context, input *DeleteRubiksCubeInput) (*DeleteRubiksCubeResponse, error) {
-	id, err := primitive.ObjectIDFromHex(input.ID)
-	if err != nil {
+	if input.ID == "" {
 		return nil, huma.Error400BadRequest("invalid rubiks cube id")
 	}
 
-	if err := s.svc.DeleteRubiksCubeByID(ctx, id); err != nil {
+	if err := s.svc.DeleteRubiksCubeByID(ctx, input.ID); err != nil {
 		switch err {
 		case domain.RubiksCubeNotFoundError:
 			return nil, huma.Error404NotFound("rubiks cube not found")
@@ -127,8 +122,7 @@ func (s *Server) GetAllRubiksCubesHandler(ctx context.Context, input *GetAllRubi
 
 // ApplyRubiksCubeRotationHandler - applies a rotation to a rubiks cube.
 func (s *Server) ApplyRubiksCubeRotationHandler(ctx context.Context, input *ApplyRubiksCubeRotationInput) (*ApplyRubiksCubeRotationResponse, error) {
-	id, err := primitive.ObjectIDFromHex(input.ID)
-	if err != nil {
+	if input.ID == "" {
 		return nil, huma.Error400BadRequest("invalid rubiks cube id")
 	}
 
@@ -136,7 +130,7 @@ func (s *Server) ApplyRubiksCubeRotationHandler(ctx context.Context, input *Appl
 		return nil, huma.Error400BadRequest("invalid rotation")
 	}
 
-	cube, err := s.svc.ApplyRubiksCubeRotation(ctx, id, input.Body.Rotation)
+	cube, err := s.svc.ApplyRubiksCubeRotation(ctx, input.ID, input.Body.Rotation)
 	switch err {
 	case nil:
 		resp := &ApplyRubiksCubeRotationResponse{}
@@ -153,12 +147,11 @@ func (s *Server) ApplyRubiksCubeRotationHandler(ctx context.Context, input *Appl
 
 // IsRubiksCubeSolvedHandler - checks whether a rubiks cube is solved.
 func (s *Server) IsRubiksCubeSolvedHandler(ctx context.Context, input *IsRubiksCubeSolvedInput) (*IsRubiksCubeSolvedResponse, error) {
-	id, err := primitive.ObjectIDFromHex(input.ID)
-	if err != nil {
+	if input.ID == "" {
 		return nil, huma.Error400BadRequest("invalid rubiks cube id")
 	}
 
-	solved, err := s.svc.IsRubiksCubeSolved(ctx, id)
+	solved, err := s.svc.IsRubiksCubeSolved(ctx, input.ID)
 	switch err {
 	case nil:
 		resp := &IsRubiksCubeSolvedResponse{}
@@ -184,16 +177,15 @@ func (s *Server) GetSolvedCubeHandler(ctx context.Context, input *GetSolvedCubeI
 // returns it with that invoked_at. On page refresh the frontend reads invoked_at
 // from the cube record via the GET endpoints.
 func (s *Server) InvokeRubiksCubeAgentHandler(ctx context.Context, input *InvokeRubiksCubeAgentInput) (*InvokeRubiksCubeAgentResponse, error) {
-	id, err := primitive.ObjectIDFromHex(input.ID)
-	if err != nil {
+	if input.ID == "" {
 		return nil, huma.Error400BadRequest("invalid rubiks cube id")
 	}
 
 	invokedAt := time.Now().UTC()
 
-	go s.svc.RunAgent(context.WithoutCancel(ctx), id, invokedAt)
+	go s.svc.RunAgent(context.WithoutCancel(ctx), input.ID, invokedAt)
 
-	cube, err := s.svc.GetRubiksCubeByID(ctx, id)
+	cube, err := s.svc.GetRubiksCubeByID(ctx, input.ID)
 	if err != nil {
 		if err == domain.RubiksCubeNotFoundError {
 			return nil, huma.Error404NotFound("rubiks cube not found")
@@ -211,12 +203,11 @@ func (s *Server) InvokeRubiksCubeAgentHandler(ctx context.Context, input *Invoke
 
 // StopRubiksCubeAgentHandler - stops the Rubik's Cube agent for the given cube ID.
 func (s *Server) StopRubiksCubeAgentHandler(ctx context.Context, input *StopRubiksCubeAgentInput) (*StopRubiksCubeAgentResponse, error) {
-	id, err := primitive.ObjectIDFromHex(input.ID)
-	if err != nil {
+	if input.ID == "" {
 		return nil, huma.Error400BadRequest("invalid rubiks cube id")
 	}
 
-	if err := s.svc.StopAgent(ctx, id); err != nil {
+	if err := s.svc.StopAgent(ctx, input.ID); err != nil {
 		switch err {
 		case domain.RubiksCubeNotFoundError:
 			return nil, huma.Error404NotFound("rubiks cube not found")

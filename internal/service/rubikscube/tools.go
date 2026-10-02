@@ -4,8 +4,6 @@ import (
 	"agent-cube/internal/domain"
 	"agent-cube/internal/pkg/cube"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
-
 	"google.golang.org/adk/v2/agent"
 	"google.golang.org/adk/v2/tool"
 	xtool "google.golang.org/adk/v2/tool/functiontool"
@@ -23,12 +21,7 @@ func (s *RubiksCubeService) GetCubeTool() tool.Tool {
 	}
 
 	_func := func(ctx agent.Context, in input) (*cube.CubeState, error) {
-		cubeID, err := primitive.ObjectIDFromHex(in.ID)
-		if err != nil {
-			return nil, err
-		}
-
-		rubiksCube, err := s.repository.GetRubiksCubeByID(ctx, cubeID)
+		rubiksCube, err := s.repository.GetRubiksCubeByID(ctx, in.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -60,17 +53,12 @@ func (s *RubiksCubeService) RotateCubeTool() tool.Tool {
 	}
 
 	_func := func(ctx agent.Context, in input) (string, error) {
-		cubeID, err := primitive.ObjectIDFromHex(in.ID)
-		if err != nil {
-			return "", err
-		}
-
 		rotation := cube.Rotation(in.Rotation)
 		if !cube.IsValidRotation(rotation) {
 			return "", cube.ErrInvalidRotation
 		}
 
-		_, err = s.ApplyRubiksCubeRotation(ctx, cubeID, rotation)
+		_, err := s.ApplyRubiksCubeRotation(ctx, in.ID, rotation)
 		if err != nil {
 			return "", err
 		}
@@ -95,12 +83,7 @@ func (s *RubiksCubeService) IsCubeSolvedTool() tool.Tool {
 	}
 
 	_func := func(ctx agent.Context, in input) (bool, error) {
-		cubeID, err := primitive.ObjectIDFromHex(in.ID)
-		if err != nil {
-			return false, err
-		}
-
-		return s.IsRubiksCubeSolved(ctx, cubeID)
+		return s.IsRubiksCubeSolved(ctx, in.ID)
 	}
 
 	t, _ := xtool.New(config, _func)
@@ -139,12 +122,7 @@ func (s *RubiksCubeService) SetCubeAsCompletedTool() tool.Tool {
 	}
 
 	_func := func(ctx agent.Context, in input) (string, error) {
-		cubeID, err := primitive.ObjectIDFromHex(in.ID)
-		if err != nil {
-			return "", err
-		}
-
-		_, err = s.UpdateRubiksCubeStatus(ctx, cubeID, domain.RubiksCubeStatusCompleted)
+		_, err := s.UpdateRubiksCubeStatus(ctx, in.ID, domain.RubiksCubeStatusCompleted)
 		if err != nil {
 			return "", err
 		}

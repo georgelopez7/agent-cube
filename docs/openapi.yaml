@@ -262,6 +262,8 @@ components:
           format: uri
           readOnly: true
           type: string
+        cube:
+          $ref: "#/components/schemas/RubiksCube"
         message:
           type: string
       required:
@@ -303,6 +305,9 @@ components:
           $ref: "#/components/schemas/Cube"
         id:
           type: string
+        invoked_at:
+          format: date-time
+          type: string
         llm:
           $ref: "#/components/schemas/LLM"
         max_duration_ms:
@@ -310,15 +315,22 @@ components:
           type: integer
         status:
           type: string
+        total_cost:
+          format: double
+          type: number
         updated_at:
           format: date-time
           type: string
+        usage:
+          $ref: "#/components/schemas/TokenUsage"
       required:
         - id
         - llm
         - status
         - cube
         - max_duration_ms
+        - usage
+        - total_cost
         - created_at
         - updated_at
       type: object
@@ -336,6 +348,29 @@ components:
           type: string
       required:
         - message
+      type: object
+    TokenUsage:
+      additionalProperties: false
+      properties:
+        cached_tokens:
+          format: int64
+          type: integer
+        completion_tokens:
+          format: int64
+          type: integer
+        prompt_tokens:
+          format: int64
+          type: integer
+        reasoning_tokens:
+          format: int64
+          type: integer
+        total_tokens:
+          format: int64
+          type: integer
+      required:
+        - prompt_tokens
+        - completion_tokens
+        - total_tokens
       type: object
     UpdateRubiksCubeInputBody:
       additionalProperties: false

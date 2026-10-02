@@ -9,8 +9,6 @@ import (
 	"agent-cube/internal/domain"
 	"agent-cube/internal/pkg/cube"
 	"agent-cube/internal/pkg/openrouter"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const (
@@ -41,7 +39,7 @@ type DecisionsRotationResponse struct {
 // RunDecisionsAgent - runs the agent for the given cube ID using the cube's decisions model and max duration.
 // Note: invoked_at is stamped solely by RunAgent before delegating here, so this
 // method must not write invoked_at or transition to in_progress itself.
-func (s RubiksCubeService) RunDecisionsAgent(ctx context.Context, id primitive.ObjectID) (string, error) {
+func (s RubiksCubeService) RunDecisionsAgent(ctx context.Context, id string) (string, error) {
 	record, err := s.repository.GetRubiksCubeByID(ctx, id)
 	if err != nil {
 		return "", err
@@ -58,8 +56,8 @@ func (s RubiksCubeService) RunDecisionsAgent(ctx context.Context, id primitive.O
 
 	agentCTX, cancel := context.WithTimeout(context.WithoutCancel(ctx), timeout)
 
-	s.agentHub.Register(id.Hex(), cancel)
-	defer s.agentHub.Deregister(id.Hex())
+	s.agentHub.Register(id, cancel)
+	defer s.agentHub.Deregister(id)
 	defer cancel()
 
 	solved := cube.SolvedCube.RawState()
@@ -75,7 +73,7 @@ func (s RubiksCubeService) RunDecisionsAgent(ctx context.Context, id primitive.O
 		}
 
 		state := DecisionsState{
-			CubeID:         id.Hex(),
+			CubeID:         id,
 			MoveIndex:      moveIndex,
 			Current:        record.Cube.RawState(),
 			SolvedExample:  solved,
@@ -95,7 +93,7 @@ func (s RubiksCubeService) RunDecisionsAgent(ctx context.Context, id primitive.O
 
 			consecutiveErrors++
 
-			slog.Error("jev decision failed", "cube_id", id.Hex(), "move", moveIndex, "error", err)
+			slog.Error("jev decision failed", "cube_id", id, "move", moveIndex, "error", err)
 
 			if consecutiveErrors >= decisionsMaxConsecutiveErrors {
 				return "", fmt.Errorf("jev aborted after %d consecutive errors: %w", consecutiveErrors, err)
@@ -106,7 +104,7 @@ func (s RubiksCubeService) RunDecisionsAgent(ctx context.Context, id primitive.O
 
 		result, err := parseDecisionsResponse(resp)
 		if err != nil {
-			slog.Error("jev returned unusable answer", "cube_id", id.Hex(), "move", moveIndex, "error", err)
+			slog.Error("jev returned unusable answer", "cube_id", id, "move", moveIndex, "error", err)
 			continue
 		}
 
@@ -115,7 +113,7 @@ func (s RubiksCubeService) RunDecisionsAgent(ctx context.Context, id primitive.O
 		s.trackDecisionsUsage(ctx, id, &usage, &totalCost, resp.Usage)
 
 		s.bus.Publish(ctx, domain.NewCubeAgentReasoningEvent(
-			id.Hex(),
+			id,
 			fmt.Sprintf("Jev chose %s (confidence %.2f)", result.Rotation, result.Confidence),
 		))
 
@@ -137,21 +135,21 @@ func (s RubiksCubeService) RunDecisionsAgent(ctx context.Context, id primitive.O
 				return "", err
 			}
 
-			s.bus.Publish(ctx, domain.NewCubeCompletedEvent(id.Hex()))
+			s.bus.Publish(ctx, domain.NewCubeCompletedEvent(id))
 
-			return fmt.Sprintf("Jev solved cube %s in %d moves", id.Hex(), movesApplied), nil
+			return fmt.Sprintf("Jev solved cube %s in %d moves", id, movesApplied), nil
 		}
 	}
 
-	return fmt.Sprintf("Jev applied %d moves without solving cube %s", movesApplied, id.Hex()), nil
+	return fmt.Sprintf("Jev applied %d moves without solving cube %s", movesApplied, id), nil
 }
 
 // StopDecisionsAgent - maps a cancelled agent context to a timeout or stop outcome.
-func (s RubiksCubeService) StopDecisionsAgent(agentCTX context.Context, ctx context.Context, id primitive.ObjectID, timeout time.Duration, movesApplied int) error {
+func (s RubiksCubeService) StopDecisionsAgent(agentCTX context.Context, ctx context.Context, id string, timeout time.Duration, movesApplied int) error {
 	if agentCTX.Err() == context.DeadlineExceeded {
-		slog.Info("jev agent timed out", "id", id.Hex(), "moves_applied", movesApplied)
+		slog.Info("jev agent timed out", "id", id, "moves_applied", movesApplied)
 
-		s.bus.Publish(ctx, domain.NewCubeAgentTimeoutEvent(id.Hex()))
+		s.bus.Publish(ctx, domain.NewCubeAgentTimeoutEvent(id))
 
 		return fmt.Errorf("jev agent timed out after %s: %w", timeout, agentCTX.Err())
 	}
@@ -160,7 +158,7 @@ func (s RubiksCubeService) StopDecisionsAgent(agentCTX context.Context, ctx cont
 }
 
 // trackDecisionsAgentUsage - accumulates token usage and cost into the cube record.
-func (s RubiksCubeService) trackDecisionsUsage(ctx context.Context, id primitive.ObjectID, usage *domain.TokenUsage, totalCost *float64, call openrouter.DecisionsUsage) {
+func (s RubiksCubeService) trackDecisionsUsage(ctx context.Context, id string, usage *domain.TokenUsage, totalCost *float64, call openrouter.DecisionsUsage) {
 	delta := domain.TokenUsage{
 		PromptTokens:     call.InputTokens,
 		CompletionTokens: call.OutputTokens,
@@ -172,17 +170,17 @@ func (s RubiksCubeService) trackDecisionsUsage(ctx context.Context, id primitive
 	*totalCost += call.Cost
 
 	slog.Info("[ USAGE ]",
-		"cube_id", id.Hex(),
+		"cube_id", id,
 		"prompt_tokens", usage.PromptTokens,
 		"completion_tokens", usage.CompletionTokens,
 		"total_tokens", usage.TotalTokens,
 		"total_cost", *totalCost,
 	)
 
-	s.bus.Publish(ctx, domain.NewCubeUsageEvent(id.Hex(), *usage))
+	s.bus.Publish(ctx, domain.NewCubeUsageEvent(id, *usage))
 
 	if err := s.repository.UpdateRubiksCubeUsage(ctx, id, *usage, *totalCost); err != nil {
-		slog.Error("failed to persist rubiks cube usage", "cube_id", id.Hex(), "error", err)
+		slog.Error("failed to persist rubiks cube usage", "cube_id", id, "error", err)
 	}
 }
 

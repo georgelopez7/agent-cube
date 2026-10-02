@@ -8,7 +8,6 @@ import (
 	"agent-cube/internal/pkg/openrouter"
 
 	"github.com/achetronic/adk-utils-go/genai/openai/completions"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 //go:generate mockgen -source=interface.go -destination=test/mocks.go -package=test
@@ -23,11 +22,11 @@ type AgentHub interface {
 type Repository interface {
 	CreateRubiksCube(ctx context.Context, cube domain.RubiksCube) error
 	UpdateRubiksCube(ctx context.Context, cube *domain.RubiksCube) error
-	UpdateRubiksCubeStatus(ctx context.Context, id primitive.ObjectID, status domain.RubiksCubeStatus) error
-	MarkRubiksCubeInvoked(ctx context.Context, id primitive.ObjectID, invokedAt time.Time) error
-	UpdateRubiksCubeUsage(ctx context.Context, id primitive.ObjectID, usage domain.TokenUsage, totalCost float64) error
-	DeleteRubiksCubeByID(ctx context.Context, id primitive.ObjectID) error
-	GetRubiksCubeByID(ctx context.Context, id primitive.ObjectID) (*domain.RubiksCube, error)
+	UpdateRubiksCubeStatus(ctx context.Context, id string, status domain.RubiksCubeStatus) error
+	MarkRubiksCubeInvoked(ctx context.Context, id string, invokedAt time.Time) error
+	UpdateRubiksCubeUsage(ctx context.Context, id string, usage domain.TokenUsage, totalCost float64) error
+	DeleteRubiksCubeByID(ctx context.Context, id string) error
+	GetRubiksCubeByID(ctx context.Context, id string) (*domain.RubiksCube, error)
 	GetAllRubiksCubes(ctx context.Context, limit int64) ([]domain.RubiksCube, error)
 }
 
