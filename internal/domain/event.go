@@ -26,6 +26,8 @@ const (
 	EventCubeRotated        EventType = "cube.rotated"
 	EventCubeAgentReasoning EventType = "cube.agent.reasoning"
 	EventCubeAgentTimeout   EventType = "cube.agent.timeout"
+	EventCubeAgentStopped   EventType = "cube.agent.stopped"
+	EventCubeAgentExit      EventType = "cube.agent.exit"
 	EventCubeCompleted      EventType = "cube.completed"
 	EventCubeUsage          EventType = "cube.usage"
 )
@@ -65,6 +67,32 @@ func NewCubeAgentTimeoutEvent(cubeID string) Event {
 	return Event{
 		Type:    EventCubeAgentTimeout,
 		Payload: CubeAgentTimeoutPayload{CubeID: cubeID},
+	}
+}
+
+// cube.agent.stopped
+type CubeAgentStoppedPayload struct {
+	CubeID string `json:"cube_id"`
+	Reason string `json:"reason,omitempty"`
+}
+
+func NewCubeAgentStoppedEvent(cubeID string, reason string) Event {
+	return Event{
+		Type:    EventCubeAgentStopped,
+		Payload: CubeAgentStoppedPayload{CubeID: cubeID, Reason: reason},
+	}
+}
+
+// cube.agent.exit - agent exited early without completing and without timing out
+type CubeAgentExitPayload struct {
+	CubeID string `json:"cube_id"`
+	Reason string `json:"reason"`
+}
+
+func NewCubeAgentExitEvent(cubeID string, reason string) Event {
+	return Event{
+		Type:    EventCubeAgentExit,
+		Payload: CubeAgentExitPayload{CubeID: cubeID, Reason: reason},
 	}
 }
 

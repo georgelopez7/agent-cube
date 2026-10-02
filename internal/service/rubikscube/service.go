@@ -262,6 +262,14 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id string, invokedAt ti
 				break
 			}
 
+			if agentCTX.Err() == context.Canceled {
+				slog.Info("agent stopped", "id", id)
+				s.bus.Publish(ctx, domain.NewCubeAgentStoppedEvent(id, "agent stopped"))
+				return "", fmt.Errorf("agent stopped: %w", err)
+			}
+
+			slog.Info("agent exited", "id", id, "error", err)
+			s.bus.Publish(ctx, domain.NewCubeAgentExitEvent(id, fmt.Sprintf("agent exited: %v", err)))
 			return "", fmt.Errorf("failed to run agent: %w", err)
 		}
 
@@ -277,6 +285,7 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id string, invokedAt ti
 				"total_tokens", usage.TotalTokens,
 				"total_cost", totalCost,
 			)
+
 			s.bus.Publish(ctx, domain.NewCubeUsageEvent(id, usage))
 			if err := s.repository.UpdateRubiksCubeUsage(ctx, id, usage, totalCost); err != nil {
 				slog.Error("failed to persist rubiks cube usage", "cube_id", id, "error", err)
@@ -313,6 +322,23 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id string, invokedAt ti
 		return "", fmt.Errorf("agent timed out after %s: %w", timeout, agentCTX.Err())
 	}
 
+	if agentCTX.Err() == context.Canceled {
+		slog.Info("agent stopped", "id", id)
+		s.bus.Publish(ctx, domain.NewCubeAgentStoppedEvent(id, "agent stopped"))
+		return "", fmt.Errorf("agent stopped: %w", agentCTX.Err())
+	}
+
+	// Agent returned without calling SetCubeAsCompletedTool and without timing out - it exited early.
+	if current, err := s.repository.GetRubiksCubeByID(ctx, id); err == nil && current != nil && current.Status == domain.RubiksCubeStatusInProgress {
+		reason := finalMsg
+		if reason == "" {
+			reason = "agent exited without completing the cube"
+		}
+
+		slog.Info("agent exited", "id", id)
+		s.bus.Publish(ctx, domain.NewCubeAgentExitEvent(id, reason))
+	}
+
 	return finalMsg, nil
 }
 
@@ -331,7 +357,13 @@ func (s RubiksCubeService) StopAgent(ctx context.Context, id string) error {
 		return err
 	}
 
-	return s.repository.UpdateRubiksCubeStatus(ctx, id, domain.RubiksCubeStatusStopped)
+	if err := s.repository.UpdateRubiksCubeStatus(ctx, id, domain.RubiksCubeStatusStopped); err != nil {
+		return err
+	}
+
+	s.bus.Publish(ctx, domain.NewCubeAgentStoppedEvent(id, "stop requested"))
+
+	return nil
 }
 
 // tokenUsageFromMetadata - converts genai usage metadata into a domain TokenUsage delta.

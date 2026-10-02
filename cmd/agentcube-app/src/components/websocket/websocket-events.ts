@@ -9,6 +9,8 @@ export enum WebSocketEventType {
   CubeRotated = "cube.rotated",
   CubeAgentReasoning = "cube.agent.reasoning",
   CubeAgentTimeout = "cube.agent.timeout",
+  CubeAgentStopped = "cube.agent.stopped",
+  CubeAgentExit = "cube.agent.exit",
   CubeCompleted = "cube.completed",
   CubeUsage = "cube.usage",
 }
@@ -68,6 +70,46 @@ export const CubeAgentTimeoutEventHandler = async (
   SetStatus(event.payload.cube_id, RubiksCubeStatus.TimedOut);
 };
 
+export type CubeAgentStoppedEvent = {
+  type: WebSocketEventType.CubeAgentStopped;
+  payload: {
+    cube_id: string;
+    reason?: string;
+  };
+};
+
+// cube.agent.stopped - manual stop; flips status so Stop button unblocks
+export const CubeAgentStoppedEventHandler = async (
+  event: CubeAgentStoppedEvent,
+) => {
+  const { SetStatus, AppendReasoning } = useRubiksCubeStore.getState();
+
+  if (event.payload.reason) {
+    AppendReasoning(event.payload.cube_id, event.payload.reason);
+  }
+
+  SetStatus(event.payload.cube_id, RubiksCubeStatus.Stopped);
+};
+
+export type CubeAgentExitEvent = {
+  type: WebSocketEventType.CubeAgentExit;
+  payload: {
+    cube_id: string;
+    reason: string;
+  };
+};
+
+// cube.agent.exit - agent exited early without completing/timing out
+export const CubeAgentExitEventHandler = async (
+  event: CubeAgentExitEvent,
+) => {
+  const { SetStatus, AppendReasoning } = useRubiksCubeStore.getState();
+
+  AppendReasoning(event.payload.cube_id, event.payload.reason);
+
+  SetStatus(event.payload.cube_id, RubiksCubeStatus.Stopped);
+};
+
 export type CubeCompletedEvent = {
   type: WebSocketEventType.CubeCompleted;
   payload: {
@@ -101,5 +143,7 @@ export type IEvent =
   | CubeRotatedEvent
   | CubeAgentReasoningEvent
   | CubeAgentTimeoutEvent
+  | CubeAgentStoppedEvent
+  | CubeAgentExitEvent
   | CubeCompletedEvent
   | CubeUsageEvent;

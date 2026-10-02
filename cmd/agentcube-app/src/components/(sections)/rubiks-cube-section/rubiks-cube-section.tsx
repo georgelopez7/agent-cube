@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import RubiksCubeCard from "#/components/(cards)/rubiks-cube-card/rubiks-cube-card";
 import { Skeleton } from "#/components/ui/skeleton";
-import type { RubiksCube } from "#/domain/rubiks-cube";
+import { RubiksCubeStatus, type RubiksCube } from "#/domain/rubiks-cube";
 import {
   DeleteRubiksCubeFn,
   InvokeRubiksCubeAgentFn,
@@ -43,6 +43,10 @@ const RubiksCubeSection = ({
   };
 
   const handleStop = async (id: string) => {
+    // Optimistic update so the Stop button unblocks immediately even if the
+    // cube.agent.stopped WS event is delayed; the event remains source of truth.
+    useRubiksCubeStore.getState().SetStatus(id, RubiksCubeStatus.Stopped);
+
     const { error } = await StopRubiksCubeAgentFn({ data: { id } });
     if (error) {
       toast.error(error);

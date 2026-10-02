@@ -37,8 +37,6 @@ type DecisionsRotationResponse struct {
 }
 
 // RunDecisionsAgent - runs the agent for the given cube ID using the cube's decisions model and max duration.
-// Note: invoked_at is stamped solely by RunAgent before delegating here, so this
-// method must not write invoked_at or transition to in_progress itself.
 func (s RubiksCubeService) RunDecisionsAgent(ctx context.Context, id string) (string, error) {
 	record, err := s.repository.GetRubiksCubeByID(ctx, id)
 	if err != nil {
@@ -69,7 +67,7 @@ func (s RubiksCubeService) RunDecisionsAgent(ctx context.Context, id string) (st
 
 	for moveIndex := 1; moveIndex <= decisionsMaxRotations; moveIndex++ {
 		if agentCTX.Err() != nil {
-			return "", s.StopAgent(agentCTX, id)
+			return "", s.StopDecisionsAgent(agentCTX, ctx, id, timeout, movesApplied)
 		}
 
 		state := DecisionsState{
@@ -88,15 +86,18 @@ func (s RubiksCubeService) RunDecisionsAgent(ctx context.Context, id string) (st
 
 		if err != nil {
 			if agentCTX.Err() != nil {
-				return "", s.StopAgent(agentCTX, id)
+				return "", s.StopDecisionsAgent(agentCTX, ctx, id, timeout, movesApplied)
 			}
 
 			consecutiveErrors++
 
-			slog.Error("jev decision failed", "cube_id", id, "move", moveIndex, "error", err)
+			slog.Error("decisions agent decision failed", "cube_id", id, "move", moveIndex, "error", err)
 
 			if consecutiveErrors >= decisionsMaxConsecutiveErrors {
-				return "", fmt.Errorf("jev aborted after %d consecutive errors: %w", consecutiveErrors, err)
+				reason := fmt.Sprintf("decisions agent aborted after %d consecutive errors: %v", consecutiveErrors, err)
+				slog.Info("agent exited", "id", id, "reason", reason)
+				s.bus.Publish(ctx, domain.NewCubeAgentExitEvent(id, reason))
+				return "", fmt.Errorf("%s", reason)
 			}
 
 			continue
@@ -104,7 +105,7 @@ func (s RubiksCubeService) RunDecisionsAgent(ctx context.Context, id string) (st
 
 		result, err := parseDecisionsResponse(resp)
 		if err != nil {
-			slog.Error("jev returned unusable answer", "cube_id", id, "move", moveIndex, "error", err)
+			slog.Error("decisions agent returned unusable answer", "cube_id", id, "move", moveIndex, "error", err)
 			continue
 		}
 
@@ -114,16 +115,19 @@ func (s RubiksCubeService) RunDecisionsAgent(ctx context.Context, id string) (st
 
 		s.bus.Publish(ctx, domain.NewCubeAgentReasoningEvent(
 			id,
-			fmt.Sprintf("Jev chose %s (confidence %.2f)", result.Rotation, result.Confidence),
+			fmt.Sprintf("decisions agent chose %s (confidence %.2f)", result.Rotation, result.Confidence),
 		))
 
 		updated, err := s.ApplyRubiksCubeRotation(agentCTX, id, cube.Rotation(result.Rotation))
 		if err != nil {
 			if agentCTX.Err() != nil {
-				return "", s.StopAgent(agentCTX, id)
+				return "", s.StopDecisionsAgent(agentCTX, ctx, id, timeout, movesApplied)
 			}
 
-			return "", fmt.Errorf("failed to apply jev rotation %q: %w", result.Rotation, err)
+			reason := fmt.Sprintf("failed to apply decisions agent rotation %q: %v", result.Rotation, err)
+			slog.Info("agent exited", "id", id, "reason", reason)
+			s.bus.Publish(ctx, domain.NewCubeAgentExitEvent(id, reason))
+			return "", fmt.Errorf("%s", reason)
 		}
 
 		record = updated
@@ -137,24 +141,30 @@ func (s RubiksCubeService) RunDecisionsAgent(ctx context.Context, id string) (st
 
 			s.bus.Publish(ctx, domain.NewCubeCompletedEvent(id))
 
-			return fmt.Sprintf("Jev solved cube %s in %d moves", id, movesApplied), nil
+			return fmt.Sprintf("decisions agent solved cube %s in %d moves", id, movesApplied), nil
 		}
 	}
 
-	return fmt.Sprintf("Jev applied %d moves without solving cube %s", movesApplied, id), nil
+	msg := fmt.Sprintf("decisions agent applied %d moves without solving cube %s", movesApplied, id)
+	slog.Info("agent exited", "id", id, "moves_applied", movesApplied)
+	s.bus.Publish(ctx, domain.NewCubeAgentExitEvent(id, msg))
+	return msg, nil
 }
 
 // StopDecisionsAgent - maps a cancelled agent context to a timeout or stop outcome.
 func (s RubiksCubeService) StopDecisionsAgent(agentCTX context.Context, ctx context.Context, id string, timeout time.Duration, movesApplied int) error {
 	if agentCTX.Err() == context.DeadlineExceeded {
-		slog.Info("jev agent timed out", "id", id, "moves_applied", movesApplied)
+		slog.Info("decisions agent timed out", "id", id, "moves_applied", movesApplied)
 
 		s.bus.Publish(ctx, domain.NewCubeAgentTimeoutEvent(id))
 
-		return fmt.Errorf("jev agent timed out after %s: %w", timeout, agentCTX.Err())
+		return fmt.Errorf("decisions agent timed out after %s: %w", timeout, agentCTX.Err())
 	}
 
-	return fmt.Errorf("jev agent stopped after %d moves: %w", movesApplied, agentCTX.Err())
+	slog.Info("decisions agent stopped", "id", id, "moves_applied", movesApplied)
+	s.bus.Publish(ctx, domain.NewCubeAgentStoppedEvent(id, fmt.Sprintf("decisions agent stopped after %d moves", movesApplied)))
+
+	return fmt.Errorf("decisions agent stopped after %d moves: %w", movesApplied, agentCTX.Err())
 }
 
 // trackDecisionsAgentUsage - accumulates token usage and cost into the cube record.
@@ -218,7 +228,7 @@ func parseDecisionsResponse(resp *openrouter.DecisionsResponse) (*DecisionsRotat
 	}
 
 	if !cube.IsValidRotation(cube.Rotation(answer.Choice)) {
-		return nil, fmt.Errorf("jev: invalid rotation %q", answer.Choice)
+		return nil, fmt.Errorf("decisions agent: invalid rotation %q", answer.Choice)
 	}
 
 	return &DecisionsRotationResponse{

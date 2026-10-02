@@ -2,7 +2,9 @@ import { cn } from "cnfast";
 import { Wifi, WifiOff } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
+  CubeAgentExitEventHandler,
   CubeAgentReasoningEventHandler,
+  CubeAgentStoppedEventHandler,
   CubeAgentTimeoutEventHandler,
   CubeCompletedEventHandler,
   CubeRotatedEventHandler,
@@ -44,6 +46,12 @@ const Websocket = ({ debug = false }: WebsocketProps) => {
         case WebSocketEventType.CubeAgentTimeout:
           await CubeAgentTimeoutEventHandler(ev);
           break;
+        case WebSocketEventType.CubeAgentStopped:
+          await CubeAgentStoppedEventHandler(ev);
+          break;
+        case WebSocketEventType.CubeAgentExit:
+          await CubeAgentExitEventHandler(ev);
+          break;
         case WebSocketEventType.CubeCompleted:
           await CubeCompletedEventHandler(ev);
           break;
@@ -51,6 +59,7 @@ const Websocket = ({ debug = false }: WebsocketProps) => {
           await CubeUsageEventHandler(ev);
           break;
         default:
+          console.warn("unknown websocket event", ev);
           break;
       }
     };
