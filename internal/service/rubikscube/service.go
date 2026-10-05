@@ -286,7 +286,7 @@ func (s RubiksCubeService) RunAgent(ctx context.Context, id string, invokedAt ti
 				"total_cost", totalCost,
 			)
 
-			s.bus.Publish(ctx, domain.NewCubeUsageEvent(id, usage))
+			s.bus.Publish(ctx, domain.NewCubeUsageEvent(id, usage, totalCost))
 			if err := s.repository.UpdateRubiksCubeUsage(ctx, id, usage, totalCost); err != nil {
 				slog.Error("failed to persist rubiks cube usage", "cube_id", id, "error", err)
 			}

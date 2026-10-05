@@ -20,7 +20,7 @@ export type RubikCubeStore = {
   AppendReasoning: (id: string, text: string) => void;
   ClearReasoning: (id: string) => void;
   SetStatus: (id: string, status: RubiksCubeStatus) => void;
-  SetUsage: (id: string, usage: TokenUsage) => void;
+  SetUsage: (id: string, usage: TokenUsage, totalCost: number) => void;
   SetInvokedAt: (id: string, invokedAt: string) => void;
   AddRotation: (id: string, rotation: CubeRotation) => void;
 };
@@ -69,7 +69,7 @@ export const useRubiksCubeStore = create<RubikCubeStore>((set, get) => ({
       return { records: next };
     });
   },
-  SetUsage: (id, usage) => {
+  SetUsage: (id, usage, totalCost) => {
     const record = get().records.get(id);
     if (!record) return;
 
@@ -77,7 +77,7 @@ export const useRubiksCubeStore = create<RubikCubeStore>((set, get) => ({
       const next = new Map(state.records);
       next.set(id, {
         ...record,
-        cube: { ...record.cube, usage },
+        cube: { ...record.cube, usage, total_cost: totalCost },
       });
       return { records: next };
     });

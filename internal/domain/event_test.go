@@ -26,14 +26,14 @@ func TestNewCubeAgentReasoningEvent(t *testing.T) {
 
 func TestNewCubeUsageEvent(t *testing.T) {
 	usage := TokenUsage{PromptTokens: 194, CompletionTokens: 2, TotalTokens: 196}
-	event := NewCubeUsageEvent("cube-123", usage)
+	event := NewCubeUsageEvent("cube-123", usage, 0.00014)
 
 	require.Equal(t, EventCubeUsage, event.Type)
-	require.Equal(t, CubeUsagePayload{CubeID: "cube-123", Usage: usage}, event.Payload)
+	require.Equal(t, CubeUsagePayload{CubeID: "cube-123", Usage: usage, TotalCost: 0.00014}, event.Payload)
 
 	raw, err := event.Raw()
 	require.NoError(t, err)
-	require.Equal(t, `{"type":"cube.usage","payload":{"cube_id":"cube-123","usage":{"prompt_tokens":194,"completion_tokens":2,"total_tokens":196}}}`, string(raw))
+	require.Equal(t, `{"type":"cube.usage","payload":{"cube_id":"cube-123","usage":{"prompt_tokens":194,"completion_tokens":2,"total_tokens":196},"total_cost":0.00014}}`, string(raw))
 }
 
 func TestTokenUsageAdd(t *testing.T) {

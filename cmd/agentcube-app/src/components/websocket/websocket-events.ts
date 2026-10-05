@@ -129,6 +129,7 @@ export type CubeUsageEvent = {
   payload: {
     cube_id: string;
     usage: TokenUsage;
+    total_cost: number;
   };
 };
 
@@ -136,7 +137,11 @@ export type CubeUsageEvent = {
 export const CubeUsageEventHandler = async (event: CubeUsageEvent) => {
   const { SetUsage } = useRubiksCubeStore.getState();
 
-  SetUsage(event.payload.cube_id, event.payload.usage);
+  SetUsage(
+    event.payload.cube_id,
+    event.payload.usage,
+    event.payload.total_cost ?? 0,
+  );
 };
 
 export type IEvent =

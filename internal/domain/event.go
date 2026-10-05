@@ -110,13 +110,14 @@ func NewCubeCompletedEvent(cubeID string) Event {
 
 // cube.usage
 type CubeUsagePayload struct {
-	CubeID string     `json:"cube_id"`
-	Usage  TokenUsage `json:"usage"`
+	CubeID    string     `json:"cube_id"`
+	Usage     TokenUsage `json:"usage"`
+	TotalCost float64    `json:"total_cost"`
 }
 
-func NewCubeUsageEvent(cubeID string, usage TokenUsage) Event {
+func NewCubeUsageEvent(cubeID string, usage TokenUsage, totalCost float64) Event {
 	return Event{
 		Type:    EventCubeUsage,
-		Payload: CubeUsagePayload{CubeID: cubeID, Usage: usage},
+		Payload: CubeUsagePayload{CubeID: cubeID, Usage: usage, TotalCost: totalCost},
 	}
 }
