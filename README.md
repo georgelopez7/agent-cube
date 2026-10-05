@@ -1,63 +1,47 @@
-<img src="./docs/assets/hero-section.png" width="100%" alt="Agent Cube hero section" />
+<img src="./docs/assets/agentcube-recording.gif" width="100%" alt="Agent Cube demo recording" />
 
 An application to test the **Rubik's Cube** solving capabilities of **Large Language Models (LLMs).**
 
-## Technologies
-
-- [TanStack](https://tanstack.com)
-- [Go](https://go.dev)
-- [Google ADK](https://google.github.io/adk/)
-- [OpenRouter](https://openrouter.ai)
-- [Arize Phoenix](https://phoenix.arize.com/)
-
 ## Getting Started
 
-**1. Copy the environment variables from `.env.sample`:**
+**Copy environment variables:**
 
 ```bash
 cp .env.sample .env
+
+OPENROUTER_API_KEY=<add-openrouter-api-key>
 ```
 
-**2. Open `.env` and fill in the required values:**
-
-| Variable | Action |
-|---|---|
-| `OPENROUTER_API_KEY` | Visit [OpenRouter](https://openrouter.ai), generate an API key, and set this value. |
-
-**3. Spin up the services:**
+**Spin up services:**
 
 ```bash
-podman compose -f dev.docker-compose.yaml up --build -d
+make run
 ```
 
 This following services will be available:
 
 | Service | URL |
 |---|---|
-| Agent Cube | [http://localhost:3001](http://localhost:3001) |
+| Agent Cube App | [http://localhost:3000](http://localhost:3000) |
+| Agent Cube API | [http://localhost:8080](http://localhost:8080) |
 | Arize Phoenix | [http://localhost:6006](http://localhost:6006) |
 
-Go to [http://localhost:3001](http://localhost:3001) - create a **Rubik's Cube** and watch the **agent** attempt to solve it!
+Go to [Agent Cube App](http://localhost:3000) - create a **Rubik's Cube** and watch the **agent** attempt to **solve it!**
 
-**4. (Optional) Extend the suite of large language models:**
+## Features
 
-The list of supported LLMs is defined in [`internal/domain/ai.go`](./internal/domain/ai.go).
+#### Stream Agent Reasoning
 
-Add a new entry to the `LLMs` slice to include another model:
+Stream agent reasoning to see live reasoning from the LLM.
 
-```go
-var LLMs = []LLM{
-	NewLLM("openai", "openai/gpt-5.4-mini"),
-	NewLLM("anthropic", "anthropic/claude-haiku-4.5"),
-	NewLLM("google", "google/gemini-3.1-flash-lite"),
-	NewLLM("moonshot", "moonshotai/kimi-k2.7-code"),
-	NewLLM("x-ai", "x-ai/grok-4.3"),
-	NewLLM("deepseek", "deepseek/deepseek-v4-pro"),
-}
-```
+<img src="./docs/assets/agentcube-reasoning.png" width="400" alt="Live agent reasoning stream" />
 
-Then run the **build** command again:
+#### Token and Cost Tracking
 
-```bash
-podman compose -f dev.docker-compose.yaml up --build -d
-```
+Token and cost tracking in both the app and through **Arize**.
+
+<img src="./docs/assets/agentcube-usage.png" width="400" alt="Token and cost tracking" />
+
+#### Decisions API Support
+
+Support for models like Jev through the Decisions API.

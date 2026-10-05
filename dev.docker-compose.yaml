@@ -1,5 +1,5 @@
 services:
-  agentcube-api:
+  api:
     build:
       context: .
       dockerfile: ./cmd/agentcube-api/Dockerfile
