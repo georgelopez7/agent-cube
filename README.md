@@ -15,7 +15,7 @@ OPENROUTER_API_KEY=<add-openrouter-api-key>
 **Spin up services:**
 
 ```bash
-make run
+docker compose up --build -d
 ```
 
 This following services will be available:
