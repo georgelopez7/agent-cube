@@ -24,7 +24,6 @@ type DecisionsState struct {
 	MoveIndex      int            `json:"move_number"`
 	Current        cube.CubeState `json:"current"`
 	SolvedExample  cube.CubeState `json:"solved_example"`
-	UnsolvedPieces []string       `json:"unsolved_pieces"`
 	RecentMoves    []string       `json:"recent_moves"`
 	Goal           string         `json:"goal"`
 	ValidRotations []string       `json:"valid_rotations"`
@@ -76,7 +75,7 @@ func (s RubiksCubeService) RunDecisionsAgent(ctx context.Context, id string) (st
 			Current:        record.Cube.RawState(),
 			SolvedExample:  solved,
 			RecentMoves:    record.Cube.Rotations.FilterScrambles().ToString(),
-			Goal:           "Solve the cube. Pick the single rotation that fixes the most unsolved pieces compared to the solved example. Do not undo recent moves unless it fixes new piecer.svc.",
+			Goal:           "Solve the cube. Pick the single rotation that fixes the most mismatched stickers compared to the solved example. Do not undo recent moves unless it fixes new pieces.",
 			ValidRotations: cube.PossibleRotations.ToString(),
 		}
 
@@ -198,7 +197,7 @@ func (s RubiksCubeService) trackDecisionsUsage(ctx context.Context, id string, u
 func buildDecisions() openrouter.ChoiceQuestion {
 	return openrouter.ChoiceQuestion{
 		Type:         "choice",
-		Instructions: "Which single rotation best progresses this Rubik's cube toward the solved example? Compare current stickers to the solved example and unsolved pieces, prefer moves that fix the most mismatched stickers without undoing recent progress.",
+		Instructions: "Which single rotation best progresses this Rubik's cube toward the solved example? Compare current stickers to the solved example.",
 		Criteria: map[string]string{
 			"F":  "Front face clockwise: use when front-layer stickers move closer to solved.",
 			"F'": "Front face counter-clockwise: use when front-layer stickers move closer to solved.",
