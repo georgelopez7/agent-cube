@@ -1,19 +1,28 @@
-.PHONY: test gen-openapi run-frontend seed-db run-backend
+.PHONY: test gen-mocks gen-openapi seed dev dev-down storybook
+
+BASE_URL ?= http://localhost:8080
+PODMAN_DOCKER_HOST := $(shell tools/_bash/podman.sh 2>/dev/null || true)
+
+dev: # [ make dev ]
+	$(PODMAN_DOCKER_HOST) podman compose -f dev.docker-compose.yaml up --build -d --wait
+	@echo ""
+	@cd cmd/agentcube-app && bun --env-file=.env.development --bun run dev
+
+dev-down: # [ make dev-down ]
+	$(PODMAN_DOCKER_HOST) podman compose -f dev.docker-compose.yaml down -v
+	@echo ""
 
 test: # [ make test ]
-	$(MAKE) -C backend test
+	$(PODMAN_DOCKER_HOST) TESTCONTAINERS_RYUK_DISABLED=true go test -cover ./...
+
+gen-mocks: # [ make gen-mocks ]
+	go generate ./...
 
 gen-openapi: # [ make gen-openapi ]
-	$(MAKE) -C backend gen-openapi
+	go run ./scripts/gen-openapi/gen-openapi.go openapi > docs/openapi.yaml
 
-seed-db: # [ make seed-db ]
-	$(MAKE) -C backend seed-db
+seed: # [ make seed ]
+	@hurl --test --no-output --variable host=$(BASE_URL) tools/_hurl/seed.hurl
 
-run-frontend: # [ make run-frontend ]
-	cd frontend && bun dev
-
-run-storybook: # [ make run-storybook ]
-	cd frontend && bun storybook
-
-run-backend: # [ make run-backend ]
-	docker compose --profile backend up -d
+storybook: # [ make storybook ]
+	cd cmd/agentcube-app && bun storybook

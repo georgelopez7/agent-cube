@@ -8,6 +8,7 @@
 .env
 .env*
 !.env.sample
+!cmd/agentcube-app/.env.development
 
 # --- Python (agent) ---
 __pycache__/
@@ -17,7 +18,7 @@ wheels/
 .venv
 .ruff_cache
 
-# --- Go (backend) ---
+# --- Go ---
 *.exe
 *.exe~
 *.dll
@@ -27,9 +28,8 @@ wheels/
 *.out
 go.work
 go.work.sum
-/backend/agent-cube
-/backend/gen-openapi
-/backend/seed-db
+/agent-cube
+/gen-openapi
 
 # --- Build output ---
 bin/
@@ -58,3 +58,5 @@ todos.json
 
 *storybook.log
 storybook-static
+
+_deps

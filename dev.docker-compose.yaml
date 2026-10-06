@@ -1,21 +1,4 @@
 services:
-  app:
-    build:
-      context: ./cmd/agentcube-app
-      dockerfile: Dockerfile
-      args:
-        VITE_WEBSOCKET_URL: ws://localhost:8080/api/v1/ws
-        VITE_SITE_URL: http://localhost:3000
-        VITE_GITHUB_URL: https://github.com/georgelopez7/agent-cube
-        VITE_X_URL: https://x.com/xgeloop
-    ports:
-      - "3000:3000"
-    environment:
-      PORT: 3000
-    depends_on:
-      api:
-        condition: service_started
-
   api:
     build:
       context: .
@@ -27,7 +10,7 @@ services:
       PORT: 8080
       MONGODB_URI: mongodb://user:password@mongo:27017/agentcube-db?authSource=admin
       MONGODB_DB: agentcube-db
-      WEBSOCKET_ALLOWED_ORIGINS: http://app:3000,http://localhost:3000,http://localhost:3001,http://localhost:3002
+      WEBSOCKET_ALLOWED_ORIGINS: http://agent-cube-app:3000,http://localhost:3000,http://localhost:3001,http://localhost:3002
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?OPENROUTER_API_KEY must be set in .env}
       OPENROUTER_BASE_URL: https://openrouter.ai/api/v1
       OPENROUTER_HTTP_REFERRER: http://localhost:3001

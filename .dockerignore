@@ -1,0 +1,49 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Editor / IDE
+.idea
+.vscode
+.DS_Store
+
+# Environment / secrets
+.env
+.env.*
+*.local
+
+# Non-Go applications and local services
+cmd/agentcube-app
+
+# Documentation and local tooling
+docs
+scripts
+tools
+
+# Build / test artifacts
+bin
+dist
+out
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.txt
+coverage.html
+
+# Test folders
+**/test
+**/*_test.go
+**/testdata
+**/testdata/**
+
+# Caches
+vendor
+.cache
+
+# Build tooling
+Makefile

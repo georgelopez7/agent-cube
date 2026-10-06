@@ -1,0 +1,188 @@
+package cube
+
+import (
+	"errors"
+	"slices"
+	"time"
+)
+
+var ErrInvalidRotation = errors.New("INVALID_ROTATION")
+
+type Cube struct {
+	Centers   map[Face]Cubie   `json:"centers" bson:"centers"`
+	Edges     map[string]Cubie `json:"edges" bson:"edges"`
+	Corners   map[string]Cubie `json:"corners" bson:"corners"`
+	Rotations CubeRotations    `json:"rotations" bson:"rotations"`
+}
+
+func NewCube() Cube {
+	c, _ := SolvedCube.clone()
+	return *c
+}
+
+type CubeState struct {
+	Centers map[Face]Cubie   `json:"centers" bson:"centers"`
+	Edges   map[string]Cubie `json:"edges" bson:"edges"`
+	Corners map[string]Cubie `json:"corners" bson:"corners"`
+}
+
+// RawState - returns the raw state of the cube.
+func (c *Cube) RawState() CubeState {
+	return CubeState{
+		Centers: c.Centers,
+		Edges:   c.Edges,
+		Corners: c.Corners,
+	}
+}
+
+type Face string
+
+const (
+	FaceF Face = "F"
+	FaceB Face = "B"
+	FaceU Face = "U"
+	FaceD Face = "D"
+	FaceL Face = "L"
+	FaceR Face = "R"
+)
+
+type FaceColor string
+
+const (
+	White  FaceColor = "white"
+	Yellow FaceColor = "yellow"
+	Orange FaceColor = "orange"
+	Red    FaceColor = "red"
+	Blue   FaceColor = "blue"
+	Green  FaceColor = "green"
+)
+
+type Rotation string
+
+const (
+	RotationF  Rotation = "F"
+	RotationF_ Rotation = "F'"
+	RotationB  Rotation = "B"
+	RotationB_ Rotation = "B'"
+	RotationU  Rotation = "U"
+	RotationU_ Rotation = "U'"
+	RotationD  Rotation = "D"
+	RotationD_ Rotation = "D'"
+	RotationL  Rotation = "L"
+	RotationL_ Rotation = "L'"
+	RotationR  Rotation = "R"
+	RotationR_ Rotation = "R'"
+)
+
+type Rotations []Rotation
+
+var PossibleRotations = Rotations{
+	RotationF,
+	RotationF_,
+	RotationB,
+	RotationB_,
+	RotationU,
+	RotationU_,
+	RotationD,
+	RotationD_,
+	RotationL,
+	RotationL_,
+	RotationR,
+	RotationR_,
+}
+
+func (r Rotations) ToString() []string {
+	out := make([]string, 0, len(r))
+	for _, rot := range r {
+		out = append(out, string(rot))
+	}
+	return out
+}
+
+// IsValidRotation - returns true if the rotation is a valid cube rotation.
+func IsValidRotation(rotation Rotation) bool {
+	return slices.Contains(PossibleRotations, rotation)
+}
+
+type CubeRotation struct {
+	Rotation     Rotation  `json:"rotation" bson:"rotation"`
+	Index        int       `json:"index" bson:"index"`
+	FromScramble bool      `json:"from_scramble" bson:"from_scramble"`
+	CreatedAt    time.Time `json:"created_at" bson:"created_at"`
+}
+
+func NewCubeRotation(index int, rotation Rotation, fromScramble bool) CubeRotation {
+	return CubeRotation{
+		Rotation:     rotation,
+		Index:        index,
+		FromScramble: fromScramble,
+		CreatedAt:    time.Now().UTC(),
+	}
+}
+
+type CubeRotations []CubeRotation
+
+func (r CubeRotations) ToString() []string {
+	out := make([]string, 0, len(r))
+	for _, rot := range r {
+		out = append(out, string(rot.Rotation))
+	}
+	return out
+}
+
+func (r CubeRotations) FilterScrambles() CubeRotations {
+	out := make(CubeRotations, 0, len(r))
+	for _, rot := range r {
+		if !rot.FromScramble {
+			out = append(out, rot)
+		}
+	}
+	return out
+}
+
+// Stickers - maps a face to the color shown on that face of the cubie.
+type Stickers map[Face]FaceColor
+
+// Cubie - represents a single cube of the cube.
+type Cubie struct {
+	Stickers Stickers `json:"stickers"`
+}
+
+// SolvedCube - a solved cube
+var SolvedCube = Cube{
+	Centers: map[Face]Cubie{
+		FaceF: {Stickers: Stickers{FaceF: Green}},
+		FaceB: {Stickers: Stickers{FaceB: Blue}},
+		FaceR: {Stickers: Stickers{FaceR: Red}},
+		FaceL: {Stickers: Stickers{FaceL: Orange}},
+		FaceU: {Stickers: Stickers{FaceU: White}},
+		FaceD: {Stickers: Stickers{FaceD: Yellow}},
+	},
+	Edges: map[string]Cubie{
+		"UF": {Stickers: Stickers{FaceU: White, FaceF: Green}},
+		"UR": {Stickers: Stickers{FaceU: White, FaceR: Red}},
+		"UB": {Stickers: Stickers{FaceU: White, FaceB: Blue}},
+		"UL": {Stickers: Stickers{FaceU: White, FaceL: Orange}},
+
+		"FR": {Stickers: Stickers{FaceF: Green, FaceR: Red}},
+		"FL": {Stickers: Stickers{FaceF: Green, FaceL: Orange}},
+		"BR": {Stickers: Stickers{FaceB: Blue, FaceR: Red}},
+		"BL": {Stickers: Stickers{FaceB: Blue, FaceL: Orange}},
+
+		"DF": {Stickers: Stickers{FaceD: Yellow, FaceF: Green}},
+		"DR": {Stickers: Stickers{FaceD: Yellow, FaceR: Red}},
+		"DB": {Stickers: Stickers{FaceD: Yellow, FaceB: Blue}},
+		"DL": {Stickers: Stickers{FaceD: Yellow, FaceL: Orange}},
+	},
+	Corners: map[string]Cubie{
+		"UFR": {Stickers: Stickers{FaceU: White, FaceF: Green, FaceR: Red}},
+		"URB": {Stickers: Stickers{FaceU: White, FaceR: Red, FaceB: Blue}},
+		"UBL": {Stickers: Stickers{FaceU: White, FaceB: Blue, FaceL: Orange}},
+		"ULF": {Stickers: Stickers{FaceU: White, FaceL: Orange, FaceF: Green}},
+
+		"DFR": {Stickers: Stickers{FaceD: Yellow, FaceF: Green, FaceR: Red}},
+		"DRB": {Stickers: Stickers{FaceD: Yellow, FaceR: Red, FaceB: Blue}},
+		"DBL": {Stickers: Stickers{FaceD: Yellow, FaceB: Blue, FaceL: Orange}},
+		"DLF": {Stickers: Stickers{FaceD: Yellow, FaceL: Orange, FaceF: Green}},
+	},
+}
