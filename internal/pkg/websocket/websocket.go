@@ -14,6 +14,7 @@ type WebSocketManager struct {
 	upgrader       websocket.Upgrader
 	connections    map[*websocket.Conn]bool
 	mu             sync.RWMutex
+	writeMu        sync.Mutex
 	allowedOrigins []string
 }
 
@@ -65,11 +66,20 @@ func (wm *WebSocketManager) HandleConnection(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-// Broadcast - broadcasts a message
+// Broadcast - broadcasts a message.
 func (wm *WebSocketManager) Broadcast(message []byte) {
+	wm.mu.RLock()
+	conns := make([]*websocket.Conn, 0, len(wm.connections))
 	for conn := range wm.connections {
-		err := conn.WriteMessage(websocket.TextMessage, message)
-		if err != nil {
+		conns = append(conns, conn)
+	}
+	wm.mu.RUnlock()
+
+	wm.writeMu.Lock()
+	defer wm.writeMu.Unlock()
+
+	for _, conn := range conns {
+		if err := conn.WriteMessage(websocket.TextMessage, message); err != nil {
 			slog.Error("Failed to write message to websocket", "error", err)
 			conn.Close()
 

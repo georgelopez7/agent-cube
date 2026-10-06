@@ -32,16 +32,24 @@ Go to [Agent Cube App](http://localhost:3000) - create a **Rubik's Cube** and wa
 
 #### Stream Agent Reasoning
 
-Stream agent reasoning to see live reasoning from the LLM.
-
 <img src="./docs/assets/agentcube-reasoning.png" width="400" alt="Live agent reasoning stream" />
 
 #### Token and Cost Tracking
 
-Token and cost tracking in both the app and through **Arize**.
-
 <img src="./docs/assets/agentcube-usage.png" width="400" alt="Token and cost tracking" />
+
+#### AI Tracing with Arize Phoenix
+
+<img src="./docs/assets/agentcube-tracing.png" width="400" alt="AI tracing with Arize Phoenix" />
 
 #### Decisions API Support
 
-Support for models like Jev through the Decisions API.
+Support for models like **Jev** through the **Decisions API.**
+
+## Demo
+
+<video src="https://pub-c3f719b201ec41e2bddd39eb50e5856d.r2.dev/agentcube-demo.mov" width="100%" controls></video>
+
+## License
+
+Agent Cube is licensed under the **MIT License**. See [LICENSE](./LICENSE) for details.
