@@ -48,7 +48,7 @@ Support for models like **Jev** through the **Decisions API.**
 
 ## Demo
 
-<video src="https://pub-c3f719b201ec41e2bddd39eb50e5856d.r2.dev/agentcube-demo.mov" width="100%" controls></video>
+Watch the demo [**here**](https://georgelopez.co.uk/blogs/agent-cube/#demo).
 
 ## License
 
